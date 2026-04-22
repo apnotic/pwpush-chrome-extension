@@ -6,6 +6,14 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "package": "node scripts/build.mjs",
-    "validate:manifest": "node scripts/validate-manifest.mjs"
+    "validate:manifest": "node scripts/validate-manifest.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:ci": "npm run validate:manifest && npm run test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "vitest": "^4.1.5"
   }
 }

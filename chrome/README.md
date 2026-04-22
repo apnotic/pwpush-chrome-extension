@@ -41,6 +41,27 @@ npm run package
 
 This writes a Chrome Web Store upload ZIP to `dist/password-pusher-connector.zip`.
 
+## Testing
+
+Run checks locally:
+
+```bash
+npm run validate:manifest
+npm test
+```
+
+Optional extension smoke test (Playwright):
+
+```bash
+npm run test:e2e
+```
+
+Notes:
+
+- Unit tests use Vitest (`tests/unit`).
+- E2E smoke tests use Playwright (`tests/e2e`) and are run in CI on Linux.
+- GitHub Actions workflow: `.github/workflows/chrome-extension-tests.yml`.
+
 ## Security notes
 
 - required extension permissions:
