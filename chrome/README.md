@@ -43,7 +43,11 @@ This writes a Chrome Web Store upload ZIP to `dist/password-pusher-connector.zip
 
 ## Security notes
 
-- only `storage` permission is required
-- preset host permissions are pre-granted for official cloud endpoints
-- custom hosts are requested at runtime via optional host permissions
+- required extension permissions:
+  - `storage`: save settings, detected instance metadata, and latest push result
+  - `tabs`: read active tab URL and open created push links
+  - `activeTab` + `scripting`: read highlighted text only when user explicitly clicks **Push selected text**
+- preset host permissions are pre-granted for official cloud endpoints (`oss`, `us`, `eu`)
+- custom hosts are requested at runtime via optional host permissions (`https://*/*`)
+- selected-text capture is on-demand only (no persistent all-pages content script)
 - no remote executable code is loaded

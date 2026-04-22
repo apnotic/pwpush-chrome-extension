@@ -5,7 +5,9 @@
   "version": "0.1.0",
   "permissions": [
     "storage",
-    "tabs"
+    "tabs",
+    "activeTab",
+    "scripting"
   ],
   "host_permissions": [
     "https://oss.pwpush.com/*",
@@ -26,17 +28,5 @@
   "action": {
     "default_title": "Password Pusher",
     "default_popup": "src/popup/popup.html"
-  },
-  "content_scripts": [
-    {
-      "matches": [
-        "http://*/*",
-        "https://*/*"
-      ],
-      "js": [
-        "src/content/selection.js"
-      ],
-      "run_at": "document_idle"
-    }
-  ]
+  }
 }

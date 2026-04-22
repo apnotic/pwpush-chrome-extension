@@ -31,6 +31,7 @@ const DEFAULT_LAST_PUSH_RESULT = {
   shareUrl: "",
   urlToken: "",
   qrSvg: "",
+  qrPngDataUrl: "",
   expiresAt: null,
   expiresIn: null,
   viewsRemaining: null,

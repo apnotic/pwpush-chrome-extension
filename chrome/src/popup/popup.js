@@ -123,13 +123,13 @@ function renderResult(result) {
   elements.resultLink.textContent = result.shareUrl;
   elements.resultMeta.textContent = formatResultMeta(result);
 
-  if (result.qrSvg) {
+  if (result.qrPngDataUrl) {
     elements.qrContainer.classList.remove("hidden");
-    elements.qrContainer.innerHTML = result.qrSvg;
+    renderQrImage(result.qrPngDataUrl);
     elements.downloadQrButton.classList.remove("hidden");
   } else {
     elements.qrContainer.classList.add("hidden");
-    elements.qrContainer.innerHTML = "";
+    elements.qrContainer.textContent = "";
     elements.downloadQrButton.classList.add("hidden");
   }
 }
@@ -171,11 +171,11 @@ async function createFromSelectedText() {
       throw new Error("No active tab found.");
     }
 
-    const response = await chrome.tabs.sendMessage(tab.id, {
-      type: "getSelectedText"
+    const results = await chrome.scripting.executeScript({
+      target: {tabId: tab.id},
+      func: () => window.getSelection ? window.getSelection().toString() : ""
     });
-
-    const selection = ((response && response.text) || "").trim();
+    const selection = ((results && results[0] && results[0].result) || "").trim();
     if (!selection) {
       throw new Error("No text selected. Highlight text on the page and try again.");
     }
@@ -216,6 +216,7 @@ async function createPushFromPayload(payload) {
       shareUrl: data.shareUrl || "",
       urlToken: data.urlToken || "",
       qrSvg: "",
+      qrPngDataUrl: "",
       expiresAt: data.expires_at || null,
       expiresIn: data.expires_in || null,
       viewsRemaining: data.views_remaining || null,
@@ -246,8 +247,15 @@ async function renderQrForLatestPush() {
 
   const updated = await saveLastPushResult({
     ...lastPush,
-    qrSvg
+    qrSvg: "",
+    qrPngDataUrl: await svgToPngDataUrl(qrSvg, 512, 512)
   });
+
+  if (!updated.qrPngDataUrl) {
+    setStatus("Unable to convert QR to PNG.", "error");
+    return;
+  }
+
   state.lastPushResult = updated;
   renderResult(updated);
   setStatus("QR loaded.", "success");
@@ -306,15 +314,10 @@ function buildPreviewUrl(shareUrl) {
 }
 
 async function downloadQrPng() {
-  const svgElement = elements.qrContainer.querySelector("svg");
-  if (!svgElement) {
-    setStatus("Generate QR first.", "error");
-    return;
-  }
-
-  const dataUrl = await svgToPngDataUrl(svgElement.outerHTML, 512, 512);
+  const lastPush = state.lastPushResult || {};
+  const dataUrl = lastPush.qrPngDataUrl || "";
   if (!dataUrl) {
-    setStatus("Unable to convert QR to PNG.", "error");
+    setStatus("Generate QR first.", "error");
     return;
   }
 
@@ -349,6 +352,18 @@ function svgToPngDataUrl(svgMarkup, width, height) {
 
     image.src = blobUrl;
   });
+}
+
+function renderQrImage(dataUrl) {
+  const image = document.createElement("img");
+  image.src = dataUrl;
+  image.alt = "QR code for latest push";
+  image.width = 256;
+  image.height = 256;
+  image.decoding = "async";
+  image.loading = "eager";
+  elements.qrContainer.textContent = "";
+  elements.qrContainer.appendChild(image);
 }
 
 async function persistPushOptions(options) {
@@ -410,6 +425,10 @@ function formatSelectionError(error) {
 
   if (normalized.includes("cannot access contents of")) {
     return "Selected text is unavailable on this page. Open a regular http/https webpage, highlight text, and try again.";
+  }
+
+  if (normalized.includes("cannot access a chrome")) {
+    return "Selected text is unavailable on browser internal pages (chrome://). Open a regular webpage and try again.";
   }
 
   return rawMessage || "Unable to create text push.";
