@@ -343,7 +343,7 @@ function parseApiError(status, data) {
     case 403:
       return "Access is forbidden for this request.";
     case 404:
-      return "This endpoint was not found on the selected server.";
+      return "This endpoint was not found on the selected server. You may need to upgrade your instance to the latest version.";
     default:
       return `Request failed with status ${status}.`;
   }

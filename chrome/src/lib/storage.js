@@ -114,3 +114,11 @@ export async function saveLastPushResult(pushResult) {
   await chrome.storage.local.set({lastPushResult: merged});
   return merged;
 }
+
+export async function clearAllExtensionState() {
+  await chrome.storage.local.set({
+    settings: DEFAULT_SETTINGS,
+    instanceStatus: DEFAULT_INSTANCE_STATUS,
+    lastPushResult: DEFAULT_LAST_PUSH_RESULT
+  });
+}

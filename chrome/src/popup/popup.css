@@ -5,13 +5,13 @@
 body {
   margin: 0;
   font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #eff2f8;
+  background: linear-gradient(180deg, #f7f9fd 0%, #eef2fa 100%);
   color: #1f2633;
 }
 
 .popup {
-  width: 380px;
-  padding: 10px;
+  width: 390px;
+  padding: 10px 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -19,19 +19,26 @@ body {
 
 .card {
   background: #fff;
-  border: 1px solid #d6ddeb;
-  border-radius: 10px;
-  padding: 10px;
+  border: 1px solid #d6dfef;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 8px 24px rgba(43, 58, 93, 0.05);
+}
+
+.brand {
+  border-top: 3px solid #1f5fff;
 }
 
 h1 {
   margin: 0;
-  font-size: 16px;
+  font-size: 15px;
+  font-weight: 700;
 }
 
 h2 {
   margin: 0 0 8px;
   font-size: 14px;
+  font-weight: 700;
 }
 
 .row {
@@ -44,10 +51,22 @@ h2 {
   justify-content: space-between;
 }
 
-.server {
-  margin: 6px 0 8px;
+.logo {
+  width: 170px;
+  max-width: 100%;
+  height: auto;
+}
+
+.subtitle {
+  margin: 8px 0 0;
   font-size: 12px;
-  color: #4c566a;
+  color: #4f5d76;
+}
+
+.server {
+  margin: 8px 0 8px;
+  font-size: 12px;
+  color: #4f5d76;
   word-break: break-all;
 }
 
@@ -55,15 +74,14 @@ h2 {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 8px;
 }
 
 .chip {
   font-size: 11px;
-  border: 1px solid #c4cee2;
+  border: 1px solid #c7d4ed;
   border-radius: 999px;
-  padding: 3px 8px;
-  background: #f6f8fd;
+  padding: 4px 9px;
+  background: #f6f9ff;
 }
 
 .status {
@@ -86,7 +104,7 @@ h2 {
 
 .action-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 8px;
 }
 
@@ -94,8 +112,16 @@ h2 {
   grid-template-columns: 1fr 1fr;
 }
 
+.hint {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: #61708a;
+}
+
 details {
-  margin-top: 10px;
+  margin-top: 12px;
+  border-top: 1px solid #e0e7f5;
+  padding-top: 10px;
 }
 
 summary {
@@ -115,10 +141,11 @@ input[type="number"],
 input[type="password"] {
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid #bcc7dd;
+  border: 1px solid #bccae2;
   border-radius: 6px;
-  padding: 6px 8px;
+  padding: 7px 9px;
   font-size: 12px;
+  background: #fff;
 }
 
 .checkbox {
@@ -134,17 +161,29 @@ input[type="password"] {
 
 button {
   font-size: 12px;
-  padding: 7px 9px;
-  border-radius: 7px;
-  border: 1px solid #bdc9e0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #c1cee8;
   background: #fff;
   cursor: pointer;
+  font-weight: 600;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+button:hover:not(:disabled) {
+  background: #f6f9ff;
+  border-color: #9fb4e2;
 }
 
 button.primary {
   border-color: #1e5dff;
-  background: #1e5dff;
+  background: linear-gradient(180deg, #2a68ff 0%, #1e5dff 100%);
   color: #fff;
+}
+
+button.primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #3d76ff 0%, #245fff 100%);
+  border-color: #1b52dd;
 }
 
 button.ghost {
@@ -158,9 +197,13 @@ button:disabled {
 
 .result-link {
   margin: 0 0 6px;
+  padding: 7px 9px;
   font-size: 12px;
   font-weight: 600;
   word-break: break-all;
+  border: 1px solid #d3ddf0;
+  border-radius: 8px;
+  background: #f8fbff;
 }
 
 .result-meta {
@@ -171,15 +214,15 @@ button:disabled {
 
 .qr-container {
   margin-top: 8px;
-  border: 1px solid #d6ddeb;
-  border-radius: 8px;
-  padding: 8px;
+  border: 1px solid #d6dfef;
+  border-radius: 10px;
+  padding: 10px;
   background: #fbfcff;
 }
 
 .qr-container svg {
-  width: 160px;
-  height: 160px;
+  width: 168px;
+  height: 168px;
   display: block;
   margin: 0 auto;
 }

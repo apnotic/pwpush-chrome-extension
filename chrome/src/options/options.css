@@ -194,7 +194,9 @@ select:disabled {
 }
 
 .actions {
-  margin-top: 14px;
+  border-top: 1px solid #dbe3f1;
+  padding-top: 14px;
+  margin-top: 24px;
   display: flex;
   gap: 8px;
 }
@@ -211,6 +213,13 @@ button.primary {
   background: linear-gradient(180deg, #2968ff 0%, #1f5fff 100%);
   border-color: #1f5fff;
   color: #fff;
+}
+
+button.danger {
+  border-color: #d9b5b5;
+  color: #942222;
+  background: #fff8f8;
+  margin-right: auto;
 }
 
 .status {

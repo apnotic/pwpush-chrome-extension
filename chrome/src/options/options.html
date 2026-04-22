@@ -19,7 +19,8 @@
 
       <section class="card">
         <h2>Server selection</h2>
-        <p class="section-intro">Select your Password Pusher service. Self-hosted supports both OSS and Pro deployments. Hosted options are managed by Apnotic (creators of Password Pusher).</p>
+        <p class="section-intro">Select your Password Pusher service.</p>
+        <p class="section-intro">Self-hosted supports both <a href="https://github.com/pglombardo/PasswordPusher" target="_blank" rel="noreferrer">OSS</a> and <a href="https://pwpush.com/self-hosted-pricing" target="_blank" rel="noreferrer">Pro</a> deployments. Hosted options are managed by <a href="https://apnotic.com" target="_blank" rel="noreferrer">Apnotic</a> (creators of Password Pusher).</p>
 
         <div class="server-tabs" role="tablist" aria-label="Server type">
           <button id="selfHostedTabButton" type="button" class="tab-button active" aria-controls="selfHostedPanel">Self-Hosted</button>
@@ -40,7 +41,7 @@
 
           <label for="customUrl">Custom URL</label>
           <input id="customUrl" name="customUrl" type="url" placeholder="https://pwpush.your-company.com">
-          <p id="selfHostedPolicyNote" class="field-help hidden">Your self-hosted instance defines its own privacy policy and terms.</p>
+          <p id="selfHostedPolicyNote" class="field-help hidden">Enter the URL of your self-hosted Password Pusher instance.</p>
         </div>
 
         <div id="hostedPanel" class="server-panel hidden">
@@ -73,10 +74,12 @@
           </fieldset>
 
           <div id="hostedLegalLinks" class="legal-links hidden">
-            <span>Hosted service policies:</span>
+            <span>See Also:</span>
             <a id="privacyPolicyLink" href="#" target="_blank" rel="noreferrer">Privacy Policy</a>
             <span>•</span>
             <a id="termsOfServiceLink" href="#" target="_blank" rel="noreferrer">Terms of Service</a>
+            <span>•</span>
+            <a href="https://docs.pwpush.com/docs/regions/" target="_blank" rel="noreferrer">Data Regions</a>
           </div>
         </div>
 
@@ -94,6 +97,7 @@
         </div>
 
         <div class="actions">
+          <button id="clearSettingsButton" type="button" class="danger">Clear Configuration</button>
           <button id="testConnectionButton" type="button">Test connection</button>
           <button id="saveButton" type="button" class="primary">Save configuration</button>
         </div>

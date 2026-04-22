@@ -1,6 +1,7 @@
 import {listAccounts, normalizeBaseUrl} from "../lib/api-client.js";
 import {detectInstance} from "../lib/instance-detection.js";
 import {
+  clearAllExtensionState,
   getSettings,
   getInstanceStatus,
   saveInstanceStatus,
@@ -24,6 +25,7 @@ const elements = {
   apiToken: document.querySelector("#apiToken"),
   saveButton: document.querySelector("#saveButton"),
   testConnectionButton: document.querySelector("#testConnectionButton"),
+  clearSettingsButton: document.querySelector("#clearSettingsButton"),
   statusMessage: document.querySelector("#statusMessage"),
   hostedLegalLinks: document.querySelector("#hostedLegalLinks"),
   privacyPolicyLink: document.querySelector("#privacyPolicyLink"),
@@ -63,6 +65,22 @@ async function initialize() {
 
   elements.saveButton.addEventListener("click", async () => {
     await testConnection(true);
+  });
+
+  elements.clearSettingsButton.addEventListener("click", async () => {
+    const confirmed = window.confirm("Clear this configuration and reset detected instance data?");
+    if (!confirmed) {
+      return;
+    }
+
+    await clearAllExtensionState();
+    const settings = await getSettings();
+    const status = await getInstanceStatus();
+    hydrateForm(settings);
+    updateServerSelectionUi();
+    renderStatusBlock(settings, status);
+    renderAccountSection(settings, status);
+    setStatus("Configuration cleared.", "success");
   });
 
   elements.serverChoices.forEach((choice) => {
@@ -179,6 +197,18 @@ async function testConnection(shouldSave) {
     if (!status.connected) {
       setStatus(status.error || "Connection failed.", "error");
       renderStatusBlock({baseUrl}, status);
+      renderAccountSection(existingSettings, status);
+      return;
+    }
+
+    const minimumOssVersion = "2.5.0";
+    if (status.instanceType === "oss" && !isVersionAtLeast(status.applicationVersion, minimumOssVersion)) {
+      const detectedVersion = status.applicationVersion || "unknown";
+      setStatus(
+        `This extension supports OSS Password Pusher ${minimumOssVersion} and newer. Detected version: ${detectedVersion}. Please upgrade your OSS instance and try again.`,
+        "error"
+      );
+      renderStatusBlock({baseUrl, apiToken: userInput.apiToken}, status);
       renderAccountSection(existingSettings, status);
       return;
     }
@@ -408,6 +438,36 @@ async function resolveAccountState({baseUrl, apiToken, presetKey, instanceType, 
 
 function isHostedProPreset(presetKey) {
   return HOSTED_PRO_PRESETS.includes(presetKey);
+}
+
+function isVersionAtLeast(currentVersion, minimumVersion) {
+  const currentParts = normalizeVersionParts(currentVersion);
+  const minimumParts = normalizeVersionParts(minimumVersion);
+
+  for (let index = 0; index < Math.max(currentParts.length, minimumParts.length); index += 1) {
+    const current = currentParts[index] || 0;
+    const minimum = minimumParts[index] || 0;
+
+    if (current > minimum) {
+      return true;
+    }
+
+    if (current < minimum) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function normalizeVersionParts(version) {
+  const numeric = String(version || "")
+    .trim()
+    .split(".")
+    .map((segment) => Number.parseInt(segment.replace(/[^0-9].*$/, ""), 10))
+    .filter((segment) => !Number.isNaN(segment));
+
+  return numeric.length ? numeric : [0, 0, 0];
 }
 
 function formatInstanceType(instanceType) {

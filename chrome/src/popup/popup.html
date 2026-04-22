@@ -8,10 +8,18 @@
   </head>
   <body>
     <main class="popup" id="popupRoot">
+      <section class="card brand">
+        <div class="row between">
+          <img class="logo" src="../options/assets/logo.svg" alt="Password Pusher">
+          <button id="settingsButton" type="button" class="ghost">Settings</button>
+        </div>
+        <p class="subtitle">Securely share links and text with expiring pushes.</p>
+      </section>
+
       <section class="card connection">
         <div class="row between">
-          <h1>Password Pusher</h1>
-          <button id="settingsButton" type="button" class="ghost">Settings</button>
+          <h1>Connection</h1>
+          <button id="recheckButton" type="button" class="ghost">Re-check</button>
         </div>
         <p id="serverValue" class="server">No server configured</p>
         <div class="chip-row">
@@ -19,18 +27,16 @@
           <span class="chip" id="editionValue">Unknown</span>
           <span class="chip" id="apiValue">API ?</span>
         </div>
-        <div class="row">
-          <button id="recheckButton" type="button" class="ghost">Re-check server</button>
-        </div>
       </section>
 
       <section class="card create">
         <h2>Create push</h2>
         <p id="statusMessage" class="status" role="status" aria-live="polite"></p>
         <div class="action-grid">
-          <button id="pushUrlButton" type="button" class="primary">Push current URL</button>
-          <button id="pushSelectionButton" type="button">Push selected text</button>
+          <button id="pushUrlButton" type="button" class="primary">Push Current URL</button>
+          <button id="pushSelectionButton" type="button">Push Selected Text</button>
         </div>
+        <p class="hint">Tip: Highlight text on a webpage before using “Push Selected Text”.</p>
 
         <details id="advancedOptions">
           <summary>More options</summary>
@@ -55,8 +61,8 @@
         <p id="resultLink" class="result-link"></p>
         <p id="resultMeta" class="result-meta"></p>
         <div class="action-grid compact">
-          <button id="copyLinkButton" type="button">Copy link</button>
-          <button id="openLinkButton" type="button">Open link</button>
+          <button id="copyLinkButton" type="button">Copy Link</button>
+          <button id="openLinkButton" type="button">Open Link</button>
           <button id="showQrButton" type="button">Show QR</button>
           <button id="downloadQrButton" type="button" class="hidden">Download QR PNG</button>
         </div>
