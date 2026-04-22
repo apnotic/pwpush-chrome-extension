@@ -1,7 +1,7 @@
 # Chrome Extension QA & Security Review Checklist
 
 Date: 2026-04-23  
-Project: `extensions/chrome`
+Project: `extensions`
 
 Use this checklist to track remediation work in strict priority order.
 

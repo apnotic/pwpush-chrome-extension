@@ -3,20 +3,17 @@ name: Chrome Extension Tests
 on:
   pull_request:
     paths:
-      - "chrome/**"
+      - "**"
       - ".github/workflows/chrome-extension-tests.yml"
   push:
     branches: [main]
     paths:
-      - "chrome/**"
+      - "**"
       - ".github/workflows/chrome-extension-tests.yml"
 
 jobs:
   unit:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: chrome
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,7 +23,7 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: chrome/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -40,9 +37,6 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     needs: unit
-    defaults:
-      run:
-        working-directory: chrome
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -52,7 +46,7 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: chrome/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
         run: npm ci
