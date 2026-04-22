@@ -75,6 +75,38 @@ h2 {
   margin: 0 0 14px;
 }
 
+.server-tabs {
+  display: inline-flex;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid #d8e1f0;
+  background: #f5f8ff;
+}
+
+.tab-button {
+  border: 0;
+  background: transparent;
+  color: #3f4f6b;
+  font-weight: 600;
+  padding: 7px 12px;
+}
+
+.tab-button.active {
+  background: #ffffff;
+  color: #1f5fff;
+  border: 1px solid #cddaf3;
+}
+
+.server-panel {
+  border: 1px solid #d8e1f0;
+  border-radius: 12px;
+  background: #fdfefe;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
 .group-label {
   font-weight: 700;
   margin-bottom: 8px;
@@ -106,7 +138,8 @@ label {
 }
 
 input[type="url"],
-input[type="password"] {
+input[type="password"],
+select {
   width: 100%;
   box-sizing: border-box;
   padding: 10px 12px;
@@ -116,10 +149,28 @@ input[type="password"] {
   color: inherit;
 }
 
+select:disabled {
+  background: #f3f6fc;
+  color: #6a768d;
+}
+
 .field-help {
   margin: 6px 0 0;
   color: #596880;
   font-size: 13px;
+}
+
+.account-section {
+  margin-top: 16px;
+  border: 1px solid #d8e1f0;
+  border-radius: 10px;
+  padding: 12px;
+  background: #fbfcff;
+}
+
+.account-section h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
 }
 
 .legal-links {

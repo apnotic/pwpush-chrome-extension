@@ -19,61 +19,79 @@
 
       <section class="card">
         <h2>Server selection</h2>
-        <p class="section-intro">Select your Password Pusher service. Hosted options are managed by Apnotic. Self-hosted supports both OSS and Pro deployments.</p>
+        <p class="section-intro">Select your Password Pusher service. Self-hosted supports both OSS and Pro deployments. Hosted options are managed by Apnotic (creators of Password Pusher).</p>
 
-        <fieldset class="choices">
-          <legend class="group-label">Hosted by Apnotic, LLC</legend>
-
-          <label class="choice-card">
-            <input type="radio" name="serverChoice" value="us">
-            <span>
-              <strong>us.pwpush.com (Pro)</strong>
-              <small>US region hosting with Password Pusher Pro features.</small>
-            </span>
-          </label>
-
-          <label class="choice-card">
-            <input type="radio" name="serverChoice" value="eu">
-            <span>
-              <strong>eu.pwpush.com (Pro)</strong>
-              <small>EU region hosting with Password Pusher Pro features.</small>
-            </span>
-          </label>
-
-          <label class="choice-card">
-            <input type="radio" name="serverChoice" value="oss">
-            <span>
-              <strong>oss.pwpush.com (OSS)</strong>
-              <small>Public open source service managed by Apnotic.</small>
-            </span>
-          </label>
-        </fieldset>
-
-        <div id="hostedLegalLinks" class="legal-links hidden">
-          <span>Hosted service policies:</span>
-          <a id="privacyPolicyLink" href="#" target="_blank" rel="noreferrer">Privacy Policy</a>
-          <span>•</span>
-          <a id="termsOfServiceLink" href="#" target="_blank" rel="noreferrer">Terms of Service</a>
+        <div class="server-tabs" role="tablist" aria-label="Server type">
+          <button id="selfHostedTabButton" type="button" class="tab-button active" aria-controls="selfHostedPanel">Self-Hosted</button>
+          <button id="hostedTabButton" type="button" class="tab-button" aria-controls="hostedPanel">Hosted by Apnotic</button>
         </div>
 
-        <fieldset class="choices">
-          <legend class="group-label">Self-Hosted (OSS &amp; Pro)</legend>
-          <label class="choice-card">
-            <input type="radio" name="serverChoice" value="custom">
-            <span>
-              <strong>Use a self-hosted instance</strong>
-              <small>Connect your own Password Pusher domain and deployment.</small>
-            </span>
-          </label>
-        </fieldset>
+        <div id="selfHostedPanel" class="server-panel">
+          <fieldset class="choices">
+            <legend class="group-label">Self-Hosted (OSS &amp; Pro)</legend>
+            <label class="choice-card">
+              <input type="radio" name="serverChoice" value="custom">
+              <span>
+                <strong>Use a self-hosted instance</strong>
+                <small>Connect your own Password Pusher domain and deployment.</small>
+              </span>
+            </label>
+          </fieldset>
 
-        <label for="customUrl">Custom URL</label>
-        <input id="customUrl" name="customUrl" type="url" placeholder="https://pwpush.your-company.com">
-        <p id="selfHostedPolicyNote" class="field-help hidden">Your self-hosted instance defines its own privacy policy and terms.</p>
+          <label for="customUrl">Custom URL</label>
+          <input id="customUrl" name="customUrl" type="url" placeholder="https://pwpush.your-company.com">
+          <p id="selfHostedPolicyNote" class="field-help hidden">Your self-hosted instance defines its own privacy policy and terms.</p>
+        </div>
+
+        <div id="hostedPanel" class="server-panel hidden">
+          <fieldset class="choices">
+            <legend class="group-label">Hosted by Apnotic, LLC</legend>
+
+            <label class="choice-card">
+              <input type="radio" name="serverChoice" value="us">
+              <span>
+                <strong>us.pwpush.com (Pro)</strong>
+                <small>US region hosting with Password Pusher Pro features.</small>
+              </span>
+            </label>
+
+            <label class="choice-card">
+              <input type="radio" name="serverChoice" value="eu">
+              <span>
+                <strong>eu.pwpush.com (Pro)</strong>
+                <small>EU region hosting with Password Pusher Pro features.</small>
+              </span>
+            </label>
+
+            <label class="choice-card">
+              <input type="radio" name="serverChoice" value="oss">
+              <span>
+                <strong>oss.pwpush.com (OSS)</strong>
+                <small>Public open source service managed by Apnotic.</small>
+              </span>
+            </label>
+          </fieldset>
+
+          <div id="hostedLegalLinks" class="legal-links hidden">
+            <span>Hosted service policies:</span>
+            <a id="privacyPolicyLink" href="#" target="_blank" rel="noreferrer">Privacy Policy</a>
+            <span>•</span>
+            <a id="termsOfServiceLink" href="#" target="_blank" rel="noreferrer">Terms of Service</a>
+          </div>
+        </div>
 
         <label for="apiToken">API Bearer token (optional)</label>
         <input id="apiToken" name="apiToken" type="password" autocomplete="off" placeholder="Paste API token if needed">
         <p class="field-help">Leave token empty for endpoints that allow anonymous create/read operations.</p>
+
+        <div id="accountSection" class="account-section">
+          <h3>Account selection (Pro)</h3>
+          <p id="accountSectionHelp" class="field-help">Account selection is available for Pro instances.</p>
+          <label for="accountSelect">Account</label>
+          <select id="accountSelect" disabled>
+            <option value="">No account selected</option>
+          </select>
+        </div>
 
         <div class="actions">
           <button id="testConnectionButton" type="button">Test connection</button>
@@ -91,6 +109,7 @@
           <div><dt>Edition</dt><dd id="editionValue">Unknown</dd></div>
           <div><dt>App version</dt><dd id="applicationVersion">Unknown</dd></div>
           <div><dt>API version</dt><dd id="apiVersion">Unknown</dd></div>
+          <div><dt>Push API</dt><dd id="featurePushes">Available</dd></div>
           <div><dt>Accounts API</dt><dd id="featureAccounts">Unknown</dd></div>
           <div><dt>Requests API</dt><dd id="featureRequests">Unknown</dd></div>
           <div><dt>Last checked</dt><dd id="lastChecked">Never</dd></div>

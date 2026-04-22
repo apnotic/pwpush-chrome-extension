@@ -198,6 +198,7 @@ async function createPushFromPayload(payload) {
     const createResult = await createPush(payload, {
       baseUrl: settings.baseUrl,
       token: settings.apiToken,
+      accountId: settings.selectedAccountId || "",
       instanceType: instanceStatus.instanceType || "unknown",
       expireAfterDays: options.expireAfterDays,
       expireAfterViews: options.expireAfterViews,
@@ -265,7 +266,8 @@ async function loadPreviewQrSvg(lastPush) {
     if (lastPush.urlToken && state.settings.baseUrl) {
       const previewResult = await getPushPreview(lastPush.urlToken, {
         baseUrl: state.settings.baseUrl,
-        token: state.settings.apiToken || ""
+        token: state.settings.apiToken || "",
+        accountId: state.settings.selectedAccountId || ""
       });
       if (previewResult.ok && previewResult.data && previewResult.data.shareUrl) {
         return loadPreviewSvgFromUrl(buildPreviewUrl(previewResult.data.shareUrl));

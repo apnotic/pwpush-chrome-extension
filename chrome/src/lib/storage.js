@@ -2,6 +2,8 @@ const DEFAULT_SETTINGS = {
   baseUrl: "",
   presetKey: "",
   apiToken: "",
+  selectedAccountId: null,
+  availableAccounts: [],
   lastPushOptions: {
     expireAfterDays: 7,
     expireAfterViews: 5,
@@ -37,12 +39,16 @@ const DEFAULT_LAST_PUSH_RESULT = {
 
 export async function getSettings() {
   const result = await chrome.storage.local.get(["settings"]);
+  const savedSettings = result.settings || {};
   return {
     ...DEFAULT_SETTINGS,
-    ...(result.settings || {}),
+    ...savedSettings,
+    availableAccounts: Array.isArray(savedSettings.availableAccounts)
+      ? savedSettings.availableAccounts
+      : [],
     lastPushOptions: {
       ...DEFAULT_SETTINGS.lastPushOptions,
-      ...((result.settings || {}).lastPushOptions || {})
+      ...(savedSettings.lastPushOptions || {})
     }
   };
 }
@@ -51,6 +57,9 @@ export async function saveSettings(settings) {
   const merged = {
     ...DEFAULT_SETTINGS,
     ...settings,
+    availableAccounts: Array.isArray((settings || {}).availableAccounts)
+      ? settings.availableAccounts
+      : [],
     lastPushOptions: {
       ...DEFAULT_SETTINGS.lastPushOptions,
       ...((settings || {}).lastPushOptions || {})

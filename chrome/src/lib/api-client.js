@@ -23,11 +23,15 @@ export async function requestJson(pathname, options = {}) {
     token = "",
     method = "GET",
     body,
+    accountId = "",
     timeoutMs = 8000
   } = options;
 
   const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
-  const requestUrl = new URL(pathname, `${normalizedBaseUrl}/`).toString();
+  const requestUrl = new URL(pathname, `${normalizedBaseUrl}/`);
+  if (accountId && accountId.toString().trim()) {
+    requestUrl.searchParams.set("account_id", accountId.toString().trim());
+  }
 
   const controller = new AbortController();
   const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);
@@ -47,7 +51,7 @@ export async function requestJson(pathname, options = {}) {
     const response = await fetch(requestUrl, {
       method,
       headers,
-      body: body ? JSON.stringify(body) : undefined,
+      body: body ? JSON.stringify(appendAccountIdToBody(body, accountId)) : undefined,
       signal: controller.signal
     });
 
@@ -111,6 +115,7 @@ export async function createPush(payload, options = {}) {
   const {
     baseUrl,
     token = "",
+    accountId = "",
     instanceType = "unknown",
     expireAfterDays = 7,
     expireAfterViews = 5,
@@ -129,6 +134,7 @@ export async function createPush(payload, options = {}) {
   const createResult = await requestJson("/api/v2/pushes", {
     baseUrl,
     token,
+    accountId,
     method: "POST",
     body: {
       push: pushPayload
@@ -141,7 +147,12 @@ export async function createPush(payload, options = {}) {
 
   const createData = createResult.data || {};
   const urlToken = createData.url_token || "";
-  const shareUrl = createData.html_url || await resolvePreviewUrl({baseUrl, token, urlToken});
+  const shareUrl = createData.html_url || await resolvePreviewUrl({
+    baseUrl,
+    token,
+    accountId,
+    urlToken
+  });
 
   if (!shareUrl) {
     return {
@@ -165,7 +176,7 @@ export async function createPush(payload, options = {}) {
 }
 
 export async function getPushPreview(urlToken, options = {}) {
-  const {baseUrl, token = ""} = options;
+  const {baseUrl, token = "", accountId = ""} = options;
 
   if (!urlToken) {
     return {
@@ -180,7 +191,8 @@ export async function getPushPreview(urlToken, options = {}) {
   const tokenPath = encodeURIComponent(urlToken);
   const result = await requestJson(`/api/v2/pushes/${tokenPath}/preview`, {
     baseUrl,
-    token
+    token,
+    accountId
   });
 
   if (!result.ok) {
@@ -193,6 +205,45 @@ export async function getPushPreview(urlToken, options = {}) {
     data: {
       ...result.data,
       shareUrl: (result.data || {}).url || ""
+    }
+  };
+}
+
+export async function listAccounts(options = {}) {
+  const {baseUrl, token = ""} = options;
+
+  if (!token || !token.trim()) {
+    return {
+      ok: false,
+      status: 0,
+      data: null,
+      errorType: "missing_token",
+      errorMessage: "Add an API token to load available accounts."
+    };
+  }
+
+  const result = await requestJson("/api/v2/accounts", {
+    baseUrl,
+    token
+  });
+
+  if (!result.ok) {
+    return result;
+  }
+
+  const rawAccounts = Array.isArray(result.data) ? result.data : [];
+  const accounts = rawAccounts
+    .filter((account) => account && account.id)
+    .map((account) => ({
+      id: String(account.id),
+      name: String(account.name || `Account ${account.id}`)
+    }));
+
+  return {
+    ok: true,
+    status: result.status,
+    data: {
+      accounts
     }
   };
 }
@@ -226,17 +277,28 @@ function buildPushPayload(payload, options = {}) {
   return push;
 }
 
-async function resolvePreviewUrl({baseUrl, token, urlToken}) {
+async function resolvePreviewUrl({baseUrl, token, accountId, urlToken}) {
   if (!urlToken) {
     return "";
   }
 
-  const previewResult = await getPushPreview(urlToken, {baseUrl, token});
+  const previewResult = await getPushPreview(urlToken, {baseUrl, token, accountId});
   if (!previewResult.ok) {
     return "";
   }
 
   return (previewResult.data || {}).shareUrl || "";
+}
+
+function appendAccountIdToBody(body, accountId) {
+  if (!body || typeof body !== "object" || !accountId || !accountId.toString().trim()) {
+    return body;
+  }
+
+  return {
+    ...body,
+    account_id: accountId.toString().trim()
+  };
 }
 
 function mapDaysToDurationEnum(daysValue) {
