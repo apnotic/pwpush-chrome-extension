@@ -1,0 +1,420 @@
+import {
+  createPush,
+  getPushPreview
+} from "../lib/api-client.js";
+import {
+  getInstanceStatus,
+  getLastPushResult,
+  getSettings,
+  saveLastPushResult,
+  saveSettings
+} from "../lib/storage.js";
+
+const elements = {
+  serverValue: document.querySelector("#serverValue"),
+  instanceValue: document.querySelector("#instanceValue"),
+  editionValue: document.querySelector("#editionValue"),
+  apiValue: document.querySelector("#apiValue"),
+  recheckButton: document.querySelector("#recheckButton"),
+  settingsButton: document.querySelector("#settingsButton"),
+  statusMessage: document.querySelector("#statusMessage"),
+  pushUrlButton: document.querySelector("#pushUrlButton"),
+  pushSelectionButton: document.querySelector("#pushSelectionButton"),
+  expireAfterDays: document.querySelector("#expireAfterDays"),
+  expireAfterViews: document.querySelector("#expireAfterViews"),
+  retrievalStep: document.querySelector("#retrievalStep"),
+  passphrase: document.querySelector("#passphrase"),
+  resultSection: document.querySelector("#resultSection"),
+  resultLink: document.querySelector("#resultLink"),
+  resultMeta: document.querySelector("#resultMeta"),
+  copyLinkButton: document.querySelector("#copyLinkButton"),
+  openLinkButton: document.querySelector("#openLinkButton"),
+  showQrButton: document.querySelector("#showQrButton"),
+  downloadQrButton: document.querySelector("#downloadQrButton"),
+  qrContainer: document.querySelector("#qrContainer")
+};
+
+let state = {
+  settings: null,
+  instanceStatus: null,
+  lastPushResult: null
+};
+
+elements.recheckButton.addEventListener("click", async () => {
+  await withLoading(elements.recheckButton, "Checking...", async () => {
+    const response = await chrome.runtime.sendMessage({type: "recheckInstance"});
+    if (!response || !response.ok) {
+      throw new Error((response && response.error) || "Unable to re-check server.");
+    }
+    await loadState();
+  });
+});
+
+elements.settingsButton.addEventListener("click", async () => {
+  await chrome.runtime.openOptionsPage();
+});
+
+elements.pushUrlButton.addEventListener("click", async () => {
+  await createFromCurrentUrl();
+});
+
+elements.pushSelectionButton.addEventListener("click", async () => {
+  await createFromSelectedText();
+});
+
+elements.copyLinkButton.addEventListener("click", async () => {
+  const shareUrl = (state.lastPushResult || {}).shareUrl;
+  if (!shareUrl) {
+    return;
+  }
+
+  await navigator.clipboard.writeText(shareUrl);
+  setStatus("Link copied.", "success");
+});
+
+elements.openLinkButton.addEventListener("click", async () => {
+  const shareUrl = (state.lastPushResult || {}).shareUrl;
+  if (!shareUrl) {
+    return;
+  }
+
+  await chrome.tabs.create({url: shareUrl});
+});
+
+elements.showQrButton.addEventListener("click", async () => {
+  await renderQrForLatestPush();
+});
+
+elements.downloadQrButton.addEventListener("click", async () => {
+  await downloadQrPng();
+});
+
+loadState().catch((error) => {
+  setStatus(error.message || "Unable to load extension state.", "error");
+});
+
+async function loadState() {
+  const [settings, instanceStatus, lastPushResult] = await Promise.all([
+    getSettings(),
+    getInstanceStatus(),
+    getLastPushResult()
+  ]);
+
+  state = {settings, instanceStatus, lastPushResult};
+  hydrateAdvancedOptions(settings.lastPushOptions || {});
+  renderConnection(settings, instanceStatus);
+  renderResult(lastPushResult);
+}
+
+function renderConnection(settings, instanceStatus) {
+  elements.serverValue.textContent = settings.baseUrl || "No server configured";
+  elements.instanceValue.textContent = formatInstanceType(instanceStatus.instanceType);
+  elements.editionValue.textContent = instanceStatus.edition || "Unknown";
+  elements.apiValue.textContent = instanceStatus.apiVersion ? `API ${instanceStatus.apiVersion}` : "API ?";
+}
+
+function renderResult(result) {
+  if (!result || !result.shareUrl) {
+    elements.resultSection.classList.add("hidden");
+    return;
+  }
+
+  elements.resultSection.classList.remove("hidden");
+  elements.resultLink.textContent = result.shareUrl;
+  elements.resultMeta.textContent = formatResultMeta(result);
+
+  if (result.qrSvg) {
+    elements.qrContainer.classList.remove("hidden");
+    elements.qrContainer.innerHTML = result.qrSvg;
+    elements.downloadQrButton.classList.remove("hidden");
+  } else {
+    elements.qrContainer.classList.add("hidden");
+    elements.qrContainer.innerHTML = "";
+    elements.downloadQrButton.classList.add("hidden");
+  }
+}
+
+function hydrateAdvancedOptions(options) {
+  elements.expireAfterDays.value = String(options.expireAfterDays || 7);
+  elements.expireAfterViews.value = String(options.expireAfterViews || 5);
+  elements.retrievalStep.checked = Boolean(options.retrievalStep);
+  elements.passphrase.value = options.passphrase || "";
+}
+
+async function createFromCurrentUrl() {
+  try {
+    ensureServerConfigured();
+    setStatus("Reading current tab URL...", "info");
+    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+    if (!tab || !tab.id || !tab.url) {
+      throw new Error("Unable to read current tab URL.");
+    }
+
+    const url = new URL(tab.url);
+    if (!["http:", "https:"].includes(url.protocol)) {
+      throw new Error("Only http/https pages can be pushed.");
+    }
+
+    await createPushFromPayload(url.toString());
+  } catch (error) {
+    setStatus(error.message || "Unable to create URL push.", "error");
+  }
+}
+
+async function createFromSelectedText() {
+  try {
+    ensureServerConfigured();
+    setStatus("Reading selected text from page...", "info");
+
+    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+    if (!tab || !tab.id) {
+      throw new Error("No active tab found.");
+    }
+
+    const response = await chrome.tabs.sendMessage(tab.id, {
+      type: "getSelectedText"
+    });
+
+    const selection = ((response && response.text) || "").trim();
+    if (!selection) {
+      throw new Error("No text selected. Highlight text on the page and try again.");
+    }
+
+    await createPushFromPayload(selection);
+  } catch (error) {
+    setStatus(error.message || "Unable to create text push.", "error");
+  }
+}
+
+async function createPushFromPayload(payload) {
+  const options = getPushOptions();
+  await persistPushOptions(options);
+
+  withButtonsDisabled(true);
+  setStatus("Creating push...", "info");
+
+  try {
+    const {settings, instanceStatus} = state;
+    const createResult = await createPush(payload, {
+      baseUrl: settings.baseUrl,
+      token: settings.apiToken,
+      instanceType: instanceStatus.instanceType || "unknown",
+      expireAfterDays: options.expireAfterDays,
+      expireAfterViews: options.expireAfterViews,
+      retrievalStep: options.retrievalStep,
+      passphrase: options.passphrase
+    });
+
+    if (!createResult.ok) {
+      throw new Error(createResult.errorMessage || "Push creation failed.");
+    }
+
+    const data = createResult.data || {};
+    const pushResult = {
+      createdAt: new Date().toISOString(),
+      shareUrl: data.shareUrl || "",
+      urlToken: data.urlToken || "",
+      qrSvg: "",
+      expiresAt: data.expires_at || null,
+      expiresIn: data.expires_in || null,
+      viewsRemaining: data.views_remaining || null,
+      rawResponse: data
+    };
+
+    state.lastPushResult = await saveLastPushResult(pushResult);
+    renderResult(state.lastPushResult);
+    setStatus("Push created. Copy the link or open QR.", "success");
+  } finally {
+    withButtonsDisabled(false);
+  }
+}
+
+async function renderQrForLatestPush() {
+  const lastPush = state.lastPushResult || {};
+  if (!lastPush.shareUrl) {
+    setStatus("Create a push first to generate QR.", "error");
+    return;
+  }
+
+  setStatus("Loading QR from preview page...", "info");
+  const qrSvg = await loadPreviewQrSvg(lastPush);
+  if (!qrSvg) {
+    setStatus("Unable to render QR for this push.", "error");
+    return;
+  }
+
+  const updated = await saveLastPushResult({
+    ...lastPush,
+    qrSvg
+  });
+  state.lastPushResult = updated;
+  renderResult(updated);
+  setStatus("QR loaded.", "success");
+}
+
+async function loadPreviewQrSvg(lastPush) {
+  const shareUrl = lastPush.shareUrl;
+  const previewCandidate = buildPreviewUrl(shareUrl);
+
+  const response = await fetch(previewCandidate, {
+    method: "GET",
+    headers: {Accept: "text/html"}
+  });
+
+  if (!response.ok) {
+    if (lastPush.urlToken && state.settings.baseUrl) {
+      const previewResult = await getPushPreview(lastPush.urlToken, {
+        baseUrl: state.settings.baseUrl,
+        token: state.settings.apiToken || ""
+      });
+      if (previewResult.ok && previewResult.data && previewResult.data.shareUrl) {
+        return loadPreviewSvgFromUrl(buildPreviewUrl(previewResult.data.shareUrl));
+      }
+    }
+    return "";
+  }
+
+  const html = await response.text();
+  return extractFirstSvg(html);
+}
+
+async function loadPreviewSvgFromUrl(previewUrl) {
+  const response = await fetch(previewUrl, {
+    method: "GET",
+    headers: {Accept: "text/html"}
+  });
+  if (!response.ok) {
+    return "";
+  }
+
+  return extractFirstSvg(await response.text());
+}
+
+function extractFirstSvg(html) {
+  const svgMatch = html.match(/<svg[\s\S]*?<\/svg>/i);
+  return svgMatch ? svgMatch[0] : "";
+}
+
+function buildPreviewUrl(shareUrl) {
+  const parsed = new URL(shareUrl);
+  const trimmedPath = parsed.pathname.endsWith("/") ? parsed.pathname.slice(0, -1) : parsed.pathname;
+  parsed.pathname = trimmedPath.endsWith("/preview") ? trimmedPath : `${trimmedPath}/preview`;
+  parsed.search = "";
+  return parsed.toString();
+}
+
+async function downloadQrPng() {
+  const svgElement = elements.qrContainer.querySelector("svg");
+  if (!svgElement) {
+    setStatus("Generate QR first.", "error");
+    return;
+  }
+
+  const dataUrl = await svgToPngDataUrl(svgElement.outerHTML, 512, 512);
+  if (!dataUrl) {
+    setStatus("Unable to convert QR to PNG.", "error");
+    return;
+  }
+
+  const link = document.createElement("a");
+  link.href = dataUrl;
+  link.download = "pwpush-qr.png";
+  link.click();
+  setStatus("QR PNG downloaded.", "success");
+}
+
+function svgToPngDataUrl(svgMarkup, width, height) {
+  return new Promise((resolve) => {
+    const blob = new Blob([svgMarkup], {type: "image/svg+xml"});
+    const blobUrl = URL.createObjectURL(blob);
+    const image = new Image();
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d");
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, width, height);
+      context.drawImage(image, 0, 0, width, height);
+      URL.revokeObjectURL(blobUrl);
+      resolve(canvas.toDataURL("image/png"));
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(blobUrl);
+      resolve("");
+    };
+
+    image.src = blobUrl;
+  });
+}
+
+async function persistPushOptions(options) {
+  const settings = await saveSettings({
+    ...state.settings,
+    lastPushOptions: options
+  });
+  state.settings = settings;
+}
+
+function getPushOptions() {
+  return {
+    expireAfterDays: Number.parseInt(elements.expireAfterDays.value, 10) || 7,
+    expireAfterViews: Number.parseInt(elements.expireAfterViews.value, 10) || 5,
+    retrievalStep: elements.retrievalStep.checked,
+    passphrase: elements.passphrase.value.trim()
+  };
+}
+
+function ensureServerConfigured() {
+  if (!state.settings || !state.settings.baseUrl) {
+    throw new Error("Configure a Password Pusher server in Settings first.");
+  }
+}
+
+function withButtonsDisabled(disabled) {
+  elements.pushUrlButton.disabled = disabled;
+  elements.pushSelectionButton.disabled = disabled;
+}
+
+async function withLoading(button, loadingText, task) {
+  const originalText = button.textContent;
+  button.disabled = true;
+  button.textContent = loadingText;
+
+  try {
+    await task();
+  } catch (error) {
+    setStatus(error.message || "Action failed.", "error");
+  } finally {
+    button.disabled = false;
+    button.textContent = originalText;
+  }
+}
+
+function setStatus(message, style = "info") {
+  elements.statusMessage.classList.remove("success", "error", "info");
+  elements.statusMessage.classList.add(style);
+  elements.statusMessage.textContent = message;
+}
+
+function formatInstanceType(value) {
+  if (value === "oss") return "Open Source";
+  if (value === "pro") return "Pro / Commercial";
+  return "Unknown";
+}
+
+function formatResultMeta(result) {
+  const parts = [];
+  if (result.viewsRemaining !== null && result.viewsRemaining !== undefined) {
+    parts.push(`Views left: ${result.viewsRemaining}`);
+  }
+
+  if (result.expiresAt) {
+    parts.push(`Expires: ${new Date(result.expiresAt).toLocaleString()}`);
+  } else if (result.expiresIn) {
+    parts.push(`Expires in: ${result.expiresIn}s`);
+  }
+
+  return parts.join(" • ") || "Ready to share.";
+}

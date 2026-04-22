@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Password Pusher</title>
+    <link rel="stylesheet" href="./popup.css">
+  </head>
+  <body>
+    <main class="popup" id="popupRoot">
+      <section class="card connection">
+        <div class="row between">
+          <h1>Password Pusher</h1>
+          <button id="settingsButton" type="button" class="ghost">Settings</button>
+        </div>
+        <p id="serverValue" class="server">No server configured</p>
+        <div class="chip-row">
+          <span class="chip" id="instanceValue">Unknown</span>
+          <span class="chip" id="editionValue">Unknown</span>
+          <span class="chip" id="apiValue">API ?</span>
+        </div>
+        <div class="row">
+          <button id="recheckButton" type="button" class="ghost">Re-check server</button>
+        </div>
+      </section>
+
+      <section class="card create">
+        <h2>Create push</h2>
+        <p id="statusMessage" class="status" role="status" aria-live="polite"></p>
+        <div class="action-grid">
+          <button id="pushUrlButton" type="button" class="primary">Push current URL</button>
+          <button id="pushSelectionButton" type="button">Push selected text</button>
+        </div>
+
+        <details id="advancedOptions">
+          <summary>More options</summary>
+          <label for="expireAfterDays">Expire after days</label>
+          <input id="expireAfterDays" type="number" min="1" max="90" value="7">
+
+          <label for="expireAfterViews">Expire after views</label>
+          <input id="expireAfterViews" type="number" min="1" max="100" value="5">
+
+          <label class="checkbox">
+            <input id="retrievalStep" type="checkbox">
+            Require first-step reveal before full content
+          </label>
+
+          <label for="passphrase">Passphrase (optional)</label>
+          <input id="passphrase" type="password" autocomplete="off" placeholder="Optional passphrase">
+        </details>
+      </section>
+
+      <section class="card result hidden" id="resultSection">
+        <h2>Latest push</h2>
+        <p id="resultLink" class="result-link"></p>
+        <p id="resultMeta" class="result-meta"></p>
+        <div class="action-grid compact">
+          <button id="copyLinkButton" type="button">Copy link</button>
+          <button id="openLinkButton" type="button">Open link</button>
+          <button id="showQrButton" type="button">Show QR</button>
+          <button id="downloadQrButton" type="button" class="hidden">Download QR PNG</button>
+        </div>
+        <div id="qrContainer" class="qr-container hidden"></div>
+      </section>
+    </main>
+
+    <script type="module" src="./popup.js"></script>
+  </body>
+</html>

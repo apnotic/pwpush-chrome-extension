@@ -1,0 +1,11 @@
+{
+  "name": "@apnotic/password-pusher-chrome-extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Chrome extension for Password Pusher APIv2 instance discovery and connectivity.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "package": "node scripts/build.mjs",
+    "validate:manifest": "node scripts/validate-manifest.mjs"
+  }
+}

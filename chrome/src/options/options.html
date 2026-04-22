@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Password Pusher Settings</title>
+    <link rel="stylesheet" href="./options.css">
+  </head>
+  <body>
+    <main class="container">
+      <h1>Password Pusher Connector</h1>
+      <p class="intro">Choose the Password Pusher instance this browser should use.</p>
+
+      <section class="card">
+        <h2>Server selection</h2>
+
+        <fieldset class="choices">
+          <legend>Select an instance</legend>
+          <label><input type="radio" name="serverChoice" value="oss"> oss.pwpush.com (OSS)</label>
+          <label><input type="radio" name="serverChoice" value="eu"> eu.pwpush.com (Pro)</label>
+          <label><input type="radio" name="serverChoice" value="us"> us.pwpush.com (Pro)</label>
+          <label><input type="radio" name="serverChoice" value="custom"> Custom URL</label>
+        </fieldset>
+
+        <label for="customUrl">Custom URL</label>
+        <input id="customUrl" name="customUrl" type="url" placeholder="https://pwpush.your-company.com">
+
+        <label for="apiToken">API Bearer token (optional)</label>
+        <input id="apiToken" name="apiToken" type="password" autocomplete="off" placeholder="Paste API token if needed">
+
+        <div class="actions">
+          <button id="testConnectionButton" type="button">Test connection</button>
+          <button id="saveButton" type="button" class="primary">Save configuration</button>
+        </div>
+
+        <p id="statusMessage" class="status" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="card">
+        <h2>Detected instance</h2>
+        <dl class="meta">
+          <div><dt>Server</dt><dd id="detectedServer">Not set</dd></div>
+          <div><dt>Instance type</dt><dd id="instanceType">Unknown</dd></div>
+          <div><dt>Edition</dt><dd id="editionValue">Unknown</dd></div>
+          <div><dt>App version</dt><dd id="applicationVersion">Unknown</dd></div>
+          <div><dt>API version</dt><dd id="apiVersion">Unknown</dd></div>
+          <div><dt>Accounts API</dt><dd id="featureAccounts">Unknown</dd></div>
+          <div><dt>Requests API</dt><dd id="featureRequests">Unknown</dd></div>
+          <div><dt>Last checked</dt><dd id="lastChecked">Never</dd></div>
+        </dl>
+      </section>
+    </main>
+
+    <script type="module" src="./options.js"></script>
+  </body>
+</html>
