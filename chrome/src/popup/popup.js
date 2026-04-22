@@ -182,7 +182,7 @@ async function createFromSelectedText() {
 
     await createPushFromPayload(selection);
   } catch (error) {
-    setStatus(error.message || "Unable to create text push.", "error");
+    setStatus(formatSelectionError(error), "error");
   }
 }
 
@@ -396,6 +396,21 @@ function setStatus(message, style = "info") {
   elements.statusMessage.classList.remove("success", "error", "info");
   elements.statusMessage.classList.add(style);
   elements.statusMessage.textContent = message;
+}
+
+function formatSelectionError(error) {
+  const rawMessage = String((error && error.message) || "");
+  const normalized = rawMessage.toLowerCase();
+
+  if (normalized.includes("receiving end does not exist")) {
+    return "Unable to read selected text from this tab. Reload the page and try again. If needed, close and reopen the popup after reloading.";
+  }
+
+  if (normalized.includes("cannot access contents of")) {
+    return "Selected text is unavailable on this page. Open a regular http/https webpage, highlight text, and try again.";
+  }
+
+  return rawMessage || "Unable to create text push.";
 }
 
 function formatInstanceType(value) {

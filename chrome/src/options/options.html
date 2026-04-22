@@ -8,25 +8,72 @@
   </head>
   <body>
     <main class="container">
-      <h1>Password Pusher Connector</h1>
-      <p class="intro">Choose the Password Pusher instance this browser should use.</p>
+      <header class="brand card">
+        <div class="brand-row">
+          <img class="logo" src="./assets/logo.svg" alt="Password Pusher">
+          <span id="configuredBadge" class="badge">Not configured</span>
+        </div>
+        <h1>Password Pusher Connector</h1>
+        <p class="intro">Securely share links and text with one-time, expiring pushes.</p>
+      </header>
 
       <section class="card">
         <h2>Server selection</h2>
+        <p class="section-intro">Select your Password Pusher service. Hosted options are managed by Apnotic. Self-hosted supports both OSS and Pro deployments.</p>
 
         <fieldset class="choices">
-          <legend>Select an instance</legend>
-          <label><input type="radio" name="serverChoice" value="oss"> oss.pwpush.com (OSS)</label>
-          <label><input type="radio" name="serverChoice" value="eu"> eu.pwpush.com (Pro)</label>
-          <label><input type="radio" name="serverChoice" value="us"> us.pwpush.com (Pro)</label>
-          <label><input type="radio" name="serverChoice" value="custom"> Custom URL</label>
+          <legend class="group-label">Hosted by Apnotic, LLC</legend>
+
+          <label class="choice-card">
+            <input type="radio" name="serverChoice" value="us">
+            <span>
+              <strong>us.pwpush.com (Pro)</strong>
+              <small>US region hosting with Password Pusher Pro features.</small>
+            </span>
+          </label>
+
+          <label class="choice-card">
+            <input type="radio" name="serverChoice" value="eu">
+            <span>
+              <strong>eu.pwpush.com (Pro)</strong>
+              <small>EU region hosting with Password Pusher Pro features.</small>
+            </span>
+          </label>
+
+          <label class="choice-card">
+            <input type="radio" name="serverChoice" value="oss">
+            <span>
+              <strong>oss.pwpush.com (OSS)</strong>
+              <small>Public open source service managed by Apnotic.</small>
+            </span>
+          </label>
+        </fieldset>
+
+        <div id="hostedLegalLinks" class="legal-links hidden">
+          <span>Hosted service policies:</span>
+          <a id="privacyPolicyLink" href="#" target="_blank" rel="noreferrer">Privacy Policy</a>
+          <span>•</span>
+          <a id="termsOfServiceLink" href="#" target="_blank" rel="noreferrer">Terms of Service</a>
+        </div>
+
+        <fieldset class="choices">
+          <legend class="group-label">Self-Hosted (OSS &amp; Pro)</legend>
+          <label class="choice-card">
+            <input type="radio" name="serverChoice" value="custom">
+            <span>
+              <strong>Use a self-hosted instance</strong>
+              <small>Connect your own Password Pusher domain and deployment.</small>
+            </span>
+          </label>
         </fieldset>
 
         <label for="customUrl">Custom URL</label>
         <input id="customUrl" name="customUrl" type="url" placeholder="https://pwpush.your-company.com">
+        <p id="selfHostedPolicyNote" class="field-help hidden">Your self-hosted instance defines its own privacy policy and terms.</p>
 
         <label for="apiToken">API Bearer token (optional)</label>
         <input id="apiToken" name="apiToken" type="password" autocomplete="off" placeholder="Paste API token if needed">
+        <p class="field-help">Leave token empty for endpoints that allow anonymous create/read operations.</p>
 
         <div class="actions">
           <button id="testConnectionButton" type="button">Test connection</button>

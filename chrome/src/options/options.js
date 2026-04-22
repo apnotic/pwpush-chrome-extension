@@ -14,11 +14,16 @@ const PRESET_URLS = {
 };
 
 const elements = {
+  configuredBadge: document.querySelector("#configuredBadge"),
   customUrl: document.querySelector("#customUrl"),
   apiToken: document.querySelector("#apiToken"),
   saveButton: document.querySelector("#saveButton"),
   testConnectionButton: document.querySelector("#testConnectionButton"),
   statusMessage: document.querySelector("#statusMessage"),
+  hostedLegalLinks: document.querySelector("#hostedLegalLinks"),
+  privacyPolicyLink: document.querySelector("#privacyPolicyLink"),
+  termsOfServiceLink: document.querySelector("#termsOfServiceLink"),
+  selfHostedPolicyNote: document.querySelector("#selfHostedPolicyNote"),
   detectedServer: document.querySelector("#detectedServer"),
   instanceType: document.querySelector("#instanceType"),
   editionValue: document.querySelector("#editionValue"),
@@ -26,7 +31,8 @@ const elements = {
   apiVersion: document.querySelector("#apiVersion"),
   featureAccounts: document.querySelector("#featureAccounts"),
   featureRequests: document.querySelector("#featureRequests"),
-  lastChecked: document.querySelector("#lastChecked")
+  lastChecked: document.querySelector("#lastChecked"),
+  serverChoices: Array.from(document.querySelectorAll('input[name="serverChoice"]'))
 };
 
 initialize().catch((error) => {
@@ -38,6 +44,7 @@ async function initialize() {
   const status = await getInstanceStatus();
 
   hydrateForm(settings);
+  updateServerSelectionUi();
   renderStatusBlock(settings, status);
 
   elements.testConnectionButton.addEventListener("click", async () => {
@@ -46,6 +53,12 @@ async function initialize() {
 
   elements.saveButton.addEventListener("click", async () => {
     await testConnection(true);
+  });
+
+  elements.serverChoices.forEach((choice) => {
+    choice.addEventListener("change", () => {
+      updateServerSelectionUi();
+    });
   });
 }
 
@@ -58,6 +71,29 @@ function hydrateForm(settings) {
 
   elements.customUrl.value = presetKey === "custom" ? settings.baseUrl : "";
   elements.apiToken.value = settings.apiToken || "";
+}
+
+function updateServerSelectionUi() {
+  const selectedChoice = document.querySelector('input[name="serverChoice"]:checked');
+  const presetKey = selectedChoice ? selectedChoice.value : "custom";
+  const isHosted = Boolean(PRESET_URLS[presetKey]);
+
+  elements.customUrl.disabled = presetKey !== "custom";
+  if (presetKey !== "custom") {
+    elements.customUrl.value = "";
+  }
+
+  elements.hostedLegalLinks.classList.toggle("hidden", !isHosted);
+  elements.selfHostedPolicyNote.classList.toggle("hidden", isHosted);
+
+  if (isHosted) {
+    const host = PRESET_URLS[presetKey];
+    elements.privacyPolicyLink.href = `${host}/privacy`;
+    elements.termsOfServiceLink.href = `${host}/terms`;
+  } else {
+    elements.privacyPolicyLink.href = "#";
+    elements.termsOfServiceLink.href = "#";
+  }
 }
 
 async function testConnection(shouldSave) {
@@ -154,6 +190,7 @@ function renderStatusBlock(settings, status) {
   elements.featureAccounts.textContent = formatFeatureState(status.features.supportsAccountsApi);
   elements.featureRequests.textContent = formatFeatureState(status.features.supportsRequestsApi);
   elements.lastChecked.textContent = status.checkedAt ? new Date(status.checkedAt).toLocaleString() : "Never";
+  elements.configuredBadge.textContent = settings.baseUrl ? "Configured" : "Not configured";
 }
 
 function formatInstanceType(instanceType) {
