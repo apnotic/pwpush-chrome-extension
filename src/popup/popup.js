@@ -8,6 +8,7 @@ import {
   getSettings,
   saveSettings
 } from "../lib/storage.js";
+import {applyDocumentI18n, t} from "../lib/i18n.js";
 import {buildPreviewUrl, buildPreviewUrlFromToken, extractFirstSvg} from "./qr-utils.js";
 
 const elements = {
@@ -42,11 +43,13 @@ let state = {
   isBusy: false
 };
 
+applyDocumentI18n();
+
 elements.recheckButton.addEventListener("click", async () => {
-  await withLoading(elements.recheckButton, "Checking...", async () => {
+  await withLoading(elements.recheckButton, t("popupChecking"), async () => {
     const response = await chrome.runtime.sendMessage({type: "recheckInstance"});
     if (!response || !response.ok) {
-      throw new Error((response && response.error) || "Unable to re-check server.");
+      throw new Error((response && response.error) || t("popupErrorRecheckServer"));
     }
     await loadState();
   });
@@ -71,7 +74,7 @@ elements.copyLinkButton.addEventListener("click", async () => {
   }
 
   await navigator.clipboard.writeText(shareUrl);
-  setStatus("Link copied.", "success");
+  setStatus(t("popupLinkCopied"), "success");
 });
 
 elements.openLinkButton.addEventListener("click", async () => {
@@ -92,7 +95,7 @@ elements.downloadQrButton.addEventListener("click", async () => {
 });
 
 loadState().catch((error) => {
-  setStatus(error.message || "Unable to load extension state.", "error");
+  setStatus(error.message || t("popupErrorLoadState"), "error");
 });
 
 async function loadState() {
@@ -116,10 +119,12 @@ async function loadState() {
 }
 
 function renderConnection(settings, instanceStatus) {
-  elements.serverValue.textContent = settings.baseUrl || "No server configured";
+  elements.serverValue.textContent = settings.baseUrl || t("popupNoServerConfigured");
   elements.instanceValue.textContent = formatInstanceType(instanceStatus.instanceType);
-  elements.editionValue.textContent = instanceStatus.edition || "Unknown";
-  elements.apiValue.textContent = instanceStatus.apiVersion ? `API ${instanceStatus.apiVersion}` : "API ?";
+  elements.editionValue.textContent = instanceStatus.edition || t("commonUnknown");
+  elements.apiValue.textContent = instanceStatus.apiVersion
+    ? t("popupApiVersionValue", [String(instanceStatus.apiVersion)])
+    : t("popupApiUnknown");
 }
 
 function renderResult(result) {
@@ -153,31 +158,31 @@ function hydrateAdvancedOptions(options) {
 async function createFromCurrentUrl() {
   try {
     ensureServerConfigured();
-    setStatus("Reading current tab URL...", "info");
+    setStatus(t("popupReadingCurrentUrl"), "info");
     const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
     if (!tab || !tab.id || !tab.url) {
-      throw new Error("Unable to read current tab URL.");
+      throw new Error(t("popupErrorReadCurrentUrl"));
     }
 
     const url = new URL(tab.url);
     if (!["http:", "https:"].includes(url.protocol)) {
-      throw new Error("Only http/https pages can be pushed.");
+      throw new Error(t("popupErrorOnlyHttpHttps"));
     }
 
     await createPushFromPayload(url.toString());
   } catch (error) {
-    setStatus(error.message || "Unable to create URL push.", "error");
+    setStatus(error.message || t("popupErrorCreateUrlPush"), "error");
   }
 }
 
 async function createFromSelectedText() {
   try {
     ensureServerConfigured();
-    setStatus("Reading selected text from page...", "info");
+    setStatus(t("popupReadingSelectedText"), "info");
 
     const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
     if (!tab || !tab.id) {
-      throw new Error("No active tab found.");
+      throw new Error(t("popupErrorNoActiveTab"));
     }
 
     const results = await chrome.scripting.executeScript({
@@ -188,7 +193,7 @@ async function createFromSelectedText() {
     if (!selection) {
       state.hasSelectedText = false;
       updateActionButtons();
-      throw new Error("No text selected. Highlight text on the page and try again.");
+      throw new Error(t("popupErrorNoTextSelected"));
     }
 
     state.hasSelectedText = true;
@@ -205,7 +210,7 @@ async function createPushFromPayload(payload) {
 
   state.isBusy = true;
   updateActionButtons();
-  setStatus("Creating push...", "info");
+  setStatus(t("popupCreatingPush"), "info");
 
   try {
     const {settings, instanceStatus} = state;
@@ -221,7 +226,7 @@ async function createPushFromPayload(payload) {
     });
 
     if (!createResult.ok) {
-      throw new Error(createResult.errorMessage || "Push creation failed.");
+      throw new Error(createResult.errorMessage || t("popupErrorPushCreationFailed"));
     }
 
     const data = createResult.data || {};
@@ -238,7 +243,7 @@ async function createPushFromPayload(payload) {
 
     state.lastPushResult = pushResult;
     renderResult(state.lastPushResult);
-    setStatus("Push created. Copy the link or open QR.", "success");
+    setStatus(t("popupPushCreated"), "success");
   } finally {
     state.isBusy = false;
     updateActionButtons();
@@ -248,15 +253,15 @@ async function createPushFromPayload(payload) {
 async function renderQrForLatestPush() {
   const lastPush = state.lastPushResult || {};
   if (!lastPush.shareUrl) {
-    setStatus("Create a push first to generate QR.", "error");
+    setStatus(t("popupErrorCreatePushBeforeQr"), "error");
     return;
   }
 
   try {
-    setStatus("Loading QR from preview page...", "info");
+    setStatus(t("popupLoadingQr"), "info");
     const qrSvg = await loadPreviewQrSvg(lastPush);
     if (!qrSvg) {
-      setStatus("Unable to render QR for this push.", "error");
+      setStatus(t("popupErrorRenderQr"), "error");
       return;
     }
 
@@ -267,15 +272,15 @@ async function renderQrForLatestPush() {
     };
 
     if (!updated.qrPngDataUrl) {
-      setStatus("Unable to convert QR to PNG.", "error");
+      setStatus(t("popupErrorConvertQrPng"), "error");
       return;
     }
 
     state.lastPushResult = updated;
     renderResult(updated);
-    setStatus("QR loaded.", "success");
+    setStatus(t("popupQrLoaded"), "success");
   } catch (error) {
-    setStatus((error && error.message) || "Unable to render QR for this push.", "error");
+    setStatus((error && error.message) || t("popupErrorRenderQr"), "error");
   }
 }
 
@@ -363,7 +368,7 @@ async function downloadQrPng() {
   const lastPush = state.lastPushResult || {};
   const dataUrl = lastPush.qrPngDataUrl || "";
   if (!dataUrl) {
-    setStatus("Generate QR first.", "error");
+    setStatus(t("popupErrorGenerateQrFirst"), "error");
     return;
   }
 
@@ -371,7 +376,7 @@ async function downloadQrPng() {
   link.href = dataUrl;
   link.download = "pwpush-qr.png";
   link.click();
-  setStatus("QR PNG downloaded.", "success");
+  setStatus(t("popupQrDownloaded"), "success");
 }
 
 function svgToPngDataUrl(svgMarkup, width, height) {
@@ -403,7 +408,7 @@ function svgToPngDataUrl(svgMarkup, width, height) {
 function renderQrImage(dataUrl) {
   const image = document.createElement("img");
   image.src = dataUrl;
-  image.alt = "QR code for latest push";
+  image.alt = t("popupQrImageAlt");
   image.width = 256;
   image.height = 256;
   image.decoding = "async";
@@ -434,7 +439,7 @@ function getPushOptions() {
 
 function ensureServerConfigured() {
   if (!state.settings || !state.settings.baseUrl) {
-    throw new Error("Configure a Password Pusher server in Settings first.");
+    throw new Error(t("popupErrorConfigureServerFirst"));
   }
 }
 
@@ -448,7 +453,7 @@ function updateActionButtons() {
   const selectionUnavailable = !state.hasSelectedText;
   elements.pushSelectionButton.disabled = state.isBusy || selectionUnavailable;
   elements.pushSelectionButton.title = selectionUnavailable
-    ? "Select text on the page first, then push."
+    ? t("popupSelectTextTitle")
     : "";
 }
 
@@ -486,7 +491,7 @@ async function withLoading(button, loadingText, task) {
   try {
     await task();
   } catch (error) {
-    setStatus(error.message || "Action failed.", "error");
+    setStatus(error.message || t("commonActionFailed"), "error");
   } finally {
     button.disabled = false;
     button.textContent = originalText;
@@ -504,37 +509,37 @@ function formatSelectionError(error) {
   const normalized = rawMessage.toLowerCase();
 
   if (normalized.includes("receiving end does not exist")) {
-    return "Unable to read selected text from this tab. Reload the page and try again. If needed, close and reopen the popup after reloading.";
+    return t("popupErrorSelectionReceivingEnd");
   }
 
   if (normalized.includes("cannot access contents of")) {
-    return "Selected text is unavailable on this page. Open a regular http/https webpage, highlight text, and try again.";
+    return t("popupErrorSelectionUnavailablePage");
   }
 
   if (normalized.includes("cannot access a chrome")) {
-    return "Selected text is unavailable on browser internal pages (chrome://). Open a regular webpage and try again.";
+    return t("popupErrorSelectionChromeInternal");
   }
 
-  return rawMessage || "Unable to create text push.";
+  return rawMessage || t("popupErrorCreateTextPush");
 }
 
 function formatInstanceType(value) {
-  if (value === "oss") return "Open Source";
-  if (value === "pro") return "Pro / Commercial";
-  return "Unknown";
+  if (value === "oss") return t("commonOpenSource");
+  if (value === "pro") return t("commonProCommercial");
+  return t("commonUnknown");
 }
 
 function formatResultMeta(result) {
   const parts = [];
   if (result.viewsRemaining !== null && result.viewsRemaining !== undefined) {
-    parts.push(`Views left: ${result.viewsRemaining}`);
+    parts.push(t("popupViewsLeft", [String(result.viewsRemaining)]));
   }
 
   if (result.expiresAt) {
-    parts.push(`Expires: ${new Date(result.expiresAt).toLocaleString()}`);
+    parts.push(t("popupExpiresAt", [new Date(result.expiresAt).toLocaleString()]));
   } else if (result.expiresIn) {
-    parts.push(`Expires in: ${result.expiresIn}s`);
+    parts.push(t("popupExpiresIn", [String(result.expiresIn)]));
   }
 
-  return parts.join(" • ") || "Ready to share.";
+  return parts.join(" • ") || t("popupReadyToShare");
 }

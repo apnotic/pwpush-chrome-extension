@@ -1,17 +1,19 @@
+import {t} from "./i18n.js";
+
 export function normalizeBaseUrl(rawValue) {
   if (!rawValue || typeof rawValue !== "string") {
-    throw new Error("A server URL is required.");
+    throw new Error(t("apiErrorServerUrlRequired", [], "A server URL is required."));
   }
 
   let parsed;
   try {
     parsed = new URL(rawValue.trim());
   } catch (error) {
-    throw new Error("Enter a valid URL, including https://.");
+    throw new Error(t("apiErrorEnterValidUrl", [], "Enter a valid URL, including https://."));
   }
 
   if (parsed.protocol !== "https:") {
-    throw new Error("Only https:// URLs are supported.");
+    throw new Error(t("apiErrorOnlyHttps", [], "Only https:// URLs are supported."));
   }
 
   return parsed.origin;
@@ -79,7 +81,7 @@ export async function requestJson(pathname, options = {}) {
         status: response.status,
         data: null,
         errorType: "invalid_json",
-        errorMessage: "The server response was not valid JSON."
+        errorMessage: t("apiErrorInvalidJson", [], "The server response was not valid JSON.")
       };
     }
 
@@ -95,7 +97,7 @@ export async function requestJson(pathname, options = {}) {
         status: 0,
         data: null,
         errorType: "timeout",
-        errorMessage: "Request timed out. Please try again."
+        errorMessage: t("apiErrorTimeout", [], "Request timed out. Please try again.")
       };
     }
 
@@ -104,7 +106,7 @@ export async function requestJson(pathname, options = {}) {
       status: 0,
       data: null,
       errorType: "network_error",
-      errorMessage: "Unable to reach this server. Check URL, network, or CORS settings."
+      errorMessage: t("apiErrorNetwork", [], "Unable to reach this server. Check URL, network, or CORS settings.")
     };
   } finally {
     clearTimeout(timeoutHandle);
@@ -160,7 +162,7 @@ export async function createPush(payload, options = {}) {
       status: createResult.status,
       data: createData,
       errorType: "invalid_response",
-      errorMessage: "Push created but no share URL was returned."
+      errorMessage: t("apiErrorPushNoShareUrl", [], "Push created but no share URL was returned.")
     };
   }
 
@@ -184,7 +186,7 @@ export async function getPushPreview(urlToken, options = {}) {
       status: 0,
       data: null,
       errorType: "invalid_request",
-      errorMessage: "Missing push token for preview lookup."
+      errorMessage: t("apiErrorMissingPushToken", [], "Missing push token for preview lookup.")
     };
   }
 
@@ -218,7 +220,7 @@ export async function listAccounts(options = {}) {
       status: 0,
       data: null,
       errorType: "missing_token",
-      errorMessage: "Add an API token to load available accounts."
+      errorMessage: t("optionsAccountHelpAddToken", [], "Add an API token to load available accounts.")
     };
   }
 
@@ -339,12 +341,12 @@ function parseApiError(status, data) {
 
   switch (status) {
     case 401:
-      return "Authentication is required for this request.";
+      return t("apiErrorAuthRequired", [], "Authentication is required for this request.");
     case 403:
-      return "Access is forbidden for this request.";
+      return t("apiErrorAccessForbidden", [], "Access is forbidden for this request.");
     case 404:
-      return "This endpoint was not found on the selected server. You may need to upgrade your instance to the latest version.";
+      return t("apiErrorEndpointNotFound", [], "This endpoint was not found on the selected server. You may need to upgrade your instance to the latest version.");
     default:
-      return `Request failed with status ${status}.`;
+      return t("apiErrorRequestFailedStatus", [String(status)], `Request failed with status ${status}.`);
   }
 }

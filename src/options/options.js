@@ -7,6 +7,7 @@ import {
   saveInstanceStatus,
   saveSettings
 } from "../lib/storage.js";
+import {applyDocumentI18n, t} from "../lib/i18n.js";
 
 const PRESET_URLS = {
   oss: "https://oss.pwpush.com",
@@ -47,8 +48,10 @@ const elements = {
   serverChoices: Array.from(document.querySelectorAll('input[name="serverChoice"]'))
 };
 
+applyDocumentI18n();
+
 initialize().catch((error) => {
-  setStatus(error.message || "Unable to initialize settings page.", "error");
+  setStatus(error.message || t("optionsErrorInitialize"), "error");
 });
 
 async function initialize() {
@@ -69,7 +72,7 @@ async function initialize() {
   });
 
   elements.clearSettingsButton.addEventListener("click", async () => {
-    const confirmed = window.confirm("Clear this configuration and reset detected instance data?");
+    const confirmed = window.confirm(t("optionsConfirmClearConfig"));
     if (!confirmed) {
       return;
     }
@@ -81,7 +84,7 @@ async function initialize() {
     updateServerSelectionUi();
     renderStatusBlock(settings, status);
     renderAccountSection(settings, status);
-    setStatus("Configuration cleared.", "success");
+    setStatus(t("optionsStatusConfigurationCleared"), "success");
   });
 
   elements.serverChoices.forEach((choice) => {
@@ -100,7 +103,7 @@ async function initialize() {
 
   elements.accountSelect.addEventListener("change", () => {
     if (elements.accountSelect.value) {
-      elements.accountSectionHelp.textContent = "Selected account will be used for future Pro API requests.";
+      elements.accountSectionHelp.textContent = t("optionsAccountHelpSelectedFuture");
     }
   });
 }
@@ -182,7 +185,7 @@ function switchServerTab(tabName, syncSelection) {
 }
 
 async function testConnection(shouldSave) {
-  setStatus("Testing connection...", "");
+  setStatus(t("optionsStatusTestingConnection"), "");
 
   try {
     const userInput = getUserSelection();
@@ -197,7 +200,7 @@ async function testConnection(shouldSave) {
     await saveInstanceStatus(status);
 
     if (!status.connected) {
-      setStatus(status.error || "Connection failed.", "error");
+      setStatus(status.error || t("optionsErrorConnectionFailed"), "error");
       renderStatusBlock({baseUrl}, status);
       renderAccountSection(existingSettings, status);
       return;
@@ -205,9 +208,9 @@ async function testConnection(shouldSave) {
 
     const minimumOssVersion = "2.5.0";
     if (status.instanceType === "oss" && !isVersionAtLeast(status.applicationVersion, minimumOssVersion)) {
-      const detectedVersion = status.applicationVersion || "unknown";
+      const detectedVersion = status.applicationVersion || t("commonUnknownLower");
       setStatus(
-        `This extension supports OSS Password Pusher ${minimumOssVersion} and newer. Detected version: ${detectedVersion}. Please upgrade your OSS instance and try again.`,
+        t("optionsErrorMinimumOssVersion", [minimumOssVersion, detectedVersion]),
         "error"
       );
       renderStatusBlock({baseUrl, apiToken: userInput.apiToken}, status);
@@ -232,7 +235,7 @@ async function testConnection(shouldSave) {
         selectedAccountId: accountState.selectedAccountId,
         availableAccounts: accountState.availableAccounts
       });
-      setStatus(accountState.statusMessage || "Server saved successfully.", "success");
+      setStatus(accountState.statusMessage || t("optionsStatusServerSaved"), "success");
       renderStatusBlock(savedSettings, status);
       renderAccountSection(savedSettings, status, accountState.helpText);
       return;
@@ -247,18 +250,18 @@ async function testConnection(shouldSave) {
       selectedAccountId: accountState.selectedAccountId,
       availableAccounts: accountState.availableAccounts
     };
-    setStatus(accountState.statusMessage || "Connection succeeded.", "success");
+    setStatus(accountState.statusMessage || t("optionsStatusConnectionSucceeded"), "success");
     renderStatusBlock(previewSettings, status);
     renderAccountSection(previewSettings, status, accountState.helpText);
   } catch (error) {
-    setStatus(error.message || "Connection failed.", "error");
+    setStatus(error.message || t("optionsErrorConnectionFailed"), "error");
   }
 }
 
 function getUserSelection() {
   const selectedChoice = document.querySelector('input[name="serverChoice"]:checked');
   if (!selectedChoice) {
-    throw new Error("Select a server first.");
+    throw new Error(t("optionsErrorSelectServerFirst"));
   }
 
   const apiToken = elements.apiToken.value.trim();
@@ -266,7 +269,7 @@ function getUserSelection() {
   const baseUrl = presetKey === "custom" ? elements.customUrl.value.trim() : PRESET_URLS[presetKey];
 
   if (!baseUrl) {
-    throw new Error("Provide a server URL.");
+    throw new Error(t("optionsErrorProvideServerUrl"));
   }
 
   return {
@@ -293,17 +296,17 @@ async function ensureHostPermission(baseUrl) {
   });
 
   if (!granted) {
-    throw new Error("Host permission was denied. This extension cannot call that server.");
+    throw new Error(t("optionsErrorHostPermissionDenied"));
   }
 }
 
 function renderStatusBlock(settings, status) {
-  elements.detectedServer.textContent = settings.baseUrl || "Not set";
+  elements.detectedServer.textContent = settings.baseUrl || t("optionsNotSet");
   elements.instanceType.textContent = formatInstanceType(status.instanceType);
-  elements.editionValue.textContent = status.edition || "Unknown";
-  elements.applicationVersion.textContent = status.applicationVersion || "Unknown";
-  elements.apiVersion.textContent = status.apiVersion || "Unknown";
-  elements.featurePushes.textContent = "Enabled";
+  elements.editionValue.textContent = status.edition || t("commonUnknown");
+  elements.applicationVersion.textContent = status.applicationVersion || t("commonUnknown");
+  elements.apiVersion.textContent = status.apiVersion || t("commonUnknown");
+  elements.featurePushes.textContent = t("commonEnabled");
   elements.featureAccounts.textContent = formatAccountsState(
     status.instanceType,
     settings.apiToken,
@@ -314,8 +317,8 @@ function renderStatusBlock(settings, status) {
     settings.apiToken,
     status.features.supportsRequestsApi
   );
-  elements.lastChecked.textContent = status.checkedAt ? new Date(status.checkedAt).toLocaleString() : "Never";
-  elements.configuredBadge.textContent = settings.baseUrl ? "Configured" : "Not configured";
+  elements.lastChecked.textContent = status.checkedAt ? new Date(status.checkedAt).toLocaleString() : t("optionsNever");
+  elements.configuredBadge.textContent = settings.baseUrl ? t("optionsConfigured") : t("optionsNotConfigured");
 }
 
 function renderAccountSection(settings, status, helpTextOverride = "") {
@@ -328,24 +331,24 @@ function renderAccountSection(settings, status, helpTextOverride = "") {
 
   if (!isPro || !supportsHostedProAccountSelection) {
     elements.accountSelect.disabled = true;
-    elements.accountSectionHelp.textContent = "Account selection is only available for hosted Pro instances (us/eu) when using an API token.";
+    elements.accountSectionHelp.textContent = t("optionsAccountHelpHostedProOnly");
     return;
   }
 
   if (!hasToken) {
     elements.accountSelect.disabled = true;
-    elements.accountSectionHelp.textContent = "Add an API token to load available accounts.";
+    elements.accountSectionHelp.textContent = t("optionsAccountHelpAddToken");
     return;
   }
 
   if (helpTextOverride) {
     elements.accountSectionHelp.textContent = helpTextOverride;
   } else if (!availableAccounts.length) {
-    elements.accountSectionHelp.textContent = "No accounts loaded yet. Click Test connection to load accounts.";
+    elements.accountSectionHelp.textContent = t("optionsAccountHelpNoAccountsLoaded");
   } else if (availableAccounts.length === 1) {
-    elements.accountSectionHelp.textContent = "This token has one account. It will be used automatically.";
+    elements.accountSectionHelp.textContent = t("optionsAccountHelpOneAccount");
   } else {
-    elements.accountSectionHelp.textContent = "Choose which account this extension should use.";
+    elements.accountSectionHelp.textContent = t("optionsAccountHelpChooseAccount");
   }
 
   elements.accountSelect.disabled = availableAccounts.length <= 1;
@@ -357,7 +360,7 @@ function renderAccountOptions(accounts, selectedAccountId) {
   if (!accounts.length) {
     const option = document.createElement("option");
     option.value = "";
-    option.textContent = "No accounts available";
+    option.textContent = t("optionsNoAccountsAvailable");
     elements.accountSelect.appendChild(option);
     return;
   }
@@ -382,7 +385,7 @@ async function resolveAccountState({baseUrl, apiToken, presetKey, instanceType, 
     return {
       availableAccounts: [],
       selectedAccountId: null,
-      helpText: "Account selection is only available for hosted Pro instances (us/eu) when using an API token.",
+      helpText: t("optionsAccountHelpHostedProOnly"),
       statusMessage: ""
     };
   }
@@ -391,8 +394,8 @@ async function resolveAccountState({baseUrl, apiToken, presetKey, instanceType, 
     return {
       availableAccounts: [],
       selectedAccountId: null,
-      helpText: "Add an API token to load available accounts.",
-      statusMessage: "Connection succeeded."
+      helpText: t("optionsAccountHelpAddToken"),
+      statusMessage: t("optionsStatusConnectionSucceeded")
     };
   }
 
@@ -405,8 +408,8 @@ async function resolveAccountState({baseUrl, apiToken, presetKey, instanceType, 
     return {
       availableAccounts: [],
       selectedAccountId: null,
-      helpText: accountResult.errorMessage || "Unable to load accounts for this token.",
-      statusMessage: "Connection succeeded, but accounts could not be loaded."
+      helpText: accountResult.errorMessage || t("optionsErrorLoadAccountsForToken"),
+      statusMessage: t("optionsStatusConnectionSucceededAccountsFailed")
     };
   }
 
@@ -415,8 +418,8 @@ async function resolveAccountState({baseUrl, apiToken, presetKey, instanceType, 
     return {
       availableAccounts,
       selectedAccountId: null,
-      helpText: "This token does not have access to any accounts.",
-      statusMessage: "Connection succeeded."
+      helpText: t("optionsAccountHelpNoAccess"),
+      statusMessage: t("optionsStatusConnectionSucceeded")
     };
   }
 
@@ -428,16 +431,16 @@ async function resolveAccountState({baseUrl, apiToken, presetKey, instanceType, 
     return {
       availableAccounts,
       selectedAccountId,
-      helpText: "This token has one available account.",
-      statusMessage: "Connection succeeded."
+      helpText: t("optionsAccountHelpOneAvailable"),
+      statusMessage: t("optionsStatusConnectionSucceeded")
     };
   }
 
   return {
     availableAccounts,
     selectedAccountId,
-    helpText: "Choose which account this extension should use.",
-    statusMessage: "Connection succeeded."
+    helpText: t("optionsAccountHelpChooseAccount"),
+    statusMessage: t("optionsStatusConnectionSucceeded")
   };
 }
 
@@ -477,37 +480,37 @@ function normalizeVersionParts(version) {
 
 function formatInstanceType(instanceType) {
   if (instanceType === "pro") {
-    return "Pro / Commercial";
+    return t("commonProCommercial");
   }
 
   if (instanceType === "oss") {
-    return "Open Source";
+    return t("commonOpenSource");
   }
 
-  return "Unknown";
+  return t("commonUnknown");
 }
 
 function formatFeatureState(value) {
   if (value === "enabled") {
-    return "Enabled";
+    return t("commonEnabled");
   }
 
   if (value === "disabled") {
-    return "Unavailable";
+    return t("commonUnavailable");
   }
 
-  return "Unknown";
+  return t("commonUnknown");
 }
 
 function formatRequestsState(instanceType, apiToken, detectedValue) {
   if (instanceType === "oss") {
-    return "Requests are not available in OSS";
+    return t("optionsRequestsNotAvailableOss");
   }
 
   if (instanceType === "pro") {
     return apiToken && apiToken.trim()
-      ? "Enabled"
-      : "Available with an API token";
+      ? t("commonEnabled")
+      : t("optionsAvailableWithApiToken");
   }
 
   return formatFeatureState(detectedValue);
@@ -515,13 +518,13 @@ function formatRequestsState(instanceType, apiToken, detectedValue) {
 
 function formatAccountsState(instanceType, apiToken, detectedValue) {
   if (instanceType === "oss") {
-    return "Accounts are not available in OSS";
+    return t("optionsAccountsNotAvailableOss");
   }
 
   if (instanceType === "pro") {
     return apiToken && apiToken.trim()
-      ? "Enabled"
-      : "Available with an API token";
+      ? t("commonEnabled")
+      : t("optionsAvailableWithApiToken");
   }
 
   return formatFeatureState(detectedValue);
