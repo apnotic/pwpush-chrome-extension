@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Password Pusher Connector",
+  "name": "Password Pusher",
   "description": "Connect Chrome to OSS, Pro, or self-hosted Password Pusher instances via APIv2.",
   "version": "0.5.0",
   "permissions": [
