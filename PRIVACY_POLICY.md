@@ -2,7 +2,7 @@
 
 Last updated: 2026-04-23
 
-Apnotic LLC provides the Password Pusher Connector Chrome extension.
+Apnotic LLC provides the Password Pusher Chrome extension.
 
 ## Data handled by the extension
 

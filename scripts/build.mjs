@@ -5,7 +5,7 @@ import {join} from "node:path";
 const projectRoot = process.cwd();
 const distDir = join(projectRoot, "dist");
 const outputDir = join(distDir, "chrome-extension");
-const packageZip = join(distDir, "password-pusher-connector.zip");
+const packageZip = join(distDir, "password-pusher-chrome-extension.zip");
 
 rmSync(outputDir, {recursive: true, force: true});
 mkdirSync(outputDir, {recursive: true});

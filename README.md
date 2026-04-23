@@ -103,7 +103,7 @@ npm run test:e2e
 npm run package
 ```
 
-Build output: `dist/password-pusher-connector.zip`
+Build output: `dist/password-pusher-chrome-extension.zip`
 
 CI workflow: `.github/workflows/chrome-extension-tests.yml`
 

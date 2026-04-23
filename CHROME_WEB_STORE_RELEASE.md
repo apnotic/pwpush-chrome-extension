@@ -44,7 +44,7 @@ This checklist is for publishing this extension as the official Apnotic listing.
 
 ## 5) Submission flow
 
-- Upload `dist/password-pusher-connector.zip` as a new item or update.
+- Upload `dist/password-pusher-chrome-extension.zip` as a new item or update.
 - Complete tabs:
   - Package
   - Store listing
