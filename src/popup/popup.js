@@ -3,10 +3,9 @@ import {
   getPushPreview
 } from "../lib/api-client.js";
 import {
+  clearLastPushResult,
   getInstanceStatus,
-  getLastPushResult,
   getSettings,
-  saveLastPushResult,
   saveSettings
 } from "../lib/storage.js";
 import {buildPreviewUrl, buildPreviewUrlFromToken, extractFirstSvg} from "./qr-utils.js";
@@ -97,16 +96,21 @@ loadState().catch((error) => {
 });
 
 async function loadState() {
-  const [settings, instanceStatus, lastPushResult] = await Promise.all([
+  await clearLastPushResult();
+  const [settings, instanceStatus] = await Promise.all([
     getSettings(),
-    getInstanceStatus(),
-    getLastPushResult()
+    getInstanceStatus()
   ]);
 
-  state = {settings, instanceStatus, lastPushResult};
+  state = {
+    ...state,
+    settings,
+    instanceStatus,
+    lastPushResult: null
+  };
   hydrateAdvancedOptions(settings.lastPushOptions || {});
   renderConnection(settings, instanceStatus);
-  renderResult(lastPushResult);
+  renderResult(null);
   await refreshSelectedTextAvailability();
   updateActionButtons();
 }
@@ -229,11 +233,10 @@ async function createPushFromPayload(payload) {
       qrPngDataUrl: "",
       expiresAt: data.expires_at || null,
       expiresIn: data.expires_in || null,
-      viewsRemaining: data.views_remaining || null,
-      rawResponse: data
+      viewsRemaining: data.views_remaining || null
     };
 
-    state.lastPushResult = await saveLastPushResult(pushResult);
+    state.lastPushResult = pushResult;
     renderResult(state.lastPushResult);
     setStatus("Push created. Copy the link or open QR.", "success");
   } finally {
@@ -257,11 +260,11 @@ async function renderQrForLatestPush() {
       return;
     }
 
-    const updated = await saveLastPushResult({
+    const updated = {
       ...lastPush,
       qrSvg: "",
       qrPngDataUrl: await svgToPngDataUrl(qrSvg, 512, 512)
-    });
+    };
 
     if (!updated.qrPngDataUrl) {
       setStatus("Unable to convert QR to PNG.", "error");
@@ -412,7 +415,10 @@ function renderQrImage(dataUrl) {
 async function persistPushOptions(options) {
   const settings = await saveSettings({
     ...state.settings,
-    lastPushOptions: options
+    lastPushOptions: {
+      ...options,
+      passphrase: ""
+    }
   });
   state.settings = settings;
 }

@@ -112,13 +112,17 @@ CI workflow: `.github/workflows/chrome-extension-tests.yml`
 ## Security Notes
 
 - Required extension permissions:
-  - `storage` - persist settings and last push state.
+  - `storage` - persist extension configuration (server URL, optional API token, account, and non-sensitive defaults).
   - `tabs` - read active tab URL and open created links.
   - `activeTab` + `scripting` - read selected text only when explicitly requested by the user.
 - Preset host permissions are pre-granted for official cloud endpoints (`oss`, `us`, `eu`).
 - Custom hosts are requested at runtime through optional host permissions (`https://*/*`).
 - Selected-text capture is on-demand only (no persistent all-pages content script).
+- Push payloads/selected text are not persisted by the extension.
+- The popup does not keep a historical trail of past pushes across sessions.
+- Passphrases entered in advanced options are not stored as persistent settings.
 - Remote executable code is not loaded.
+- For Password Pusher platform encryption and security architecture, see [The Security & Encryption of Password Pusher](https://docs.pwpush.com/docs/security/).
 
 ---
 

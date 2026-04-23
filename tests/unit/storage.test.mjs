@@ -1,5 +1,11 @@
 import {beforeEach, describe, expect, it, vi} from "vitest";
-import {getLastPushResult, getSettings, saveLastPushResult, saveSettings} from "../../src/lib/storage.js";
+import {
+  clearLastPushResult,
+  getLastPushResult,
+  getSettings,
+  saveLastPushResult,
+  saveSettings
+} from "../../src/lib/storage.js";
 
 function createStorageApi() {
   const memory = {};
@@ -58,5 +64,18 @@ describe("storage defaults and merges", () => {
     const lastPush = await getLastPushResult();
     expect(lastPush.shareUrl).toBe("https://example.com/p/abc");
     expect(lastPush.qrPngDataUrl).toBe("data:image/png;base64,abc123");
+  });
+
+  it("clears last push result trail", async () => {
+    await saveLastPushResult({
+      shareUrl: "https://example.com/p/abc",
+      qrPngDataUrl: "data:image/png;base64,abc123"
+    });
+
+    await clearLastPushResult();
+    const lastPush = await getLastPushResult();
+    expect(lastPush.shareUrl).toBe("");
+    expect(lastPush.qrPngDataUrl).toBe("");
+    expect(lastPush.createdAt).toBe(null);
   });
 });
