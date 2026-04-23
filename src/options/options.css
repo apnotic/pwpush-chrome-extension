@@ -160,6 +160,47 @@ select:disabled {
   font-size: 13px;
 }
 
+.token-options-panel {
+  margin-top: 10px;
+  border: 1px solid #d8e1f0;
+  border-radius: 10px;
+  background: #fbfcff;
+  padding: 12px;
+}
+
+.token-options-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.token-options-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.token-options-side {
+  width: 260px;
+  flex-shrink: 0;
+  padding-top: 34px;
+}
+
+.inline-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-weight: 600;
+}
+
+.token-options-side .inline-checkbox {
+  margin-top: 0;
+}
+
+.inline-checkbox input[type="checkbox"] {
+  margin: 0;
+}
+
 .account-section {
   margin-top: 16px;
   border: 1px solid #d8e1f0;
@@ -274,5 +315,15 @@ button.danger {
     grid-template-columns: 1fr;
     gap: 4px;
     margin-bottom: 12px;
+  }
+
+  .token-options-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .token-options-side {
+    width: 100%;
+    padding-top: 0;
   }
 }

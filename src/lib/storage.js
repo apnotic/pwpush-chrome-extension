@@ -2,6 +2,7 @@ const DEFAULT_SETTINGS = {
   baseUrl: "",
   presetKey: "",
   apiToken: "",
+  rememberApiToken: true,
   selectedAccountId: null,
   availableAccounts: [],
   lastPushOptions: {
@@ -38,12 +39,26 @@ const DEFAULT_LAST_PUSH_RESULT = {
   rawResponse: null
 };
 
+const SESSION_API_TOKEN_KEY = "sessionApiToken";
+
 export async function getSettings() {
-  const result = await chrome.storage.local.get(["settings"]);
-  const savedSettings = result.settings || {};
+  const [localResult, sessionResult] = await Promise.all([
+    chrome.storage.local.get(["settings"]),
+    chrome.storage.session.get([SESSION_API_TOKEN_KEY])
+  ]);
+  const savedSettings = localResult.settings || {};
+  const rememberApiToken = savedSettings.rememberApiToken !== false;
+  const storedApiToken = typeof savedSettings.apiToken === "string" ? savedSettings.apiToken : "";
+  const sessionApiToken = typeof sessionResult[SESSION_API_TOKEN_KEY] === "string"
+    ? sessionResult[SESSION_API_TOKEN_KEY]
+    : "";
+
+  const effectiveApiToken = rememberApiToken ? storedApiToken : sessionApiToken;
   return {
     ...DEFAULT_SETTINGS,
     ...savedSettings,
+    apiToken: effectiveApiToken,
+    rememberApiToken,
     availableAccounts: Array.isArray(savedSettings.availableAccounts)
       ? savedSettings.availableAccounts
       : [],
@@ -55,9 +70,17 @@ export async function getSettings() {
 }
 
 export async function saveSettings(settings) {
+  const rawApiToken = typeof (settings || {}).apiToken === "string"
+    ? settings.apiToken.trim()
+    : "";
+  const rememberApiToken = (settings || {}).rememberApiToken !== false;
+  const storedApiToken = rememberApiToken ? rawApiToken : "";
+
   const merged = {
     ...DEFAULT_SETTINGS,
     ...settings,
+    apiToken: storedApiToken,
+    rememberApiToken,
     availableAccounts: Array.isArray((settings || {}).availableAccounts)
       ? settings.availableAccounts
       : [],
@@ -66,8 +89,17 @@ export async function saveSettings(settings) {
       ...((settings || {}).lastPushOptions || {})
     }
   };
-  await chrome.storage.local.set({settings: merged});
-  return merged;
+  await Promise.all([
+    chrome.storage.local.set({settings: merged}),
+    rememberApiToken
+      ? chrome.storage.session.remove([SESSION_API_TOKEN_KEY])
+      : chrome.storage.session.set({[SESSION_API_TOKEN_KEY]: rawApiToken})
+  ]);
+
+  return {
+    ...merged,
+    apiToken: rawApiToken
+  };
 }
 
 export async function getInstanceStatus() {
@@ -121,9 +153,12 @@ export async function clearLastPushResult() {
 }
 
 export async function clearAllExtensionState() {
-  await chrome.storage.local.set({
-    settings: DEFAULT_SETTINGS,
-    instanceStatus: DEFAULT_INSTANCE_STATUS,
-    lastPushResult: DEFAULT_LAST_PUSH_RESULT
-  });
+  await Promise.all([
+    chrome.storage.local.set({
+      settings: DEFAULT_SETTINGS,
+      instanceStatus: DEFAULT_INSTANCE_STATUS,
+      lastPushResult: DEFAULT_LAST_PUSH_RESULT
+    }),
+    chrome.storage.session.remove([SESSION_API_TOKEN_KEY])
+  ]);
 }

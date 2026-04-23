@@ -1,5 +1,6 @@
 import {beforeEach, describe, expect, it, vi} from "vitest";
 import {
+  clearAllExtensionState,
   clearLastPushResult,
   getLastPushResult,
   getSettings,
@@ -8,11 +9,11 @@ import {
 } from "../../src/lib/storage.js";
 
 function createStorageApi() {
-  const memory = {};
+  const localMemory = {};
+  const sessionMemory = {};
 
-  return {
-    memory,
-    api: {
+  function createApi(memory) {
+    return {
       get: vi.fn(async (keys) => {
         if (Array.isArray(keys)) {
           return keys.reduce((result, key) => {
@@ -29,8 +30,21 @@ function createStorageApi() {
       }),
       set: vi.fn(async (values) => {
         Object.assign(memory, values);
+      }),
+      remove: vi.fn(async (keys) => {
+        const keyList = Array.isArray(keys) ? keys : [keys];
+        for (const key of keyList) {
+          delete memory[key];
+        }
       })
-    }
+    };
+  }
+
+  return {
+    localMemory,
+    sessionMemory,
+    localApi: createApi(localMemory),
+    sessionApi: createApi(sessionMemory)
   };
 }
 
@@ -41,7 +55,8 @@ describe("storage defaults and merges", () => {
     storage = createStorageApi();
     global.chrome = {
       storage: {
-        local: storage.api
+        local: storage.localApi,
+        session: storage.sessionApi
       }
     };
   });
@@ -77,5 +92,48 @@ describe("storage defaults and merges", () => {
     expect(lastPush.shareUrl).toBe("");
     expect(lastPush.qrPngDataUrl).toBe("");
     expect(lastPush.createdAt).toBe(null);
+  });
+
+  it("persists token in local storage when remember token is enabled", async () => {
+    const saved = await saveSettings({
+      baseUrl: "https://example.com",
+      apiToken: "token-local",
+      rememberApiToken: true
+    });
+
+    expect(saved.apiToken).toBe("token-local");
+    expect(storage.localMemory.settings.apiToken).toBe("token-local");
+    expect(storage.localMemory.settings.rememberApiToken).toBe(true);
+    expect(storage.sessionMemory.sessionApiToken).toBe(undefined);
+  });
+
+  it("stores token in session when remember token is disabled", async () => {
+    const saved = await saveSettings({
+      baseUrl: "https://example.com",
+      apiToken: "token-session",
+      rememberApiToken: false
+    });
+
+    expect(saved.apiToken).toBe("token-session");
+    expect(storage.localMemory.settings.apiToken).toBe("");
+    expect(storage.localMemory.settings.rememberApiToken).toBe(false);
+    expect(storage.sessionMemory.sessionApiToken).toBe("token-session");
+
+    const settings = await getSettings();
+    expect(settings.apiToken).toBe("token-session");
+    expect(settings.rememberApiToken).toBe(false);
+  });
+
+  it("clears session token on full state reset", async () => {
+    await saveSettings({
+      baseUrl: "https://example.com",
+      apiToken: "token-session",
+      rememberApiToken: false
+    });
+    expect(storage.sessionMemory.sessionApiToken).toBe("token-session");
+
+    await clearAllExtensionState();
+    expect(storage.sessionMemory.sessionApiToken).toBe(undefined);
+    expect(storage.localMemory.settings.apiToken).toBe("");
   });
 });

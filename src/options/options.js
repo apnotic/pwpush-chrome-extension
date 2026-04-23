@@ -23,6 +23,7 @@ const elements = {
   configuredBadge: document.querySelector("#configuredBadge"),
   customUrl: document.querySelector("#customUrl"),
   apiToken: document.querySelector("#apiToken"),
+  rememberApiToken: document.querySelector("#rememberApiToken"),
   saveButton: document.querySelector("#saveButton"),
   testConnectionButton: document.querySelector("#testConnectionButton"),
   clearSettingsButton: document.querySelector("#clearSettingsButton"),
@@ -113,6 +114,7 @@ function hydrateForm(settings) {
 
   elements.customUrl.value = presetKey === "custom" ? settings.baseUrl : "";
   elements.apiToken.value = settings.apiToken || "";
+  elements.rememberApiToken.checked = settings.rememberApiToken !== false;
   renderAccountOptions(settings.availableAccounts || [], settings.selectedAccountId);
 }
 
@@ -226,6 +228,7 @@ async function testConnection(shouldSave) {
         baseUrl,
         presetKey: userInput.presetKey,
         apiToken: userInput.apiToken,
+        rememberApiToken: userInput.rememberApiToken,
         selectedAccountId: accountState.selectedAccountId,
         availableAccounts: accountState.availableAccounts
       });
@@ -240,6 +243,7 @@ async function testConnection(shouldSave) {
       ...settings,
       baseUrl,
       apiToken: userInput.apiToken,
+      rememberApiToken: userInput.rememberApiToken,
       selectedAccountId: accountState.selectedAccountId,
       availableAccounts: accountState.availableAccounts
     };
@@ -269,6 +273,7 @@ function getUserSelection() {
     presetKey: PRESET_URLS[presetKey] ? presetKey : "custom",
     baseUrl,
     apiToken,
+    rememberApiToken: elements.rememberApiToken.checked,
     selectedAccountId: elements.accountSelect.value.trim() || null
   };
 }
