@@ -16,19 +16,6 @@
         <p class="subtitle">Securely share links and text with expiring pushes.</p>
       </section>
 
-      <section class="card connection">
-        <div class="row between">
-          <h1>Connection</h1>
-          <button id="recheckButton" type="button" class="ghost">Re-check</button>
-        </div>
-        <p id="serverValue" class="server">No server configured</p>
-        <div class="chip-row">
-          <span class="chip" id="instanceValue">Unknown</span>
-          <span class="chip" id="editionValue">Unknown</span>
-          <span class="chip" id="apiValue">API ?</span>
-        </div>
-      </section>
-
       <section class="card create">
         <h2>Create push</h2>
         <p id="statusMessage" class="status" role="status" aria-live="polite"></p>
@@ -47,7 +34,7 @@
 
           <label class="checkbox">
             <input id="retrievalStep" type="checkbox">
-            Require first-step reveal before full content
+            Require a 1-click retrieval step before full content
           </label>
 
           <label for="passphrase">Passphrase (optional)</label>
@@ -66,6 +53,19 @@
           <button id="downloadQrButton" type="button" class="hidden">Download QR PNG</button>
         </div>
         <div id="qrContainer" class="qr-container hidden"></div>
+      </section>
+
+      <section class="card connection">
+        <div class="row between">
+          <h1>Connection</h1>
+          <button id="recheckButton" type="button" class="ghost">Re-check</button>
+        </div>
+        <p id="serverValue" class="server">No server configured</p>
+        <div class="chip-row">
+          <span class="chip" id="instanceValue">Unknown</span>
+          <span class="chip" id="editionValue">Unknown</span>
+          <span class="chip" id="apiValue">API ?</span>
+        </div>
       </section>
     </main>
 
