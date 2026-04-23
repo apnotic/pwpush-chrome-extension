@@ -9,6 +9,7 @@ import {
   saveLastPushResult,
   saveSettings
 } from "../lib/storage.js";
+import {buildPreviewUrl, extractFirstSvg} from "./qr-utils.js";
 
 const elements = {
   serverValue: document.querySelector("#serverValue"),
@@ -248,79 +249,68 @@ async function renderQrForLatestPush() {
     return;
   }
 
-  setStatus("Loading QR from preview page...", "info");
-  const qrSvg = await loadPreviewQrSvg(lastPush);
-  if (!qrSvg) {
-    setStatus("Unable to render QR for this push.", "error");
-    return;
+  try {
+    setStatus("Loading QR from preview page...", "info");
+    const qrSvg = await loadPreviewQrSvg(lastPush);
+    if (!qrSvg) {
+      setStatus("Unable to render QR for this push.", "error");
+      return;
+    }
+
+    const updated = await saveLastPushResult({
+      ...lastPush,
+      qrSvg: "",
+      qrPngDataUrl: await svgToPngDataUrl(qrSvg, 512, 512)
+    });
+
+    if (!updated.qrPngDataUrl) {
+      setStatus("Unable to convert QR to PNG.", "error");
+      return;
+    }
+
+    state.lastPushResult = updated;
+    renderResult(updated);
+    setStatus("QR loaded.", "success");
+  } catch (error) {
+    setStatus((error && error.message) || "Unable to render QR for this push.", "error");
   }
-
-  const updated = await saveLastPushResult({
-    ...lastPush,
-    qrSvg: "",
-    qrPngDataUrl: await svgToPngDataUrl(qrSvg, 512, 512)
-  });
-
-  if (!updated.qrPngDataUrl) {
-    setStatus("Unable to convert QR to PNG.", "error");
-    return;
-  }
-
-  state.lastPushResult = updated;
-  renderResult(updated);
-  setStatus("QR loaded.", "success");
 }
 
 async function loadPreviewQrSvg(lastPush) {
   const shareUrl = lastPush.shareUrl;
-  const previewCandidate = buildPreviewUrl(shareUrl);
-
-  const response = await fetch(previewCandidate, {
-    method: "GET",
-    headers: {Accept: "text/html"}
-  });
-
-  if (!response.ok) {
-    if (lastPush.urlToken && state.settings.baseUrl) {
-      const previewResult = await getPushPreview(lastPush.urlToken, {
-        baseUrl: state.settings.baseUrl,
-        token: state.settings.apiToken || "",
-        accountId: state.settings.selectedAccountId || ""
-      });
-      if (previewResult.ok && previewResult.data && previewResult.data.shareUrl) {
-        return loadPreviewSvgFromUrl(buildPreviewUrl(previewResult.data.shareUrl));
-      }
-    }
-    return "";
+  const previewCandidate = buildPreviewUrl(shareUrl, (state.settings || {}).baseUrl || "");
+  const directSvg = await loadPreviewSvgFromUrl(previewCandidate);
+  if (directSvg) {
+    return directSvg;
   }
 
-  const html = await response.text();
-  return extractFirstSvg(html);
+  if (lastPush.urlToken && state.settings.baseUrl) {
+    const previewResult = await getPushPreview(lastPush.urlToken, {
+      baseUrl: state.settings.baseUrl,
+      token: state.settings.apiToken || "",
+      accountId: state.settings.selectedAccountId || ""
+    });
+    if (previewResult.ok && previewResult.data && previewResult.data.shareUrl) {
+      return loadPreviewSvgFromUrl(buildPreviewUrl(previewResult.data.shareUrl, (state.settings || {}).baseUrl || ""));
+    }
+  }
+  return "";
 }
 
 async function loadPreviewSvgFromUrl(previewUrl) {
-  const response = await fetch(previewUrl, {
-    method: "GET",
-    headers: {Accept: "text/html"}
-  });
-  if (!response.ok) {
+  try {
+    const response = await fetch(previewUrl, {
+      method: "GET",
+      headers: {Accept: "text/html"}
+    });
+    if (!response.ok) {
+      return "";
+    }
+
+    return extractFirstSvg(await response.text());
+  } catch (_error) {
     return "";
   }
-
-  return extractFirstSvg(await response.text());
-}
-
-function extractFirstSvg(html) {
-  const svgMatch = html.match(/<svg[\s\S]*?<\/svg>/i);
-  return svgMatch ? svgMatch[0] : "";
-}
-
-function buildPreviewUrl(shareUrl) {
-  const parsed = new URL(shareUrl);
-  const trimmedPath = parsed.pathname.endsWith("/") ? parsed.pathname.slice(0, -1) : parsed.pathname;
-  parsed.pathname = trimmedPath.endsWith("/preview") ? trimmedPath : `${trimmedPath}/preview`;
-  parsed.search = "";
-  return parsed.toString();
 }
 
 async function downloadQrPng() {
