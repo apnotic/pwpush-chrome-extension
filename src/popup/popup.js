@@ -37,7 +37,9 @@ const elements = {
 let state = {
   settings: null,
   instanceStatus: null,
-  lastPushResult: null
+  lastPushResult: null,
+  hasSelectedText: false,
+  isBusy: false
 };
 
 elements.recheckButton.addEventListener("click", async () => {
@@ -104,6 +106,8 @@ async function loadState() {
   hydrateAdvancedOptions(settings.lastPushOptions || {});
   renderConnection(settings, instanceStatus);
   renderResult(lastPushResult);
+  await refreshSelectedTextAvailability();
+  updateActionButtons();
 }
 
 function renderConnection(settings, instanceStatus) {
@@ -177,9 +181,13 @@ async function createFromSelectedText() {
     });
     const selection = ((results && results[0] && results[0].result) || "").trim();
     if (!selection) {
+      state.hasSelectedText = false;
+      updateActionButtons();
       throw new Error("No text selected. Highlight text on the page and try again.");
     }
 
+    state.hasSelectedText = true;
+    updateActionButtons();
     await createPushFromPayload(selection);
   } catch (error) {
     setStatus(formatSelectionError(error), "error");
@@ -190,7 +198,8 @@ async function createPushFromPayload(payload) {
   const options = getPushOptions();
   await persistPushOptions(options);
 
-  withButtonsDisabled(true);
+  state.isBusy = true;
+  updateActionButtons();
   setStatus("Creating push...", "info");
 
   try {
@@ -227,7 +236,8 @@ async function createPushFromPayload(payload) {
     renderResult(state.lastPushResult);
     setStatus("Push created. Copy the link or open QR.", "success");
   } finally {
-    withButtonsDisabled(false);
+    state.isBusy = false;
+    updateActionButtons();
   }
 }
 
@@ -390,8 +400,43 @@ function ensureServerConfigured() {
 }
 
 function withButtonsDisabled(disabled) {
-  elements.pushUrlButton.disabled = disabled;
-  elements.pushSelectionButton.disabled = disabled;
+  state.isBusy = disabled;
+  updateActionButtons();
+}
+
+function updateActionButtons() {
+  elements.pushUrlButton.disabled = state.isBusy;
+  const selectionUnavailable = !state.hasSelectedText;
+  elements.pushSelectionButton.disabled = state.isBusy || selectionUnavailable;
+  elements.pushSelectionButton.title = selectionUnavailable
+    ? "Select text on the page first, then push."
+    : "";
+}
+
+async function refreshSelectedTextAvailability() {
+  state.hasSelectedText = await hasActiveTabSelection();
+}
+
+async function hasActiveTabSelection() {
+  try {
+    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+    if (!tab || !tab.id || !tab.url) {
+      return false;
+    }
+
+    const url = new URL(tab.url);
+    if (!["http:", "https:"].includes(url.protocol)) {
+      return false;
+    }
+
+    const results = await chrome.scripting.executeScript({
+      target: {tabId: tab.id},
+      func: () => (window.getSelection ? window.getSelection().toString().trim().length > 0 : false)
+    });
+    return Boolean(results && results[0] && results[0].result);
+  } catch (_error) {
+    return false;
+  }
 }
 
 async function withLoading(button, loadingText, task) {
