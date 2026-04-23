@@ -1,5 +1,5 @@
 import {describe, expect, it} from "vitest";
-import {buildPreviewUrl, extractFirstSvg} from "../../src/popup/qr-utils.js";
+import {buildPreviewUrl, buildPreviewUrlFromToken, extractFirstSvg} from "../../src/popup/qr-utils.js";
 
 describe("buildPreviewUrl", () => {
   it("appends /preview for absolute share URLs", () => {
@@ -16,6 +16,28 @@ describe("buildPreviewUrl", () => {
 
   it("throws when a relative share URL has no base URL", () => {
     expect(() => buildPreviewUrl("/p/abc123")).toThrow("Push URL is invalid for QR generation.");
+  });
+});
+
+describe("buildPreviewUrlFromToken", () => {
+  it("builds preview URL from token and configured base URL", () => {
+    expect(buildPreviewUrlFromToken("tnxljg8ihwq2lsldxq", "https://eu.pwpush.com"))
+      .toBe("https://eu.pwpush.com/p/tnxljg8ihwq2lsldxq/preview");
+  });
+
+  it("encodes token path segments safely", () => {
+    expect(buildPreviewUrlFromToken("a/b c", "https://eu.pwpush.com"))
+      .toBe("https://eu.pwpush.com/p/a%2Fb%20c/preview");
+  });
+
+  it("throws without token", () => {
+    expect(() => buildPreviewUrlFromToken("", "https://eu.pwpush.com"))
+      .toThrow("Push token is required for QR generation.");
+  });
+
+  it("throws without configured base URL", () => {
+    expect(() => buildPreviewUrlFromToken("abc123", ""))
+      .toThrow("Configured server URL is required for token preview lookup.");
   });
 });
 

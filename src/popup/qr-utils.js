@@ -38,6 +38,22 @@ export function buildPreviewUrl(shareUrl, baseUrl = "") {
   return parsed.toString();
 }
 
+export function buildPreviewUrlFromToken(urlToken, baseUrl) {
+  const token = String(urlToken || "").trim();
+  const normalizedBaseUrl = String(baseUrl || "").trim();
+  if (!token) {
+    throw new Error("Push token is required for QR generation.");
+  }
+  if (!normalizedBaseUrl) {
+    throw new Error("Configured server URL is required for token preview lookup.");
+  }
+
+  const parsedBaseUrl = new URL(ensureTrailingSlash(normalizedBaseUrl));
+  parsedBaseUrl.pathname = `/p/${encodeURIComponent(token)}/preview`;
+  parsedBaseUrl.search = "";
+  return parsedBaseUrl.toString();
+}
+
 function ensureTrailingSlash(rawUrl) {
   const normalized = String(rawUrl || "").trim();
   return normalized.endsWith("/") ? normalized : `${normalized}/`;

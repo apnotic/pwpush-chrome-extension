@@ -9,7 +9,7 @@ import {
   saveLastPushResult,
   saveSettings
 } from "../lib/storage.js";
-import {buildPreviewUrl, extractFirstSvg} from "./qr-utils.js";
+import {buildPreviewUrl, buildPreviewUrlFromToken, extractFirstSvg} from "./qr-utils.js";
 
 const elements = {
   serverValue: document.querySelector("#serverValue"),
@@ -277,21 +277,64 @@ async function renderQrForLatestPush() {
 }
 
 async function loadPreviewQrSvg(lastPush) {
-  const shareUrl = lastPush.shareUrl;
-  const previewCandidate = buildPreviewUrl(shareUrl, (state.settings || {}).baseUrl || "");
-  const directSvg = await loadPreviewSvgFromUrl(previewCandidate);
-  if (directSvg) {
-    return directSvg;
+  const baseUrl = ((state.settings || {}).baseUrl || "").trim();
+  const previewCandidates = [];
+
+  if (lastPush.urlToken && baseUrl) {
+    try {
+      previewCandidates.push(buildPreviewUrlFromToken(lastPush.urlToken, baseUrl));
+    } catch (_error) {
+      // Continue with other lookup paths.
+    }
   }
 
-  if (lastPush.urlToken && state.settings.baseUrl) {
+  if (lastPush.shareUrl) {
+    try {
+      previewCandidates.push(buildPreviewUrl(lastPush.shareUrl, baseUrl));
+    } catch (_error) {
+      // Continue with other lookup paths.
+    }
+  }
+
+  for (const previewCandidate of previewCandidates) {
+    const directSvg = await loadPreviewSvgFromUrl(previewCandidate);
+    if (directSvg) {
+      return directSvg;
+    }
+  }
+
+  if (lastPush.urlToken && baseUrl) {
     const previewResult = await getPushPreview(lastPush.urlToken, {
-      baseUrl: state.settings.baseUrl,
+      baseUrl,
       token: state.settings.apiToken || "",
       accountId: state.settings.selectedAccountId || ""
     });
-    if (previewResult.ok && previewResult.data && previewResult.data.shareUrl) {
-      return loadPreviewSvgFromUrl(buildPreviewUrl(previewResult.data.shareUrl, (state.settings || {}).baseUrl || ""));
+    if (previewResult.ok && previewResult.data) {
+      const apiCandidates = [];
+
+      if (previewResult.data.shareUrl) {
+        try {
+          apiCandidates.push(buildPreviewUrl(previewResult.data.shareUrl, baseUrl));
+        } catch (_error) {
+          // Continue with token-based path.
+        }
+      }
+
+      const previewToken = previewResult.data.url_token || lastPush.urlToken;
+      if (previewToken) {
+        try {
+          apiCandidates.push(buildPreviewUrlFromToken(previewToken, baseUrl));
+        } catch (_error) {
+          // No additional candidate.
+        }
+      }
+
+      for (const previewCandidate of apiCandidates) {
+        const svg = await loadPreviewSvgFromUrl(previewCandidate);
+        if (svg) {
+          return svg;
+        }
+      }
     }
   }
   return "";
