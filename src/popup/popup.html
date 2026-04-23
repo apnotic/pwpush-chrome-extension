@@ -3,68 +3,68 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Password Pusher</title>
+    <title data-i18n="popupTitle">Password Pusher</title>
     <link rel="stylesheet" href="./popup.css">
   </head>
   <body>
     <main class="popup" id="popupRoot">
       <section class="card brand">
         <div class="row between">
-          <img class="logo" src="../options/assets/logo.svg" alt="Password Pusher">
-          <button id="settingsButton" type="button" class="ghost">Settings</button>
+          <img class="logo" src="../options/assets/logo.svg" alt="Password Pusher" data-i18n-alt="popupBrandAlt">
+          <button id="settingsButton" type="button" class="ghost" data-i18n="popupSettingsButton">Settings</button>
         </div>
-        <p class="subtitle">Securely share links and text with expiring pushes.</p>
+        <p class="subtitle" data-i18n="popupSubtitle">Securely share links and text with expiring pushes.</p>
       </section>
 
       <section class="card create">
-        <h2>Create push</h2>
+        <h2 data-i18n="popupCreateHeading">Create push</h2>
         <p id="statusMessage" class="status" role="status" aria-live="polite"></p>
         <div class="action-grid">
-          <button id="pushUrlButton" type="button" class="primary">Push Current URL</button>
-          <button id="pushSelectionButton" type="button">Push Selected Text</button>
+          <button id="pushUrlButton" type="button" class="primary" data-i18n="popupPushCurrentUrlButton">Push Current URL</button>
+          <button id="pushSelectionButton" type="button" data-i18n="popupPushSelectedTextButton">Push Selected Text</button>
         </div>
 
         <details id="advancedOptions">
-          <summary>More options</summary>
-          <label for="expireAfterDays">Expire after days</label>
+          <summary data-i18n="popupMoreOptionsSummary">More options</summary>
+          <label for="expireAfterDays" data-i18n="popupExpireAfterDaysLabel">Expire after days</label>
           <input id="expireAfterDays" type="number" min="1" max="90" value="7">
 
-          <label for="expireAfterViews">Expire after views</label>
+          <label for="expireAfterViews" data-i18n="popupExpireAfterViewsLabel">Expire after views</label>
           <input id="expireAfterViews" type="number" min="1" max="100" value="5">
 
           <label class="checkbox">
             <input id="retrievalStep" type="checkbox">
-            Require a 1-click retrieval step before full content
+            <span data-i18n="popupRetrievalStepLabel">Require a 1-click retrieval step before full content</span>
           </label>
 
-          <label for="passphrase">Passphrase (optional)</label>
-          <input id="passphrase" type="password" autocomplete="off" placeholder="Optional passphrase">
+          <label for="passphrase" data-i18n="popupPassphraseLabel">Passphrase (optional)</label>
+          <input id="passphrase" type="password" autocomplete="off" placeholder="Optional passphrase" data-i18n-placeholder="popupPassphrasePlaceholder">
         </details>
       </section>
 
       <section class="card result hidden" id="resultSection">
-        <h2>Latest push</h2>
+        <h2 data-i18n="popupLatestPushHeading">Latest push</h2>
         <p id="resultLink" class="result-link"></p>
         <p id="resultMeta" class="result-meta"></p>
         <div class="action-grid compact">
-          <button id="copyLinkButton" type="button">Copy Link</button>
-          <button id="openLinkButton" type="button">Open Link</button>
-          <button id="showQrButton" type="button">Show QR</button>
-          <button id="downloadQrButton" type="button" class="hidden">Download QR PNG</button>
+          <button id="copyLinkButton" type="button" data-i18n="popupCopyLinkButton">Copy Link</button>
+          <button id="openLinkButton" type="button" data-i18n="popupOpenLinkButton">Open Link</button>
+          <button id="showQrButton" type="button" data-i18n="popupShowQrButton">Show QR</button>
+          <button id="downloadQrButton" type="button" class="hidden" data-i18n="popupDownloadQrButton">Download QR PNG</button>
         </div>
         <div id="qrContainer" class="qr-container hidden"></div>
       </section>
 
       <section class="card connection">
         <div class="row between">
-          <h1>Connection</h1>
-          <button id="recheckButton" type="button" class="ghost">Re-check</button>
+          <h1 data-i18n="popupConnectionHeading">Connection</h1>
+          <button id="recheckButton" type="button" class="ghost" data-i18n="popupRecheckButton">Re-check</button>
         </div>
-        <p id="serverValue" class="server">No server configured</p>
+        <p id="serverValue" class="server" data-i18n="popupNoServerConfigured">No server configured</p>
         <div class="chip-row">
-          <span class="chip" id="instanceValue">Unknown</span>
-          <span class="chip" id="editionValue">Unknown</span>
-          <span class="chip" id="apiValue">API ?</span>
+          <span class="chip" id="instanceValue" data-i18n="commonUnknown">Unknown</span>
+          <span class="chip" id="editionValue" data-i18n="commonUnknown">Unknown</span>
+          <span class="chip" id="apiValue" data-i18n="popupApiUnknown">API ?</span>
         </div>
       </section>
     </main>

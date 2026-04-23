@@ -3,56 +3,56 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Password Pusher Settings</title>
+    <title data-i18n="optionsTitle">Password Pusher Settings</title>
     <link rel="stylesheet" href="./options.css">
   </head>
   <body>
     <main class="container">
       <header class="brand card">
         <div class="brand-row">
-          <img class="logo" src="./assets/logo.svg" alt="Password Pusher">
-          <span id="configuredBadge" class="badge">Not configured</span>
+          <img class="logo" src="./assets/logo.svg" alt="Password Pusher" data-i18n-alt="popupBrandAlt">
+          <span id="configuredBadge" class="badge" data-i18n="optionsNotConfigured">Not configured</span>
         </div>
-        <h2>The Official Extension for Chrome and Firefox</h2>
-        <p class="intro">Securely share links and text with expiring links and full audit logs. Built by the creators of Password Pusher.</p>
+        <h2 data-i18n="optionsHeroHeading">The Official Extension for Chrome and Firefox</h2>
+        <p class="intro" data-i18n="optionsHeroIntro">Securely share links and text with expiring links and full audit logs. Built by the creators of Password Pusher.</p>
       </header>
 
       <section class="card">
-        <h2>Server selection</h2>
-        <p class="section-intro">Select your Password Pusher service.</p>
-        <p class="section-intro">Self-hosted supports both <a href="https://github.com/pglombardo/PasswordPusher" target="_blank" rel="noreferrer">OSS</a> and <a href="https://pwpush.com/self-hosted-pricing" target="_blank" rel="noreferrer">Pro</a> deployments. Hosted options are managed by <a href="https://apnotic.com" target="_blank" rel="noreferrer">Apnotic</a> (creators of Password Pusher).</p>
+        <h2 data-i18n="optionsServerSelectionHeading">Server selection</h2>
+        <p class="section-intro" data-i18n="optionsServerSelectionIntro">Select your Password Pusher service.</p>
+        <p class="section-intro" data-i18n-html="optionsServerSelectionDescription">Self-hosted supports both <a href="https://github.com/pglombardo/PasswordPusher" target="_blank" rel="noreferrer">OSS</a> and <a href="https://pwpush.com/self-hosted-pricing" target="_blank" rel="noreferrer">Pro</a> deployments. Hosted options are managed by <a href="https://apnotic.com" target="_blank" rel="noreferrer">Apnotic</a> (creators of Password Pusher).</p>
 
-        <div class="server-tabs" role="tablist" aria-label="Server type">
-          <button id="selfHostedTabButton" type="button" class="tab-button active" aria-controls="selfHostedPanel">Self-Hosted</button>
-          <button id="hostedTabButton" type="button" class="tab-button" aria-controls="hostedPanel">Hosted by Apnotic</button>
+        <div class="server-tabs" role="tablist" aria-label="Server type" data-i18n-aria-label="optionsServerTypeAriaLabel">
+          <button id="selfHostedTabButton" type="button" class="tab-button active" aria-controls="selfHostedPanel" data-i18n="optionsSelfHostedTab">Self-Hosted</button>
+          <button id="hostedTabButton" type="button" class="tab-button" aria-controls="hostedPanel" data-i18n="optionsHostedTab">Hosted by Apnotic</button>
         </div>
 
         <div id="selfHostedPanel" class="server-panel">
           <fieldset class="choices">
-            <legend class="group-label">Self-Hosted (OSS &amp; Pro)</legend>
+            <legend class="group-label" data-i18n="optionsSelfHostedLegend">Self-Hosted (OSS &amp; Pro)</legend>
             <label class="choice-card">
               <input type="radio" name="serverChoice" value="custom">
               <span>
-                <strong>Use a self-hosted instance</strong>
-                <small>Connect your own Password Pusher domain and deployment.</small>
+                <strong data-i18n="optionsUseSelfHostedLabel">Use a self-hosted instance</strong>
+                <small data-i18n="optionsUseSelfHostedHelp">Connect your own Password Pusher domain and deployment.</small>
               </span>
             </label>
           </fieldset>
 
-          <label for="customUrl">Custom URL</label>
-          <input id="customUrl" name="customUrl" type="url" placeholder="https://pwpush.your-company.com">
-          <p id="selfHostedPolicyNote" class="field-help hidden">Enter the URL of your self-hosted Password Pusher instance.</p>
+          <label for="customUrl" data-i18n="optionsCustomUrlLabel">Custom URL</label>
+          <input id="customUrl" name="customUrl" type="url" placeholder="https://pwpush.your-company.com" data-i18n-placeholder="optionsCustomUrlPlaceholder">
+          <p id="selfHostedPolicyNote" class="field-help hidden" data-i18n="optionsSelfHostedPolicyNote">Enter the URL of your self-hosted Password Pusher instance.</p>
         </div>
 
         <div id="hostedPanel" class="server-panel hidden">
           <fieldset class="choices">
-            <legend class="group-label">Hosted by Apnotic, LLC</legend>
+            <legend class="group-label" data-i18n="optionsHostedLegend">Hosted by Apnotic, LLC</legend>
 
             <label class="choice-card">
               <input type="radio" name="serverChoice" value="us">
               <span>
                 <strong>us.pwpush.com (Pro)</strong>
-                <small>US region hosting with Password Pusher Pro features.</small>
+                <small data-i18n="optionsUsHostedHelp">US region hosting with Password Pusher Pro features.</small>
               </span>
             </label>
 
@@ -60,7 +60,7 @@
               <input type="radio" name="serverChoice" value="eu">
               <span>
                 <strong>eu.pwpush.com (Pro)</strong>
-                <small>EU region hosting with Password Pusher Pro features.</small>
+                <small data-i18n="optionsEuHostedHelp">EU region hosting with Password Pusher Pro features.</small>
               </span>
             </label>
 
@@ -68,100 +68,88 @@
               <input type="radio" name="serverChoice" value="oss">
               <span>
                 <strong>oss.pwpush.com (OSS)</strong>
-                <small>Public open source service managed by Apnotic.</small>
+                <small data-i18n="optionsOssHostedHelp">Public open source service managed by Apnotic.</small>
               </span>
             </label>
           </fieldset>
 
           <div id="hostedLegalLinks" class="legal-links hidden">
-            <span>See Also:</span>
-            <a id="privacyPolicyLink" href="#" target="_blank" rel="noreferrer">Privacy Policy</a>
+            <span data-i18n="optionsSeeAlso">See Also:</span>
+            <a id="privacyPolicyLink" href="#" target="_blank" rel="noreferrer" data-i18n="optionsPrivacyPolicy">Privacy Policy</a>
             <span>•</span>
-            <a id="termsOfServiceLink" href="#" target="_blank" rel="noreferrer">Terms of Service</a>
+            <a id="termsOfServiceLink" href="#" target="_blank" rel="noreferrer" data-i18n="optionsTermsOfService">Terms of Service</a>
             <span>•</span>
-            <a href="https://docs.pwpush.com/docs/regions/" target="_blank" rel="noreferrer">Data Regions</a>
+            <a href="https://docs.pwpush.com/docs/regions/" target="_blank" rel="noreferrer" data-i18n="optionsDataRegions">Data Regions</a>
           </div>
         </div>
 
         <div class="token-options-panel">
           <div class="token-options-row">
             <div class="token-options-main">
-              <label for="apiToken">API Bearer token (optional)</label>
-              <input id="apiToken" name="apiToken" type="password" autocomplete="off" placeholder="Paste API token if needed">
-              <p class="field-help">You can leave the token empty for endpoints that allow anonymous create/read operations. When enabled, the token is stored in the browser's local storage (inaccessible by other extensions) and used for subsequent requests.</p>
+              <label for="apiToken" data-i18n="optionsApiTokenLabel">API Bearer token (optional)</label>
+              <input id="apiToken" name="apiToken" type="password" autocomplete="off" placeholder="Paste API token if needed" data-i18n-placeholder="optionsApiTokenPlaceholder">
+              <p class="field-help" data-i18n="optionsApiTokenHelp">You can leave the token empty for endpoints that allow anonymous create/read operations. When enabled, the token is stored in the browser's local storage (inaccessible by other extensions) and used for subsequent requests.</p>
             </div>
 
             <div class="token-options-side">
               <label class="inline-checkbox" for="rememberApiToken">
                 <input id="rememberApiToken" name="rememberApiToken" type="checkbox" checked>
-                Remember token on this browser
+                <span data-i18n="optionsRememberTokenCheckbox">Remember token on this browser</span>
               </label>
-              <p class="field-help">When disabled, the token is kept only for the current browser session.</p>
+              <p class="field-help" data-i18n="optionsRememberTokenHelp">When disabled, the token is kept only for the current browser session.</p>
             </div>
           </div>
         </div>
 
         <div id="accountSection" class="account-section">
-          <h3>Account selection (Pro)</h3>
-          <p id="accountSectionHelp" class="field-help">Account selection is available for Pro instances.</p>
-          <label for="accountSelect">Account</label>
+          <h3 data-i18n="optionsAccountSelectionHeading">Account selection (Pro)</h3>
+          <p id="accountSectionHelp" class="field-help" data-i18n="optionsAccountSelectionHelpDefault">Account selection is available for Pro instances.</p>
+          <label for="accountSelect" data-i18n="optionsAccountLabel">Account</label>
           <select id="accountSelect" disabled>
-            <option value="">No account selected</option>
+            <option value="" data-i18n="optionsNoAccountSelected">No account selected</option>
           </select>
         </div>
 
         <div class="actions">
-          <button id="clearSettingsButton" type="button" class="danger">Clear Configuration</button>
-          <button id="testConnectionButton" type="button">Test connection</button>
-          <button id="saveButton" type="button" class="primary">Save configuration</button>
+          <button id="clearSettingsButton" type="button" class="danger" data-i18n="optionsClearConfigurationButton">Clear Configuration</button>
+          <button id="testConnectionButton" type="button" data-i18n="optionsTestConnectionButton">Test connection</button>
+          <button id="saveButton" type="button" class="primary" data-i18n="optionsSaveConfigurationButton">Save configuration</button>
         </div>
 
         <p id="statusMessage" class="status" role="status" aria-live="polite"></p>
       </section>
 
       <section class="card">
-        <h2>Detected instance</h2>
+        <h2 data-i18n="optionsDetectedInstanceHeading">Detected instance</h2>
         <dl class="meta">
-          <div><dt>Server</dt><dd id="detectedServer">Not set</dd></div>
-          <div><dt>Instance type</dt><dd id="instanceType">Unknown</dd></div>
-          <div><dt>Edition</dt><dd id="editionValue">Unknown</dd></div>
-          <div><dt>App version</dt><dd id="applicationVersion">Unknown</dd></div>
-          <div><dt>API version</dt><dd id="apiVersion">Unknown</dd></div>
-          <div><dt>Push API</dt><dd id="featurePushes">Available</dd></div>
-          <div><dt>Accounts API</dt><dd id="featureAccounts">Unknown</dd></div>
-          <div><dt>Requests API</dt><dd id="featureRequests">Unknown</dd></div>
-          <div><dt>Last checked</dt><dd id="lastChecked">Never</dd></div>
+          <div><dt data-i18n="optionsMetaServer">Server</dt><dd id="detectedServer" data-i18n="optionsNotSet">Not set</dd></div>
+          <div><dt data-i18n="optionsMetaInstanceType">Instance type</dt><dd id="instanceType" data-i18n="commonUnknown">Unknown</dd></div>
+          <div><dt data-i18n="optionsMetaEdition">Edition</dt><dd id="editionValue" data-i18n="commonUnknown">Unknown</dd></div>
+          <div><dt data-i18n="optionsMetaAppVersion">App version</dt><dd id="applicationVersion" data-i18n="commonUnknown">Unknown</dd></div>
+          <div><dt data-i18n="optionsMetaApiVersion">API version</dt><dd id="apiVersion" data-i18n="commonUnknown">Unknown</dd></div>
+          <div><dt data-i18n="optionsMetaPushApi">Push API</dt><dd id="featurePushes" data-i18n="commonAvailable">Available</dd></div>
+          <div><dt data-i18n="optionsMetaAccountsApi">Accounts API</dt><dd id="featureAccounts" data-i18n="commonUnknown">Unknown</dd></div>
+          <div><dt data-i18n="optionsMetaRequestsApi">Requests API</dt><dd id="featureRequests" data-i18n="commonUnknown">Unknown</dd></div>
+          <div><dt data-i18n="optionsMetaLastChecked">Last checked</dt><dd id="lastChecked" data-i18n="optionsNever">Never</dd></div>
         </dl>
       </section>
 
       <section class="card">
-        <h2>About Password Pusher, Apnotic, and this extension</h2>
+        <h2 data-i18n="optionsAboutHeading">About Password Pusher, Apnotic, and this extension</h2>
         <p class="section-intro">
-          This extension helps you quickly create secure, expiring pushes from your browser.
+          <span data-i18n="optionsAboutIntro1">This extension helps you quickly create secure, expiring pushes from your browser.</span>
         </p>
         <p class="section-intro">
-          <strong>Password Pusher</strong> is an open source tool for sharing sensitive content with automatic expiration.
-          Learn more at
-          <a href="https://pwpush.com" target="_blank" rel="noreferrer">pwpush.com</a>,
-          read the docs at
-          <a href="https://docs.pwpush.com" target="_blank" rel="noreferrer">docs.pwpush.com</a>,
-          review
-          <a href="https://docs.pwpush.com/docs/best-practices/" target="_blank" rel="noreferrer">Best Practices</a>,
-          or view the OSS project on
-          <a href="https://github.com/pglombardo/PasswordPusher" target="_blank" rel="noreferrer">GitHub</a>.
+          <span data-i18n-html="optionsAboutIntro2"><strong>Password Pusher</strong> is an open source tool for sharing sensitive content with automatic expiration. Learn more at <a href="https://pwpush.com" target="_blank" rel="noreferrer">pwpush.com</a>, read the docs at <a href="https://docs.pwpush.com" target="_blank" rel="noreferrer">docs.pwpush.com</a>, review <a href="https://docs.pwpush.com/docs/best-practices/" target="_blank" rel="noreferrer">Best Practices</a>, or view the OSS project on <a href="https://github.com/pglombardo/PasswordPusher" target="_blank" rel="noreferrer">GitHub</a>.</span>
         </p>
         <p class="section-intro">
-          <strong>Apnotic</strong> is the company behind Password Pusher and the managed hosted regions used by this extension.
-          Learn more at
-          <a href="https://apnotic.com" target="_blank" rel="noreferrer">apnotic.com</a>.
+          <span data-i18n-html="optionsAboutIntro3"><strong>Apnotic</strong> is the company behind Password Pusher and the managed hosted regions used by this extension. Learn more at <a href="https://apnotic.com" target="_blank" rel="noreferrer">apnotic.com</a>.</span>
         </p>
         <p class="section-intro">
-          <strong>This extension</strong> is the official browser companion for Password Pusher.
-          See project updates and source at
-          <a href="https://github.com/apnotic/pwpush-chrome-extension" target="_blank" rel="noreferrer">github.com/apnotic/pwpush-chrome-extension</a>.
+          <span data-i18n-html="optionsAboutIntro4"><strong>This extension</strong> is the official browser companion for Password Pusher. See project updates and source at <a href="https://github.com/apnotic/pwpush-chrome-extension" target="_blank" rel="noreferrer">github.com/apnotic/pwpush-chrome-extension</a>.</span>
         </p>
         <p class="section-intro">
-          <strong>Tip:</strong> Add an API token (available under User &rarr; API Tokens) to enable additional features such as Audit Logging, Auto-Dispatch, File Uploads, and more.
+          <span data-i18n-html="optionsAboutTip"><strong>Tip:</strong> Add an API token (available under User &rarr; API Tokens) to enable additional features such as Audit Logging, Auto-Dispatch, File Uploads, and more.</span>
         </p>
       </section>
     </main>
