@@ -39,8 +39,8 @@ Use it with:
 
 ### Create pushes from browser context
 
+- **Push text** typed into the popup, or prefilled from text selected on the page.
 - **Push current URL** from the active tab.
-- **Push selected text** from the active page using on-demand scripting.
 - **Advanced options** for expiry (days/views), retrieval step, and passphrase.
 
 ### Connection and workspace awareness
@@ -76,8 +76,8 @@ Use it with:
 ### 3) Create a push
 
 1. Click the extension icon.
-2. Choose **Push Current URL** or **Push Selected Text**.
-3. Optionally set advanced push options.
+2. Enter text, or highlight text on the page before opening the popup so it is filled in for you.
+3. Set expiry options if needed, then click **Push**. Use **Push Current URL** to share the page address instead.
 4. Copy/open the link or generate/download a QR PNG.
 
 ---

@@ -20,29 +20,37 @@
       </section>
 
       <section class="card create">
-        <h2 data-i18n="popupCreateHeading">Create push</h2>
         <p id="statusMessage" class="status" role="status" aria-live="polite"></p>
-        <div class="action-grid">
-          <button id="pushUrlButton" type="button" class="primary" data-i18n="popupPushCurrentUrlButton">Push Current URL</button>
-          <button id="pushSelectionButton" type="button" data-i18n="popupPushSelectedTextButton">Push Selected Text</button>
-        </div>
 
-        <details id="advancedOptions">
-          <summary data-i18n="popupMoreOptionsSummary">More options</summary>
-          <label for="expireAfterDays" data-i18n="popupExpireAfterDaysLabel">Expire after days</label>
-          <input id="expireAfterDays" type="number" min="1" max="90" value="7">
+        <label for="payload" data-i18n="popupPayloadLabel">Text</label>
+        <textarea id="payload" name="payload" rows="4" spellcheck="false" autocomplete="off" placeholder="Paste a secret, note, or link" data-i18n-placeholder="popupPayloadPlaceholder"></textarea>
+        <p id="selectionHint" class="field-hint hidden" data-i18n="popupSelectionPrefilled">Filled from the text selected on this page.</p>
 
-          <label for="expireAfterViews" data-i18n="popupExpireAfterViewsLabel">Expire after views</label>
-          <input id="expireAfterViews" type="number" min="1" max="100" value="5">
+        <div class="push-options" id="advancedOptions">
+          <div class="option-pair">
+            <div>
+              <label for="expireAfterDays" data-i18n="popupExpireAfterDaysLabel">Expire after days</label>
+              <input id="expireAfterDays" type="number" min="1" max="90" value="7">
+            </div>
+            <div>
+              <label for="expireAfterViews" data-i18n="popupExpireAfterViewsLabel">Expire after views</label>
+              <input id="expireAfterViews" type="number" min="1" max="100" value="5">
+            </div>
+          </div>
 
           <label class="checkbox">
-            <input id="retrievalStep" type="checkbox">
+            <input id="retrievalStep" type="checkbox" checked>
             <span data-i18n="popupRetrievalStepLabel">Require a 1-click retrieval step before full content</span>
           </label>
 
           <label for="passphrase" data-i18n="popupPassphraseLabel">Passphrase (optional)</label>
           <input id="passphrase" type="password" autocomplete="off" placeholder="Optional passphrase" data-i18n-placeholder="popupPassphrasePlaceholder">
-        </details>
+        </div>
+
+        <div class="action-grid form-actions">
+          <button id="pushButton" type="button" class="primary" disabled data-i18n="popupPushButton">Push</button>
+          <button id="pushUrlButton" type="button" data-i18n="popupPushCurrentUrlButton">Push Current URL</button>
+        </div>
       </section>
 
       <section class="card result hidden" id="resultSection">
@@ -52,7 +60,7 @@
         <div class="action-grid compact">
           <button id="copyLinkButton" type="button" data-i18n="popupCopyLinkButton">Copy Link</button>
           <button id="openLinkButton" type="button" data-i18n="popupOpenLinkButton">Open Link</button>
-          <button id="showQrButton" type="button" data-i18n="popupShowQrButton">Show QR</button>
+          <button id="showQrButton" type="button" aria-expanded="false" aria-controls="qrContainer" data-i18n="popupShowQrButton">Show QR</button>
           <button id="downloadQrButton" type="button" class="hidden" data-i18n="popupDownloadQrButton">Download QR PNG</button>
         </div>
         <div id="qrContainer" class="qr-container hidden"></div>
@@ -66,7 +74,6 @@
         <p id="serverValue" class="server" data-i18n="popupNoServerConfigured">No server configured</p>
         <div class="chip-row">
           <span class="chip" id="instanceValue" data-i18n="commonUnknown">Unknown</span>
-          <span class="chip" id="editionValue" data-i18n="commonUnknown">Unknown</span>
           <span class="chip" id="apiValue" data-i18n="popupApiUnknown">API ?</span>
         </div>
       </section>

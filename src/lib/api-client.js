@@ -122,7 +122,7 @@ export async function createPush(payload, options = {}) {
     instanceType = "unknown",
     expireAfterDays = 7,
     expireAfterViews = 5,
-    retrievalStep = false,
+    retrievalStep = true,
     passphrase = ""
   } = options;
 
@@ -256,7 +256,7 @@ function buildPushPayload(payload, options = {}) {
     instanceType = "unknown",
     expireAfterDays = 7,
     expireAfterViews = 5,
-    retrievalStep = false,
+    retrievalStep = true,
     passphrase = ""
   } = options;
 

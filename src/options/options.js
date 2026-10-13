@@ -38,7 +38,6 @@ const elements = {
   workspaceSelect: document.querySelector("#workspaceSelect"),
   detectedServer: document.querySelector("#detectedServer"),
   instanceType: document.querySelector("#instanceType"),
-  editionValue: document.querySelector("#editionValue"),
   applicationVersion: document.querySelector("#applicationVersion"),
   apiVersion: document.querySelector("#apiVersion"),
   featurePushes: document.querySelector("#featurePushes"),
@@ -303,7 +302,6 @@ async function ensureHostPermission(baseUrl) {
 function renderStatusBlock(settings, status) {
   elements.detectedServer.textContent = settings.baseUrl || t("optionsNotSet");
   elements.instanceType.textContent = formatInstanceType(status.instanceType);
-  elements.editionValue.textContent = status.edition || t("commonUnknown");
   elements.applicationVersion.textContent = status.applicationVersion || t("commonUnknown");
   elements.apiVersion.textContent = status.apiVersion || t("commonUnknown");
   elements.featurePushes.textContent = t("commonEnabled");

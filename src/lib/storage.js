@@ -8,7 +8,7 @@ const DEFAULT_SETTINGS = {
   lastPushOptions: {
     expireAfterDays: 7,
     expireAfterViews: 5,
-    retrievalStep: false,
+    retrievalStep: true,
     passphrase: ""
   }
 };

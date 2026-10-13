@@ -91,6 +91,10 @@ h2 {
   margin: 0 0 8px;
 }
 
+.status:empty {
+  display: none;
+}
+
 .status.error {
   color: var(--error);
 }
@@ -109,6 +113,17 @@ h2 {
   gap: 8px;
 }
 
+.form-actions {
+  margin-top: 12px;
+}
+
+.field-hint {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-subtle);
+}
+
 .action-grid.compact {
   grid-template-columns: 1fr 1fr;
 }
@@ -119,17 +134,21 @@ h2 {
   color: var(--text-subtle);
 }
 
-details {
+.push-options {
   margin-top: 12px;
   border-top: 1px solid var(--divider);
   padding-top: 10px;
 }
 
-summary {
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-secondary);
+.option-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-items: end;
+}
+
+.option-pair label {
+  margin-top: 0;
 }
 
 label {
@@ -141,7 +160,8 @@ label {
 }
 
 input[type="number"],
-input[type="password"] {
+input[type="password"],
+textarea {
   width: 100%;
   box-sizing: border-box;
   border: 1px solid var(--input-border);
@@ -150,15 +170,26 @@ input[type="password"] {
   font-size: 12px;
   background: var(--input-bg);
   color: var(--text);
+  font-family: inherit;
 }
 
-input::placeholder {
+textarea {
+  display: block;
+  min-height: 96px;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+input::placeholder,
+textarea::placeholder {
   color: var(--text-subtle);
   opacity: 1;
 }
 
 input:focus,
-input:focus-visible {
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible {
   outline: 2px solid transparent;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--focus-ring);
