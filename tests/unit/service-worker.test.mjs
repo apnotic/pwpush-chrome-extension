@@ -65,12 +65,23 @@ async function flushAsyncCallbacks() {
 }
 
 describe("background/service-worker", () => {
-  it("opens options page on install", async () => {
-    const setup = await setupServiceWorkerTest();
+  it("opens options page when no server is configured", async () => {
+    const setup = await setupServiceWorkerTest({
+      settings: {baseUrl: "", apiToken: ""}
+    });
     expect(typeof setup.onInstalledListener).toBe("function");
 
-    await setup.onInstalledListener();
+    await setup.onInstalledListener({reason: "install"});
     expect(setup.openOptionsPage).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not open options page when a server is already configured", async () => {
+    const setup = await setupServiceWorkerTest({
+      settings: {baseUrl: "https://example.com", apiToken: "token-123"}
+    });
+
+    await setup.onInstalledListener({reason: "update"});
+    expect(setup.openOptionsPage).not.toHaveBeenCalled();
   });
 
   it("ignores unknown runtime messages", async () => {

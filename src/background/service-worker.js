@@ -6,6 +6,11 @@ import {
 import {t} from "../lib/i18n.js";
 
 chrome.runtime.onInstalled.addListener(async () => {
+  const settings = await getSettings();
+  if (settings.baseUrl) {
+    return;
+  }
+
   await chrome.runtime.openOptionsPage();
 });
 
