@@ -150,6 +150,7 @@
   "apiErrorServerUrlRequired": {"message": "Une URL de serveur est requise."},
   "apiErrorEnterValidUrl": {"message": "Entrez une URL valide, incluant https://."},
   "apiErrorOnlyHttps": {"message": "Seules les URL https:// sont prises en charge."},
+  "apiErrorNotPasswordPusher": {"message": "Ce serveur ne s'est pas identifie comme Password Pusher. Le jeton API n'a pas ete envoye."},
   "apiErrorInvalidJson": {"message": "La reponse du serveur n'etait pas un JSON valide."},
   "apiErrorTimeout": {"message": "Delai de la requete depasse. Reessayez."},
   "apiErrorNetwork": {"message": "Impossible d'atteindre ce serveur. Verifiez l'URL, le reseau ou CORS."},

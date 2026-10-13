@@ -1,10 +1,12 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
+import {clearPasswordPusherConfirmationCache} from "../../src/lib/api-client.js";
 import {detectInstance} from "../../src/lib/instance-detection.js";
 
 describe("detectInstance", () => {
   const originalFetch = global.fetch;
 
   beforeEach(() => {
+    clearPasswordPusherConfirmationCache();
     global.fetch = vi.fn();
   });
 
@@ -28,6 +30,27 @@ describe("detectInstance", () => {
     expect(result.error).toContain("endpoint was not found");
     expect(result.features.supportsWorkspacesApi).toBe("unknown");
     expect(result.features.supportsRequestsApi).toBe("unknown");
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch.mock.calls[0][1].headers.Authorization).toBeUndefined();
+  });
+
+  it("does not probe with the token when version is not Password Pusher", async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({service: "something-else"})
+    });
+
+    const result = await detectInstance({
+      baseUrl: "https://other.example",
+      token: "token-123"
+    });
+
+    expect(result.connected).toBe(false);
+    expect(result.error).toContain("API token was not sent");
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(String(global.fetch.mock.calls[0][0])).toContain("/api/v2/version");
+    expect(global.fetch.mock.calls[0][1].headers.Authorization).toBeUndefined();
   });
 
   it("classifies commercial edition as pro and maps feature probes", async () => {
@@ -61,7 +84,9 @@ describe("detectInstance", () => {
     expect(result.instanceType).toBe("pro");
     expect(result.features.supportsWorkspacesApi).toBe("enabled");
     expect(result.features.supportsRequestsApi).toBe("disabled");
+    expect(global.fetch.mock.calls[0][1].headers.Authorization).toBeUndefined();
     expect(String(global.fetch.mock.calls[1][0])).toContain("/api/v2/workspaces");
+    expect(global.fetch.mock.calls[1][1].headers.Authorization).toBe("Bearer token-123");
   });
 
   it("classifies oss edition and treats the missing workspaces API as disabled", async () => {

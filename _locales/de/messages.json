@@ -150,6 +150,7 @@
   "apiErrorServerUrlRequired": {"message": "Eine Server-URL ist erforderlich."},
   "apiErrorEnterValidUrl": {"message": "Gib eine gueltige URL inklusive https:// ein."},
   "apiErrorOnlyHttps": {"message": "Nur https://-URLs werden unterstuetzt."},
+  "apiErrorNotPasswordPusher": {"message": "Dieser Server hat sich nicht als Password Pusher ausgewiesen. Das API-Token wurde nicht gesendet."},
   "apiErrorInvalidJson": {"message": "Die Serverantwort war kein gueltiges JSON."},
   "apiErrorTimeout": {"message": "Zeitueberschreitung bei der Anfrage. Bitte erneut versuchen."},
   "apiErrorNetwork": {"message": "Server nicht erreichbar. URL, Netzwerk oder CORS pruefen."},

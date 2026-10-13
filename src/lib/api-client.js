@@ -1,5 +1,23 @@
 import {t} from "./i18n.js";
 
+const VERSION_PATH = "/api/v2/version";
+const versionConfirmations = new Map();
+
+export function looksLikePasswordPusher(payload) {
+  if (!payload || typeof payload !== "object") {
+    return false;
+  }
+
+  const edition = String(payload.edition || "").toLowerCase();
+  const apiVersion = String(payload.api_version || "").trim();
+  const applicationVersion = String(payload.application_version || "").trim();
+  return (edition === "oss" || edition === "commercial") && Boolean(apiVersion) && Boolean(applicationVersion);
+}
+
+export function clearPasswordPusherConfirmationCache() {
+  versionConfirmations.clear();
+}
+
 export function normalizeBaseUrl(rawValue) {
   if (!rawValue || typeof rawValue !== "string") {
     throw new Error(t("apiErrorServerUrlRequired", [], "A server URL is required."));
@@ -30,6 +48,19 @@ export async function requestJson(pathname, options = {}) {
   } = options;
 
   const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
+  if (token && String(token).trim() && pathname !== VERSION_PATH) {
+    const confirmation = await confirmPasswordPusher(normalizedBaseUrl);
+    if (!confirmation.ok) {
+      return {
+        ok: false,
+        status: confirmation.status || 0,
+        data: null,
+        errorType: confirmation.errorType || "untrusted_server",
+        errorMessage: confirmation.errorMessage
+      };
+    }
+  }
+
   const requestUrl = new URL(pathname, `${normalizedBaseUrl}/`);
   const normalizedWorkspaceId = normalizeWorkspaceId(workspaceId);
   if (normalizedWorkspaceId) {
@@ -42,7 +73,7 @@ export async function requestJson(pathname, options = {}) {
     Accept: "application/json"
   };
 
-  if (token) {
+  if (token && pathname !== VERSION_PATH) {
     headers.Authorization = `Bearer ${token}`;
   }
 
@@ -291,6 +322,55 @@ async function resolvePreviewUrl({baseUrl, token, workspaceId, urlToken}) {
   }
 
   return (previewResult.data || {}).shareUrl || "";
+}
+
+export async function confirmPasswordPusher(baseUrl) {
+  const origin = normalizeBaseUrl(baseUrl);
+  if (versionConfirmations.has(origin)) {
+    return versionConfirmations.get(origin);
+  }
+
+  const versionResult = await requestJson(VERSION_PATH, {
+    baseUrl: origin,
+    token: ""
+  });
+
+  let confirmation;
+  if (!versionResult.ok) {
+    confirmation = {
+      ok: false,
+      status: versionResult.status,
+      version: null,
+      errorType: versionResult.errorType,
+      errorMessage: versionResult.errorMessage
+    };
+  } else if (!looksLikePasswordPusher(versionResult.data)) {
+    confirmation = {
+      ok: false,
+      status: versionResult.status,
+      version: versionResult.data,
+      errorType: "untrusted_server",
+      errorMessage: t(
+        "apiErrorNotPasswordPusher",
+        [],
+        "This server did not identify itself as Password Pusher. The API token was not sent."
+      )
+    };
+  } else {
+    confirmation = {
+      ok: true,
+      status: versionResult.status,
+      version: versionResult.data,
+      errorType: null,
+      errorMessage: ""
+    };
+  }
+
+  if (versionResult.errorType !== "timeout" && versionResult.errorType !== "network_error") {
+    versionConfirmations.set(origin, confirmation);
+  }
+
+  return confirmation;
 }
 
 function normalizeWorkspaceId(workspaceId) {

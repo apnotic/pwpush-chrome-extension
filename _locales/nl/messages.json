@@ -150,6 +150,7 @@
   "apiErrorServerUrlRequired": {"message": "Een server-URL is vereist."},
   "apiErrorEnterValidUrl": {"message": "Voer een geldige URL in, inclusief https://."},
   "apiErrorOnlyHttps": {"message": "Alleen https://-URL's worden ondersteund."},
+  "apiErrorNotPasswordPusher": {"message": "Deze server heeft zich niet als Password Pusher geidentificeerd. Het API-token is niet verzonden."},
   "apiErrorInvalidJson": {"message": "Serverantwoord was geen geldige JSON."},
   "apiErrorTimeout": {"message": "Time-out bij verzoek. Probeer opnieuw."},
   "apiErrorNetwork": {"message": "Kan deze server niet bereiken. Controleer URL, netwerk of CORS."},

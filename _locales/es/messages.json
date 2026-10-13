@@ -150,6 +150,7 @@
   "apiErrorServerUrlRequired": {"message": "Se requiere una URL de servidor."},
   "apiErrorEnterValidUrl": {"message": "Introduce una URL valida, incluyendo https://."},
   "apiErrorOnlyHttps": {"message": "Solo se admiten URL https://."},
+  "apiErrorNotPasswordPusher": {"message": "Este servidor no se identifico como Password Pusher. El token de API no se envio."},
   "apiErrorInvalidJson": {"message": "La respuesta del servidor no era JSON valido."},
   "apiErrorTimeout": {"message": "Tiempo de espera agotado. Intentalo de nuevo."},
   "apiErrorNetwork": {"message": "No se puede acceder a este servidor. Revisa URL, red o CORS."},

@@ -1,11 +1,24 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {
+  clearPasswordPusherConfirmationCache,
   createPush,
   getPushPreview,
   listWorkspaces,
   normalizeBaseUrl,
   requestJson
 } from "../../src/lib/api-client.js";
+
+function passwordPusherVersionResponse() {
+  return {
+    ok: true,
+    status: 200,
+    json: async () => ({
+      edition: "commercial",
+      api_version: "2.1",
+      application_version: "1.0.0"
+    })
+  };
+}
 
 describe("normalizeBaseUrl", () => {
   it("returns the origin only", () => {
@@ -21,6 +34,7 @@ describe("requestJson", () => {
   const originalFetch = global.fetch;
 
   beforeEach(() => {
+    clearPasswordPusherConfirmationCache();
     global.fetch = vi.fn();
   });
 
@@ -29,11 +43,13 @@ describe("requestJson", () => {
   });
 
   it("sends auth header and workspace_id in query/body", async () => {
-    global.fetch.mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ok: true})
-    });
+    global.fetch
+      .mockResolvedValueOnce(passwordPusherVersionResponse())
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ok: true})
+      });
 
     const result = await requestJson("/api/v2/pushes", {
       baseUrl: "https://example.com",
@@ -48,9 +64,13 @@ describe("requestJson", () => {
     });
 
     expect(result.ok).toBe(true);
-    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledTimes(2);
 
-    const [requestUrl, requestOptions] = global.fetch.mock.calls[0];
+    const [versionUrl, versionOptions] = global.fetch.mock.calls[0];
+    expect(String(versionUrl)).toContain("/api/v2/version");
+    expect(versionOptions.headers.Authorization).toBeUndefined();
+
+    const [requestUrl, requestOptions] = global.fetch.mock.calls[1];
     expect(String(requestUrl)).toContain("/api/v2/pushes");
     expect(String(requestUrl)).toContain("workspace_id=acct_42");
     expect(String(requestUrl)).not.toContain("account_id=");
@@ -59,6 +79,32 @@ describe("requestJson", () => {
       push: {payload: "secret"},
       workspace_id: "acct_42"
     });
+  });
+
+  it("does not send the API token when version does not look like Password Pusher", async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ok: true})
+    });
+
+    const result = await requestJson("/api/v2/pushes", {
+      baseUrl: "https://example.com",
+      token: "token-123",
+      method: "POST",
+      body: {
+        push: {
+          payload: "secret"
+        }
+      }
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.errorType).toBe("untrusted_server");
+    expect(result.errorMessage).toContain("API token was not sent");
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(String(global.fetch.mock.calls[0][0])).toContain("/api/v2/version");
+    expect(global.fetch.mock.calls[0][1].headers.Authorization).toBeUndefined();
   });
 
   it("omits workspace_id when no workspace is selected", async () => {
@@ -136,6 +182,7 @@ describe("createPush", () => {
   const originalFetch = global.fetch;
 
   beforeEach(() => {
+    clearPasswordPusherConfirmationCache();
     global.fetch = vi.fn();
   });
 
@@ -219,6 +266,7 @@ describe("getPushPreview", () => {
   const originalFetch = global.fetch;
 
   beforeEach(() => {
+    clearPasswordPusherConfirmationCache();
     global.fetch = vi.fn();
   });
 
@@ -257,6 +305,7 @@ describe("listWorkspaces", () => {
   const originalFetch = global.fetch;
 
   beforeEach(() => {
+    clearPasswordPusherConfirmationCache();
     global.fetch = vi.fn();
   });
 
@@ -275,15 +324,17 @@ describe("listWorkspaces", () => {
   });
 
   it("loads Pro workspaces from /api/v2/workspaces and normalizes names", async () => {
-    global.fetch.mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ([
-        {id: "acct_1", name: "Primary"},
-        {id: "acct_2"},
-        {name: "No ID"}
-      ])
-    });
+    global.fetch
+      .mockResolvedValueOnce(passwordPusherVersionResponse())
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ([
+          {id: "acct_1", name: "Primary"},
+          {id: "acct_2"},
+          {name: "No ID"}
+        ])
+      });
 
     const result = await listWorkspaces({
       baseUrl: "https://example.com",
@@ -291,8 +342,12 @@ describe("listWorkspaces", () => {
     });
 
     expect(result.ok).toBe(true);
-    const [requestUrl] = global.fetch.mock.calls[0];
+    const [versionUrl, versionOptions] = global.fetch.mock.calls[0];
+    expect(String(versionUrl)).toContain("/api/v2/version");
+    expect(versionOptions.headers.Authorization).toBeUndefined();
+    const [requestUrl, requestOptions] = global.fetch.mock.calls[1];
     expect(String(requestUrl)).toContain("/api/v2/workspaces");
+    expect(requestOptions.headers.Authorization).toBe("Bearer token-123");
     expect(String(requestUrl)).not.toContain("/api/v2/accounts");
     expect(result.data.workspaces).toEqual([
       {id: "acct_1", name: "Primary"},

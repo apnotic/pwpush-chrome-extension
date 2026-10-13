@@ -1,13 +1,10 @@
-import {requestJson} from "./api-client.js";
+import {confirmPasswordPusher, requestJson} from "./api-client.js";
 
 export async function detectInstance({baseUrl, token = ""}) {
   const checkedAt = new Date().toISOString();
-  const versionResult = await requestJson("/api/v2/version", {
-    baseUrl,
-    token: ""
-  });
+  const confirmation = await confirmPasswordPusher(baseUrl);
 
-  if (!versionResult.ok) {
+  if (!confirmation.ok) {
     return {
       connected: false,
       checkedAt,
@@ -19,11 +16,11 @@ export async function detectInstance({baseUrl, token = ""}) {
         supportsWorkspacesApi: "unknown",
         supportsRequestsApi: "unknown"
       },
-      error: versionResult.errorMessage
+      error: confirmation.errorMessage
     };
   }
 
-  const versionPayload = versionResult.data || {};
+  const versionPayload = confirmation.version || {};
   const edition = String(versionPayload.edition || "").toLowerCase();
   const instanceType = edition === "commercial" ? "pro" : edition === "oss" ? "oss" : "unknown";
 

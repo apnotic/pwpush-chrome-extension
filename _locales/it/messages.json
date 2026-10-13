@@ -150,6 +150,7 @@
   "apiErrorServerUrlRequired": {"message": "E richiesto un URL server."},
   "apiErrorEnterValidUrl": {"message": "Inserisci un URL valido, incluso https://."},
   "apiErrorOnlyHttps": {"message": "Sono supportati solo URL https://."},
+  "apiErrorNotPasswordPusher": {"message": "Questo server non si e identificato come Password Pusher. Il token API non e stato inviato."},
   "apiErrorInvalidJson": {"message": "La risposta del server non era JSON valido."},
   "apiErrorTimeout": {"message": "Timeout richiesta. Riprova."},
   "apiErrorNetwork": {"message": "Impossibile raggiungere questo server. Controlla URL, rete o CORS."},
