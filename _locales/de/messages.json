@@ -39,6 +39,7 @@
   "popupApiUnknown": {"message": "API ?"},
   "popupApiVersionValue": {"message": "API $1"},
   "popupChecking": {"message": "Pruefe..."},
+  "popupRecheckConnected": {"message": "Verbunden."},
   "popupErrorRecheckServer": {"message": "Server kann nicht erneut geprueft werden."},
   "popupLinkCopied": {"message": "Link kopiert."},
   "popupErrorLoadState": {"message": "Erweiterungsstatus konnte nicht geladen werden."},

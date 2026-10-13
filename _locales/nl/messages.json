@@ -39,6 +39,7 @@
   "popupApiUnknown": {"message": "API ?"},
   "popupApiVersionValue": {"message": "API $1"},
   "popupChecking": {"message": "Controleren..."},
+  "popupRecheckConnected": {"message": "Verbonden."},
   "popupErrorRecheckServer": {"message": "Server opnieuw controleren is mislukt."},
   "popupLinkCopied": {"message": "Link gekopieerd."},
   "popupErrorLoadState": {"message": "Kan extensiestatus niet laden."},

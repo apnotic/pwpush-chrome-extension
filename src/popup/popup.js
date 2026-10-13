@@ -16,6 +16,8 @@ const elements = {
   instanceValue: document.querySelector("#instanceValue"),
   apiValue: document.querySelector("#apiValue"),
   recheckButton: document.querySelector("#recheckButton"),
+  connectionChips: document.querySelector("#connectionChips"),
+  connectionStatus: document.querySelector("#connectionStatus"),
   settingsButton: document.querySelector("#settingsButton"),
   statusMessage: document.querySelector("#statusMessage"),
   payload: document.querySelector("#payload"),
@@ -48,13 +50,7 @@ let prefilledSelection = "";
 applyDocumentI18n();
 
 elements.recheckButton.addEventListener("click", async () => {
-  await withLoading(elements.recheckButton, t("popupChecking"), async () => {
-    const response = await chrome.runtime.sendMessage({type: "recheckInstance"});
-    if (!response || !response.ok) {
-      throw new Error((response && response.error) || t("popupErrorRecheckServer"));
-    }
-    await refreshConnection(response.status);
-  });
+  await recheckConnection();
 });
 
 elements.settingsButton.addEventListener("click", async () => {
@@ -153,6 +149,53 @@ async function loadState() {
   if (!state.isBusy) {
     elements.payload.focus();
   }
+}
+
+async function recheckConnection() {
+  const button = elements.recheckButton;
+  const originalText = button.textContent;
+  button.disabled = true;
+  button.setAttribute("aria-busy", "true");
+  button.textContent = t("popupChecking");
+  setConnectionStatus("");
+
+  try {
+    const response = await chrome.runtime.sendMessage({type: "recheckInstance"});
+    if (!response || !response.ok) {
+      throw new Error((response && response.error) || t("popupErrorRecheckServer"));
+    }
+
+    await refreshConnection(response.status);
+    const status = response.status || {};
+    if (status.connected) {
+      setConnectionStatus(t("popupRecheckConnected"), "success");
+      confirmConnectionChips();
+      return;
+    }
+
+    setConnectionStatus(status.error || t("popupErrorRecheckServer"), "error");
+  } catch (error) {
+    setConnectionStatus(error.message || t("popupErrorRecheckServer"), "error");
+  } finally {
+    button.disabled = false;
+    button.removeAttribute("aria-busy");
+    button.textContent = originalText;
+  }
+}
+
+function setConnectionStatus(message, style = "") {
+  elements.connectionStatus.classList.remove("success", "error");
+  if (style) {
+    elements.connectionStatus.classList.add(style);
+  }
+  elements.connectionStatus.textContent = message || "";
+}
+
+function confirmConnectionChips() {
+  const chips = elements.connectionChips;
+  chips.classList.remove("confirmed");
+  void chips.offsetWidth;
+  chips.classList.add("confirmed");
 }
 
 async function refreshConnection(instanceStatus) {

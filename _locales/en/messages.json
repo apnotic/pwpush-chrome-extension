@@ -39,6 +39,7 @@
   "popupApiUnknown": {"message": "API ?"},
   "popupApiVersionValue": {"message": "API $1"},
   "popupChecking": {"message": "Checking..."},
+  "popupRecheckConnected": {"message": "Connected."},
   "popupErrorRecheckServer": {"message": "Unable to re-check server."},
   "popupLinkCopied": {"message": "Link copied."},
   "popupErrorLoadState": {"message": "Unable to load extension state."},

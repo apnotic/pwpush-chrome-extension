@@ -39,6 +39,7 @@
   "popupApiUnknown": {"message": "API ?"},
   "popupApiVersionValue": {"message": "API $1"},
   "popupChecking": {"message": "Verification..."},
+  "popupRecheckConnected": {"message": "Connecte."},
   "popupErrorRecheckServer": {"message": "Impossible de reverifier le serveur."},
   "popupLinkCopied": {"message": "Lien copie."},
   "popupErrorLoadState": {"message": "Impossible de charger l'etat de l'extension."},

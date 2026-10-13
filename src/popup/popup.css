@@ -85,6 +85,54 @@ h2 {
   color: var(--text-secondary);
 }
 
+.chip-row.confirmed .chip {
+  animation: connection-confirm 700ms ease;
+}
+
+@keyframes connection-confirm {
+  0% {
+    background: color-mix(in srgb, var(--success) 28%, var(--chip-bg));
+    border-color: var(--success);
+  }
+
+  100% {
+    background: var(--chip-bg);
+    border-color: var(--chip-border);
+  }
+}
+
+.connection-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.connection-status:empty {
+  display: none;
+}
+
+.connection-status::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  margin-top: 4px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: currentColor;
+}
+
+.connection-status.success {
+  color: var(--success);
+}
+
+.connection-status.error {
+  color: var(--error);
+}
+
 .status {
   min-height: 18px;
   font-size: 12px;

@@ -72,10 +72,11 @@
           <button id="recheckButton" type="button" class="ghost" data-i18n="popupRecheckButton">Re-check</button>
         </div>
         <p id="serverValue" class="server" data-i18n="popupNoServerConfigured">No server configured</p>
-        <div class="chip-row">
+        <div class="chip-row" id="connectionChips">
           <span class="chip" id="instanceValue" data-i18n="commonUnknown">Unknown</span>
           <span class="chip" id="apiValue" data-i18n="popupApiUnknown">API ?</span>
         </div>
+        <p id="connectionStatus" class="connection-status" role="status" aria-live="polite"></p>
       </section>
     </main>
 

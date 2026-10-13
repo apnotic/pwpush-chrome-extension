@@ -39,6 +39,7 @@
   "popupApiUnknown": {"message": "API ?"},
   "popupApiVersionValue": {"message": "API $1"},
   "popupChecking": {"message": "Controllo in corso..."},
+  "popupRecheckConnected": {"message": "Connesso."},
   "popupErrorRecheckServer": {"message": "Impossibile ricontrollare il server."},
   "popupLinkCopied": {"message": "Link copiato."},
   "popupErrorLoadState": {"message": "Impossibile caricare lo stato dell'estensione."},

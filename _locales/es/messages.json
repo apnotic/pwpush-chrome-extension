@@ -39,6 +39,7 @@
   "popupApiUnknown": {"message": "API ?"},
   "popupApiVersionValue": {"message": "API $1"},
   "popupChecking": {"message": "Comprobando..."},
+  "popupRecheckConnected": {"message": "Conectado."},
   "popupErrorRecheckServer": {"message": "No se pudo volver a comprobar el servidor."},
   "popupLinkCopied": {"message": "Enlace copiado."},
   "popupErrorLoadState": {"message": "No se pudo cargar el estado de la extension."},
