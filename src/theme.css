@@ -1,0 +1,151 @@
+/*
+  Shared light/dark tokens for the popup and options page.
+  Light values keep the extension's existing cool blue UI.
+  Dark values follow Password Pusher Pro's default theme
+  (app/assets/tailwind/themes/pwpx-dark.css).
+*/
+
+:root {
+  color-scheme: light;
+
+  --page-bg-start: #f7f9fd;
+  --page-bg-end: #eef2fa;
+  --text: #1f2633;
+  --text-secondary: #2d3b56;
+  --text-muted: #4f5d76;
+  --text-subtle: #61708a;
+  --text-meta: #36445f;
+
+  --card-bg: #ffffff;
+  --card-border: #d6dfef;
+  --card-shadow: 0 8px 24px rgba(43, 58, 93, 0.05);
+  --brand-accent: #1f5fff;
+
+  --surface: #fbfcff;
+  --surface-muted: #f6f9ff;
+  --surface-sunken: #f7f9fd;
+  --surface-tab: #f5f8ff;
+  --border: #d8e1f0;
+  --border-strong: #b8c7df;
+  --divider: #e0e7f5;
+
+  --chip-bg: #f6f9ff;
+  --chip-border: #c7d4ed;
+  --badge-bg: #f4f8ff;
+  --badge-border: #c6d4ef;
+  --badge-text: #26477c;
+
+  --input-bg: #ffffff;
+  --input-border: #bccae2;
+  --input-disabled-bg: #f3f6fc;
+  --input-disabled-text: #6a768d;
+
+  --button-bg: #ffffff;
+  --button-border: #c1cee8;
+  --button-text: #1f2633;
+  --button-hover-bg: #f6f9ff;
+  --button-hover-border: #9fb4e2;
+  --ghost-bg: #f7f9fd;
+
+  --accent: #1e5dff;
+  --accent-hover: #245fff;
+  --accent-text: #1f5fff;
+  --on-accent: #ffffff;
+
+  --tab-text: #3f4f6b;
+  --tab-active-bg: #ffffff;
+  --tab-active-text: #1f5fff;
+  --tab-active-border: #cddaf3;
+
+  --link: #1f5fff;
+  --link-hover: #1b52dd;
+
+  --danger-text: #942222;
+  --danger-border: #d9b5b5;
+  --danger-bg: #fff8f8;
+  --error: #9f1f1f;
+  --success: #256a20;
+  --info: #305f99;
+
+  --result-bg: #f8fbff;
+  --result-border: #d3ddf0;
+  --result-meta: #4f5b71;
+
+  --scrollbar-thumb: #c7d4ed;
+  --scrollbar-track: #eef2fa;
+  --focus-ring: rgba(31, 95, 255, 0.35);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    /* Cool slate ladder from pwpx-dark.css */
+    --page-bg-start: #0f1319;
+    --page-bg-end: #171c23;
+    --text: #eef2f7;
+    --text-secondary: #ccd4dd;
+    --text-muted: #98a3b0;
+    --text-subtle: #7b8593;
+    --text-meta: #ccd4dd;
+
+    --card-bg: #171c23;
+    --card-border: #2a313c;
+    --card-shadow: 0 10px 28px rgba(0, 0, 0, 0.32);
+    --brand-accent: #4582ec;
+
+    --surface: #1e242d;
+    --surface-muted: #262d38;
+    --surface-sunken: #12171e;
+    --surface-tab: #1e242d;
+    --border: #2a313c;
+    --border-strong: #39424f;
+    --divider: #2a313c;
+
+    --chip-bg: #262d38;
+    --chip-border: #39424f;
+    --badge-bg: #101c2e;
+    --badge-border: #39424f;
+    --badge-text: #7ba9f4;
+
+    --input-bg: #0f1319;
+    --input-border: #39424f;
+    --input-disabled-bg: #262d38;
+    --input-disabled-text: #7b8593;
+
+    --button-bg: #1e242d;
+    --button-border: #39424f;
+    --button-text: #ccd4dd;
+    --button-hover-bg: #262d38;
+    --button-hover-border: #4582ec;
+    --ghost-bg: #1e242d;
+
+    --accent: #4582ec;
+    --accent-hover: #6b9bf0;
+    --accent-text: #7ba9f4;
+    --on-accent: #ffffff;
+
+    --tab-text: #ccd4dd;
+    --tab-active-bg: #101c2e;
+    --tab-active-text: #7ba9f4;
+    --tab-active-border: #4582ec;
+
+    --link: #7ba9f4;
+    --link-hover: #a3c6fb;
+
+    --danger-text: #f3b0ad;
+    --danger-border: #e0625e;
+    --danger-bg: #2e1413;
+    --error: #f08f8b;
+    --success: #4bd6a4;
+    --info: #a8e4ed;
+
+    --result-bg: #101c2e;
+    --result-border: #39424f;
+    --result-meta: #98a3b0;
+
+    --scrollbar-thumb: #262d38;
+    --scrollbar-track: #0f1319;
+    --focus-ring: rgba(69, 130, 236, 0.45);
+  }
+}

@@ -10,7 +10,10 @@
     <main class="container">
       <header class="brand card">
         <div class="brand-row">
-          <img class="logo" src="./assets/logo.svg" alt="Password Pusher" data-i18n-alt="popupBrandAlt">
+          <picture>
+            <source srcset="./assets/logo-dark.svg" media="(prefers-color-scheme: dark)">
+            <img class="logo" src="./assets/logo.svg" alt="Password Pusher" data-i18n-alt="popupBrandAlt">
+          </picture>
           <span id="configuredBadge" class="badge" data-i18n="optionsNotConfigured">Not configured</span>
         </div>
         <h2 data-i18n="optionsHeroHeading">The Official Extension for Chrome and Firefox</h2>

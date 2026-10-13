@@ -10,7 +10,10 @@
     <main class="popup" id="popupRoot">
       <section class="card brand">
         <div class="row between">
-          <img class="logo" src="../options/assets/logo.svg" alt="Password Pusher" data-i18n-alt="popupBrandAlt">
+          <picture>
+            <source srcset="../options/assets/logo-dark.svg" media="(prefers-color-scheme: dark)">
+            <img class="logo" src="../options/assets/logo.svg" alt="Password Pusher" data-i18n-alt="popupBrandAlt">
+          </picture>
           <button id="settingsButton" type="button" class="ghost" data-i18n="popupSettingsButton">Settings</button>
         </div>
         <p class="subtitle" data-i18n="popupSubtitle">Securely share links and text with expiring pushes.</p>
