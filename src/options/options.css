@@ -1,12 +1,14 @@
+@import "../theme.css";
+
 :root {
-  color-scheme: light dark;
   font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 body {
   margin: 0;
-  background: linear-gradient(180deg, #f7f9fd 0%, #eef2fa 100%);
-  color: #1f2633;
+  background: linear-gradient(180deg, var(--page-bg-start) 0%, var(--page-bg-end) 100%);
+  color: var(--text);
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 .container {
@@ -22,7 +24,7 @@ h1 {
 
 .intro {
   margin: 0;
-  color: #4d5b74;
+  color: var(--text-muted);
 }
 
 h2 {
@@ -31,20 +33,28 @@ h2 {
 
 .section-intro {
   margin: 0 0 14px;
-  color: #4d5b74;
+  color: var(--text-muted);
+}
+
+a {
+  color: var(--link);
+}
+
+a:hover {
+  color: var(--link-hover);
 }
 
 .card {
-  background: #fff;
-  border: 1px solid #d6dfef;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 14px;
   padding: 18px;
   margin-bottom: 16px;
-  box-shadow: 0 8px 25px rgba(43, 58, 93, 0.05);
+  box-shadow: var(--card-shadow);
 }
 
 .brand {
-  border-top: 3px solid #1f5fff;
+  border-top: 3px solid var(--brand-accent);
 }
 
 .brand-row {
@@ -58,12 +68,13 @@ h2 {
   width: 190px;
   max-width: 100%;
   height: auto;
+  display: block;
 }
 
 .badge {
-  border: 1px solid #c6d4ef;
-  color: #26477c;
-  background: #f4f8ff;
+  border: 1px solid var(--badge-border);
+  color: var(--badge-text);
+  background: var(--badge-bg);
   border-radius: 999px;
   font-size: 12px;
   padding: 4px 10px;
@@ -81,28 +92,32 @@ h2 {
   margin: 0 0 14px;
   padding: 4px;
   border-radius: 10px;
-  border: 1px solid #d8e1f0;
-  background: #f5f8ff;
+  border: 1px solid var(--border);
+  background: var(--surface-tab);
 }
 
 .tab-button {
-  border: 0;
+  border: 1px solid transparent;
   background: transparent;
-  color: #3f4f6b;
+  color: var(--tab-text);
   font-weight: 600;
   padding: 7px 12px;
 }
 
+.tab-button:hover:not(.active) {
+  background: var(--button-hover-bg);
+}
+
 .tab-button.active {
-  background: #ffffff;
-  color: #1f5fff;
-  border: 1px solid #cddaf3;
+  background: var(--tab-active-bg);
+  color: var(--tab-active-text);
+  border-color: var(--tab-active-border);
 }
 
 .server-panel {
-  border: 1px solid #d8e1f0;
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: #fdfefe;
+  background: var(--surface);
   padding: 12px;
   margin-bottom: 8px;
 }
@@ -110,7 +125,7 @@ h2 {
 .group-label {
   font-weight: 700;
   margin-bottom: 8px;
-  color: #2d3b56;
+  color: var(--text-secondary);
 }
 
 .choice-card {
@@ -118,23 +133,35 @@ h2 {
   grid-template-columns: 20px 1fr;
   gap: 10px;
   align-items: start;
-  border: 1px solid #d8e1f0;
-  background: #fbfcff;
+  border: 1px solid var(--border);
+  background: var(--surface-sunken);
   border-radius: 10px;
   padding: 10px 12px;
   margin: 0 0 8px;
+  color: var(--text);
+}
+
+.choice-card:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--badge-bg);
 }
 
 .choice-card small {
   display: block;
-  color: #596880;
+  color: var(--text-muted);
   margin-top: 3px;
+}
+
+.choice-card input {
+  accent-color: var(--accent);
+  margin-top: 2px;
 }
 
 label {
   display: block;
   margin: 12px 0 6px;
   font-weight: 600;
+  color: var(--text-secondary);
 }
 
 input[type="url"],
@@ -143,28 +170,47 @@ select {
   width: 100%;
   box-sizing: border-box;
   padding: 10px 12px;
-  border: 1px solid #b8c7df;
+  border: 1px solid var(--input-border);
   border-radius: 6px;
-  background: #fff;
-  color: inherit;
+  background: var(--input-bg);
+  color: var(--text);
+}
+
+input::placeholder {
+  color: var(--text-subtle);
+  opacity: 1;
+}
+
+input:focus,
+input:focus-visible,
+select:focus,
+select:focus-visible {
+  outline: 2px solid transparent;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 select:disabled {
-  background: #f3f6fc;
-  color: #6a768d;
+  background: var(--input-disabled-bg);
+  color: var(--input-disabled-text);
+}
+
+select option {
+  background: var(--input-bg);
+  color: var(--text);
 }
 
 .field-help {
   margin: 6px 0 0;
-  color: #596880;
+  color: var(--text-muted);
   font-size: 13px;
 }
 
 .token-options-panel {
   margin-top: 10px;
-  border: 1px solid #d8e1f0;
+  border: 1px solid var(--border);
   border-radius: 10px;
-  background: #fbfcff;
+  background: var(--surface);
   padding: 12px;
 }
 
@@ -191,6 +237,7 @@ select:disabled {
   gap: 8px;
   margin-top: 10px;
   font-weight: 600;
+  color: var(--text-secondary);
 }
 
 .token-options-side .inline-checkbox {
@@ -199,14 +246,15 @@ select:disabled {
 
 .inline-checkbox input[type="checkbox"] {
   margin: 0;
+  accent-color: var(--accent);
 }
 
 .account-section {
   margin-top: 16px;
-  border: 1px solid #d8e1f0;
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 12px;
-  background: #fbfcff;
+  background: var(--surface);
 }
 
 .account-section h3 {
@@ -215,27 +263,28 @@ select:disabled {
 }
 
 .legal-links {
-  border: 1px solid #d8e1f0;
-  background: #f8fbff;
+  border: 1px solid var(--border);
+  background: var(--result-bg);
   padding: 10px 12px;
   border-radius: 8px;
   margin: 4px 0 14px;
-  color: #4f5e77;
+  color: var(--text-muted);
   font-size: 14px;
 }
 
 .legal-links a {
-  color: #1f5fff;
+  color: var(--link);
   text-decoration: none;
   font-weight: 600;
 }
 
 .legal-links a:hover {
+  color: var(--link-hover);
   text-decoration: underline;
 }
 
 .actions {
-  border-top: 1px solid #dbe3f1;
+  border-top: 1px solid var(--divider);
   padding-top: 14px;
   margin-top: 24px;
   display: flex;
@@ -245,22 +294,44 @@ select:disabled {
 button {
   padding: 8px 12px;
   border-radius: 6px;
-  border: 1px solid #b8c7df;
-  background: #fff;
+  border: 1px solid var(--button-border);
+  background: var(--button-bg);
+  color: var(--button-text);
   cursor: pointer;
+  font-weight: 600;
+}
+
+button:hover:not(:disabled) {
+  background: var(--button-hover-bg);
+  border-color: var(--button-hover-border);
+}
+
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 button.primary {
-  background: linear-gradient(180deg, #2968ff 0%, #1f5fff 100%);
-  border-color: #1f5fff;
-  color: #fff;
+  background: linear-gradient(180deg, color-mix(in srgb, white 16%, var(--accent)) 0%, var(--accent) 100%);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+button.primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, color-mix(in srgb, white 24%, var(--accent-hover)) 0%, var(--accent-hover) 100%);
+  border-color: var(--accent-hover);
 }
 
 button.danger {
-  border-color: #d9b5b5;
-  color: #942222;
-  background: #fff8f8;
+  border-color: var(--danger-border);
+  color: var(--danger-text);
+  background: var(--danger-bg);
   margin-right: auto;
+}
+
+button.danger:hover:not(:disabled) {
+  background: var(--danger-bg);
+  border-color: var(--danger-text);
 }
 
 .status {
@@ -269,11 +340,11 @@ button.danger {
 }
 
 .status.error {
-  color: #a32424;
+  color: var(--error);
 }
 
 .status.success {
-  color: #2a6a22;
+  color: var(--success);
 }
 
 .meta {
@@ -289,11 +360,12 @@ button.danger {
 
 .meta dt {
   font-weight: 600;
-  color: #36445f;
+  color: var(--text-meta);
 }
 
 .meta dd {
   margin: 0;
+  color: var(--text-secondary);
 }
 
 .hidden {
