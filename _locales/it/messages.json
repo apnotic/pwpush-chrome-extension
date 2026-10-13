@@ -17,6 +17,7 @@
   "popupSettingsButton": {"message": "Impostazioni"},
   "popupSubtitle": {"message": "Condividi link e testo in modo sicuro con scadenza automatica."},
   "popupPushCurrentUrlButton": {"message": "Invia URL corrente"},
+  "popupPushCurrentUrlCooldown": {"message": "Invia URL corrente ($1s)"},
   "popupPushButton": {"message": "Invia"},
   "popupPayloadLabel": {"message": "Testo"},
   "popupPayloadPlaceholder": {"message": "Incolla un segreto, una nota o un link"},

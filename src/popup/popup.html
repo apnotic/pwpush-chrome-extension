@@ -24,7 +24,7 @@
 
         <label for="payload" data-i18n="popupPayloadLabel">Text</label>
         <textarea id="payload" name="payload" rows="4" spellcheck="false" autocomplete="off" placeholder="Paste a secret, note, or link" data-i18n-placeholder="popupPayloadPlaceholder"></textarea>
-        <div class="selection-row">
+        <div class="selection-row hidden" id="selectionRow">
           <button id="addSelectionButton" type="button" class="ghost" data-i18n="popupAddSelectionButton">Add selected text</button>
         </div>
         <p id="selectionHint" class="field-hint hidden" data-i18n="popupSelectionAdded">Added from the text selected on this page.</p>

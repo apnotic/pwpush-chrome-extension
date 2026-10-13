@@ -17,6 +17,7 @@
   "popupSettingsButton": {"message": "Configuracion"},
   "popupSubtitle": {"message": "Comparte enlaces y texto de forma segura con expiracion automatica."},
   "popupPushCurrentUrlButton": {"message": "Enviar URL actual"},
+  "popupPushCurrentUrlCooldown": {"message": "Enviar URL actual ($1s)"},
   "popupPushButton": {"message": "Enviar"},
   "popupPayloadLabel": {"message": "Texto"},
   "popupPayloadPlaceholder": {"message": "Pega un secreto, una nota o un enlace"},

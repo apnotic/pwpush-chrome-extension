@@ -17,6 +17,7 @@
   "popupSettingsButton": {"message": "Settings"},
   "popupSubtitle": {"message": "Securely share links and text with expiring pushes."},
   "popupPushCurrentUrlButton": {"message": "Push Current URL"},
+  "popupPushCurrentUrlCooldown": {"message": "Push Current URL ($1s)"},
   "popupPushButton": {"message": "Push"},
   "popupPayloadLabel": {"message": "Text"},
   "popupPayloadPlaceholder": {"message": "Paste a secret, note, or link"},

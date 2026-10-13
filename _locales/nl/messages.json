@@ -17,6 +17,7 @@
   "popupSettingsButton": {"message": "Instellingen"},
   "popupSubtitle": {"message": "Deel links en tekst veilig met automatische vervaldatum."},
   "popupPushCurrentUrlButton": {"message": "Huidige URL pushen"},
+  "popupPushCurrentUrlCooldown": {"message": "Huidige URL pushen ($1s)"},
   "popupPushButton": {"message": "Pushen"},
   "popupPayloadLabel": {"message": "Tekst"},
   "popupPayloadPlaceholder": {"message": "Plak een geheim, notitie of link"},

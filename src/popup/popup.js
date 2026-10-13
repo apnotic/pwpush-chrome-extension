@@ -23,6 +23,7 @@ const elements = {
   payload: document.querySelector("#payload"),
   selectionHint: document.querySelector("#selectionHint"),
   addSelectionButton: document.querySelector("#addSelectionButton"),
+  selectionRow: document.querySelector("#selectionRow"),
   pushButton: document.querySelector("#pushButton"),
   pushUrlButton: document.querySelector("#pushUrlButton"),
   expireAfterDays: document.querySelector("#expireAfterDays"),
@@ -48,6 +49,11 @@ let state = {
 };
 
 let selectionSnapshot = "";
+const URL_PUSH_COOLDOWN_MS = 5000;
+const URL_PUSH_COOLDOWN_KEY = "lastUrlPushAt";
+let urlPushAvailableAt = 0;
+let urlPushCooldownTimer = null;
+let urlPushCooldownSeconds = 0;
 
 applyDocumentI18n();
 
@@ -150,6 +156,8 @@ async function loadState() {
   hydrateAdvancedOptions(settings.lastPushOptions || {});
   renderConnection(settings, instanceStatus);
   renderResult(null);
+  await restoreUrlPushCooldown();
+  setSelectionButtonVisible(await activeTabHasSelection());
   updateActionButtons();
   if (!state.isBusy) {
     elements.payload.focus();
@@ -252,7 +260,7 @@ function hydrateAdvancedOptions(options) {
 }
 
 async function createFromCurrentUrl() {
-  if (!tryBeginBusy()) {
+  if (urlPushCoolingDown() || !tryBeginBusy()) {
     return;
   }
 
@@ -269,6 +277,7 @@ async function createFromCurrentUrl() {
       throw new Error(t("popupErrorOnlyHttpHttps"));
     }
 
+    startUrlPushCooldown();
     await createPushFromPayload(url.toString());
   } catch (error) {
     setStatus(error.message || t("popupErrorCreateUrlPush"), "error");
@@ -354,6 +363,10 @@ function appendSelection(selection) {
 
   const separator = current.endsWith("\n") ? "" : "\n";
   elements.payload.value = `${current}${separator}${selection}`;
+}
+
+function setSelectionButtonVisible(visible) {
+  elements.selectionRow.classList.toggle("hidden", !visible);
 }
 
 function setSelectionHintVisible(visible) {
@@ -677,19 +690,102 @@ function updateActionButtons() {
   const hasPayload = Boolean(elements.payload.value.trim());
   const locked = state.isBusy || state.isReadingSelection;
   elements.pushButton.disabled = locked || !hasPayload;
-  elements.pushUrlButton.disabled = locked;
+  elements.pushUrlButton.disabled = locked || urlPushCoolingDown();
   elements.addSelectionButton.disabled = locked;
+}
+
+function urlPushCoolingDown() {
+  return Date.now() < urlPushAvailableAt;
+}
+
+function startUrlPushCooldown() {
+  const now = Date.now();
+  urlPushAvailableAt = now + URL_PUSH_COOLDOWN_MS;
+  Promise.resolve(chrome.storage.session.set({[URL_PUSH_COOLDOWN_KEY]: now})).catch(() => {});
+  paintUrlPushCooldown();
+}
+
+async function restoreUrlPushCooldown() {
+  try {
+    const stored = await chrome.storage.session.get([URL_PUSH_COOLDOWN_KEY]);
+    const lastAt = Number(stored[URL_PUSH_COOLDOWN_KEY]) || 0;
+    if (lastAt > 0) {
+      urlPushAvailableAt = lastAt + URL_PUSH_COOLDOWN_MS;
+    }
+  } catch (_error) {
+    urlPushAvailableAt = 0;
+  }
+
+  paintUrlPushCooldown();
+}
+
+function paintUrlPushCooldown() {
+  const remaining = urlPushAvailableAt - Date.now();
+  if (remaining <= 0) {
+    urlPushAvailableAt = 0;
+    urlPushCooldownSeconds = 0;
+    if (urlPushCooldownTimer) {
+      clearInterval(urlPushCooldownTimer);
+      urlPushCooldownTimer = null;
+    }
+    elements.pushUrlButton.textContent = t("popupPushCurrentUrlButton", [], "Push Current URL");
+    updateActionButtons();
+    return;
+  }
+
+  const seconds = Math.ceil(remaining / 1000);
+  if (seconds !== urlPushCooldownSeconds) {
+    urlPushCooldownSeconds = seconds;
+    elements.pushUrlButton.textContent = t(
+      "popupPushCurrentUrlCooldown",
+      [String(seconds)],
+      `Push Current URL (${seconds}s)`
+    );
+  }
+  updateActionButtons();
+  if (!urlPushCooldownTimer) {
+    urlPushCooldownTimer = setInterval(paintUrlPushCooldown, 200);
+  }
+}
+
+async function activeHttpTab() {
+  const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+  if (!tab || !tab.id || !tab.url) {
+    return null;
+  }
+
+  const url = new URL(tab.url);
+  if (!["http:", "https:"].includes(url.protocol)) {
+    return null;
+  }
+
+  return tab;
+}
+
+async function activeTabHasSelection() {
+  try {
+    const tab = await activeHttpTab();
+    if (!tab) {
+      return false;
+    }
+
+    const results = await chrome.scripting.executeScript({
+      target: {tabId: tab.id},
+      func: () => {
+        const selection = window.getSelection ? window.getSelection().toString() : "";
+        return Boolean(selection && selection.trim());
+      }
+    });
+    return Boolean(results && results[0] && results[0].result);
+  } catch (_error) {
+    return false;
+  }
 }
 
 async function readActiveTabSelection() {
   try {
-    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-    if (!tab || !tab.id || !tab.url) {
-      return {text: "", status: "unavailable"};
-    }
-
-    const url = new URL(tab.url);
-    if (!["http:", "https:"].includes(url.protocol)) {
+    const tab = await activeHttpTab();
+    if (!tab) {
       return {text: "", status: "unavailable"};
     }
 

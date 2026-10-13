@@ -114,7 +114,7 @@ CI workflow: `.github/workflows/chrome-extension-tests.yml`
 - Required extension permissions:
   - `storage` - persist extension configuration (server URL, optional API token, workspace, and non-sensitive defaults).
   - `activeTab` - read the active tab URL when you use the popup, and open created links.
-  - `scripting` - read selected text only when you click **Add selected text**.
+  - `scripting` - when the popup opens, ask only whether the page has a selection. Read that text only when you click **Add selected text**.
 - Preset host permissions are pre-granted for official cloud endpoints (`oss`, `us`, `eu`).
 - Custom hosts are requested at runtime through optional host permissions (`https://*/*`).
 - Selected-text capture is on-demand only (no persistent all-pages content script).

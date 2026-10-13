@@ -17,6 +17,7 @@
   "popupSettingsButton": {"message": "Einstellungen"},
   "popupSubtitle": {"message": "Links und Texte sicher mit automatischem Ablauf teilen."},
   "popupPushCurrentUrlButton": {"message": "Aktuelle URL pushen"},
+  "popupPushCurrentUrlCooldown": {"message": "Aktuelle URL pushen ($1s)"},
   "popupPushButton": {"message": "Pushen"},
   "popupPayloadLabel": {"message": "Text"},
   "popupPayloadPlaceholder": {"message": "Geheimnis, Notiz oder Link einfuegen"},
