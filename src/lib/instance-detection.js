@@ -16,7 +16,7 @@ export async function detectInstance({baseUrl, token = ""}) {
       edition: null,
       instanceType: null,
       features: {
-        supportsAccountsApi: "unknown",
+        supportsWorkspacesApi: "unknown",
         supportsRequestsApi: "unknown"
       },
       error: versionResult.errorMessage
@@ -27,8 +27,8 @@ export async function detectInstance({baseUrl, token = ""}) {
   const edition = String(versionPayload.edition || "").toLowerCase();
   const instanceType = edition === "commercial" ? "pro" : edition === "oss" ? "oss" : "unknown";
 
-  const [accountsProbe, requestsProbe] = await Promise.all([
-    probeFeature("/api/v2/accounts", {baseUrl, token}),
+  const [workspacesProbe, requestsProbe] = await Promise.all([
+    probeFeature("/api/v2/workspaces", {baseUrl, token}),
     probeFeature("/api/v2/requests", {baseUrl, token})
   ]);
 
@@ -40,7 +40,7 @@ export async function detectInstance({baseUrl, token = ""}) {
     edition: versionPayload.edition || null,
     instanceType,
     features: {
-      supportsAccountsApi: accountsProbe,
+      supportsWorkspacesApi: workspacesProbe,
       supportsRequestsApi: requestsProbe
     },
     error: null

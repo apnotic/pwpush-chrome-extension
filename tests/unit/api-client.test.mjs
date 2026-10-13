@@ -2,7 +2,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {
   createPush,
   getPushPreview,
-  listAccounts,
+  listWorkspaces,
   normalizeBaseUrl,
   requestJson
 } from "../../src/lib/api-client.js";
@@ -28,7 +28,7 @@ describe("requestJson", () => {
     global.fetch = originalFetch;
   });
 
-  it("sends auth header and account_id in query/body", async () => {
+  it("sends auth header and workspace_id in query/body", async () => {
     global.fetch.mockResolvedValue({
       ok: true,
       status: 200,
@@ -39,7 +39,7 @@ describe("requestJson", () => {
       baseUrl: "https://example.com",
       token: "token-123",
       method: "POST",
-      accountId: "42",
+      workspaceId: "acct_42",
       body: {
         push: {
           payload: "secret"
@@ -52,11 +52,37 @@ describe("requestJson", () => {
 
     const [requestUrl, requestOptions] = global.fetch.mock.calls[0];
     expect(String(requestUrl)).toContain("/api/v2/pushes");
-    expect(String(requestUrl)).toContain("account_id=42");
+    expect(String(requestUrl)).toContain("workspace_id=acct_42");
+    expect(String(requestUrl)).not.toContain("account_id=");
     expect(requestOptions.headers.Authorization).toBe("Bearer token-123");
     expect(JSON.parse(requestOptions.body)).toEqual({
       push: {payload: "secret"},
-      account_id: "42"
+      workspace_id: "acct_42"
+    });
+  });
+
+  it("omits workspace_id when no workspace is selected", async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({ok: true})
+    });
+
+    await requestJson("/api/v2/pushes", {
+      baseUrl: "https://oss.example.com",
+      method: "POST",
+      body: {
+        push: {
+          payload: "secret"
+        }
+      }
+    });
+
+    const [requestUrl, requestOptions] = global.fetch.mock.calls[0];
+    expect(String(requestUrl)).not.toContain("workspace_id");
+    expect(String(requestUrl)).not.toContain("account_id");
+    expect(JSON.parse(requestOptions.body)).toEqual({
+      push: {payload: "secret"}
     });
   });
 
@@ -227,7 +253,7 @@ describe("getPushPreview", () => {
   });
 });
 
-describe("listAccounts", () => {
+describe("listWorkspaces", () => {
   const originalFetch = global.fetch;
 
   beforeEach(() => {
@@ -239,7 +265,7 @@ describe("listAccounts", () => {
   });
 
   it("requires an API token", async () => {
-    const result = await listAccounts({
+    const result = await listWorkspaces({
       baseUrl: "https://example.com",
       token: ""
     });
@@ -248,26 +274,29 @@ describe("listAccounts", () => {
     expect(result.errorType).toBe("missing_token");
   });
 
-  it("filters invalid accounts and normalizes names", async () => {
+  it("loads Pro workspaces from /api/v2/workspaces and normalizes names", async () => {
     global.fetch.mockResolvedValue({
       ok: true,
       status: 200,
       json: async () => ([
-        {id: 1, name: "Primary"},
-        {id: 2},
+        {id: "acct_1", name: "Primary"},
+        {id: "acct_2"},
         {name: "No ID"}
       ])
     });
 
-    const result = await listAccounts({
+    const result = await listWorkspaces({
       baseUrl: "https://example.com",
       token: "token-123"
     });
 
     expect(result.ok).toBe(true);
-    expect(result.data.accounts).toEqual([
-      {id: "1", name: "Primary"},
-      {id: "2", name: "Account 2"}
+    const [requestUrl] = global.fetch.mock.calls[0];
+    expect(String(requestUrl)).toContain("/api/v2/workspaces");
+    expect(String(requestUrl)).not.toContain("/api/v2/accounts");
+    expect(result.data.workspaces).toEqual([
+      {id: "acct_1", name: "Primary"},
+      {id: "acct_2", name: "Workspace acct_2"}
     ]);
   });
 });

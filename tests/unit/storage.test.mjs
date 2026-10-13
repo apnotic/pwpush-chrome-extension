@@ -124,6 +124,25 @@ describe("storage defaults and merges", () => {
     expect(settings.rememberApiToken).toBe(false);
   });
 
+  it("migrates stored account selection to workspace fields", async () => {
+    storage.localMemory.settings = {
+      baseUrl: "https://us.pwpush.com",
+      selectedAccountId: "acct_9",
+      availableAccounts: [{id: "acct_9", name: "Primary"}]
+    };
+
+    const settings = await getSettings();
+    expect(settings.selectedWorkspaceId).toBe("acct_9");
+    expect(settings.availableWorkspaces).toEqual([{id: "acct_9", name: "Primary"}]);
+    expect(settings.selectedAccountId).toBeUndefined();
+    expect(settings.availableAccounts).toBeUndefined();
+
+    await saveSettings(settings);
+    expect(storage.localMemory.settings.selectedWorkspaceId).toBe("acct_9");
+    expect(storage.localMemory.settings.selectedAccountId).toBeUndefined();
+    expect(storage.localMemory.settings.availableAccounts).toBeUndefined();
+  });
+
   it("clears session token on full state reset", async () => {
     await saveSettings({
       baseUrl: "https://example.com",

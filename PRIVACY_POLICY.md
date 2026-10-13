@@ -9,7 +9,7 @@ Apnotic LLC provides the Password Pusher Chrome extension.
 - Password Pusher server URL selected by the user.
 - Optional API bearer token entered by the user.
 - Server capability/version metadata retrieved from `/api/v2/version` and related API probes.
-- Optional account selection metadata (for supported hosted Pro workflows).
+- Optional workspace selection metadata (for supported hosted Pro workflows).
 - Non-sensitive push defaults (such as expire-after days/views and retrieval-step preference).
 
 The extension does **not** persist a history/trail of past pushes across popup sessions.

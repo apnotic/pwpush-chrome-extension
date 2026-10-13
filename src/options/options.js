@@ -1,4 +1,4 @@
-import {listAccounts, normalizeBaseUrl} from "../lib/api-client.js";
+import {listWorkspaces, normalizeBaseUrl} from "../lib/api-client.js";
 import {detectInstance} from "../lib/instance-detection.js";
 import {
   clearAllExtensionState,
@@ -33,16 +33,16 @@ const elements = {
   privacyPolicyLink: document.querySelector("#privacyPolicyLink"),
   termsOfServiceLink: document.querySelector("#termsOfServiceLink"),
   selfHostedPolicyNote: document.querySelector("#selfHostedPolicyNote"),
-  accountSection: document.querySelector("#accountSection"),
-  accountSectionHelp: document.querySelector("#accountSectionHelp"),
-  accountSelect: document.querySelector("#accountSelect"),
+  workspaceSection: document.querySelector("#workspaceSection"),
+  workspaceSectionHelp: document.querySelector("#workspaceSectionHelp"),
+  workspaceSelect: document.querySelector("#workspaceSelect"),
   detectedServer: document.querySelector("#detectedServer"),
   instanceType: document.querySelector("#instanceType"),
   editionValue: document.querySelector("#editionValue"),
   applicationVersion: document.querySelector("#applicationVersion"),
   apiVersion: document.querySelector("#apiVersion"),
   featurePushes: document.querySelector("#featurePushes"),
-  featureAccounts: document.querySelector("#featureAccounts"),
+  featureWorkspaces: document.querySelector("#featureWorkspaces"),
   featureRequests: document.querySelector("#featureRequests"),
   lastChecked: document.querySelector("#lastChecked"),
   serverChoices: Array.from(document.querySelectorAll('input[name="serverChoice"]'))
@@ -61,7 +61,7 @@ async function initialize() {
   hydrateForm(settings);
   updateServerSelectionUi();
   renderStatusBlock(settings, status);
-  renderAccountSection(settings, status);
+  renderWorkspaceSection(settings, status);
 
   elements.testConnectionButton.addEventListener("click", async () => {
     await testConnection(false);
@@ -83,7 +83,7 @@ async function initialize() {
     hydrateForm(settings);
     updateServerSelectionUi();
     renderStatusBlock(settings, status);
-    renderAccountSection(settings, status);
+    renderWorkspaceSection(settings, status);
     setStatus(t("optionsStatusConfigurationCleared"), "success");
   });
 
@@ -101,9 +101,9 @@ async function initialize() {
     switchServerTab("hosted", true);
   });
 
-  elements.accountSelect.addEventListener("change", () => {
-    if (elements.accountSelect.value) {
-      elements.accountSectionHelp.textContent = t("optionsAccountHelpSelectedFuture");
+  elements.workspaceSelect.addEventListener("change", () => {
+    if (elements.workspaceSelect.value) {
+      elements.workspaceSectionHelp.textContent = t("optionsWorkspaceHelpSelectedFuture");
     }
   });
 }
@@ -118,7 +118,7 @@ function hydrateForm(settings) {
   elements.customUrl.value = presetKey === "custom" ? settings.baseUrl : "";
   elements.apiToken.value = settings.apiToken || "";
   elements.rememberApiToken.checked = settings.rememberApiToken !== false;
-  renderAccountOptions(settings.availableAccounts || [], settings.selectedAccountId);
+  renderWorkspaceOptions(settings.availableWorkspaces || [], settings.selectedWorkspaceId);
 }
 
 function updateServerSelectionUi() {
@@ -136,7 +136,7 @@ function updateServerSelectionUi() {
 
   elements.hostedLegalLinks.classList.toggle("hidden", !isHosted);
   elements.selfHostedPolicyNote.classList.toggle("hidden", isHosted);
-  elements.accountSection.classList.toggle("hidden", !isHostedProPreset(presetKey));
+  elements.workspaceSection.classList.toggle("hidden", !isHostedProPreset(presetKey));
 
   if (isHosted) {
     const host = PRESET_URLS[presetKey];
@@ -202,7 +202,7 @@ async function testConnection(shouldSave) {
     if (!status.connected) {
       setStatus(status.error || t("optionsErrorConnectionFailed"), "error");
       renderStatusBlock({baseUrl}, status);
-      renderAccountSection(existingSettings, status);
+      renderWorkspaceSection(existingSettings, status);
       return;
     }
 
@@ -214,16 +214,16 @@ async function testConnection(shouldSave) {
         "error"
       );
       renderStatusBlock({baseUrl, apiToken: userInput.apiToken}, status);
-      renderAccountSection(existingSettings, status);
+      renderWorkspaceSection(existingSettings, status);
       return;
     }
 
-    const accountState = await resolveAccountState({
+    const workspaceState = await resolveWorkspaceState({
       baseUrl,
       apiToken: userInput.apiToken,
       presetKey: userInput.presetKey,
       instanceType: status.instanceType,
-      preferredSelectedAccountId: userInput.selectedAccountId || existingSettings.selectedAccountId
+      preferredSelectedWorkspaceId: userInput.selectedWorkspaceId || existingSettings.selectedWorkspaceId
     });
 
     if (shouldSave) {
@@ -232,12 +232,12 @@ async function testConnection(shouldSave) {
         presetKey: userInput.presetKey,
         apiToken: userInput.apiToken,
         rememberApiToken: userInput.rememberApiToken,
-        selectedAccountId: accountState.selectedAccountId,
-        availableAccounts: accountState.availableAccounts
+        selectedWorkspaceId: workspaceState.selectedWorkspaceId,
+        availableWorkspaces: workspaceState.availableWorkspaces
       });
-      setStatus(accountState.statusMessage || t("optionsStatusServerSaved"), "success");
+      setStatus(workspaceState.statusMessage || t("optionsStatusServerSaved"), "success");
       renderStatusBlock(savedSettings, status);
-      renderAccountSection(savedSettings, status, accountState.helpText);
+      renderWorkspaceSection(savedSettings, status, workspaceState.helpText);
       return;
     }
 
@@ -247,12 +247,12 @@ async function testConnection(shouldSave) {
       baseUrl,
       apiToken: userInput.apiToken,
       rememberApiToken: userInput.rememberApiToken,
-      selectedAccountId: accountState.selectedAccountId,
-      availableAccounts: accountState.availableAccounts
+      selectedWorkspaceId: workspaceState.selectedWorkspaceId,
+      availableWorkspaces: workspaceState.availableWorkspaces
     };
-    setStatus(accountState.statusMessage || t("optionsStatusConnectionSucceeded"), "success");
+    setStatus(workspaceState.statusMessage || t("optionsStatusConnectionSucceeded"), "success");
     renderStatusBlock(previewSettings, status);
-    renderAccountSection(previewSettings, status, accountState.helpText);
+    renderWorkspaceSection(previewSettings, status, workspaceState.helpText);
   } catch (error) {
     setStatus(error.message || t("optionsErrorConnectionFailed"), "error");
   }
@@ -277,7 +277,7 @@ function getUserSelection() {
     baseUrl,
     apiToken,
     rememberApiToken: elements.rememberApiToken.checked,
-    selectedAccountId: elements.accountSelect.value.trim() || null
+    selectedWorkspaceId: elements.workspaceSelect.value.trim() || null
   };
 }
 
@@ -307,10 +307,10 @@ function renderStatusBlock(settings, status) {
   elements.applicationVersion.textContent = status.applicationVersion || t("commonUnknown");
   elements.apiVersion.textContent = status.apiVersion || t("commonUnknown");
   elements.featurePushes.textContent = t("commonEnabled");
-  elements.featureAccounts.textContent = formatAccountsState(
+  elements.featureWorkspaces.textContent = formatWorkspacesState(
     status.instanceType,
     settings.apiToken,
-    status.features.supportsAccountsApi
+    status.features.supportsWorkspacesApi
   );
   elements.featureRequests.textContent = formatRequestsState(
     status.instanceType,
@@ -321,125 +321,125 @@ function renderStatusBlock(settings, status) {
   elements.configuredBadge.textContent = settings.baseUrl ? t("optionsConfigured") : t("optionsNotConfigured");
 }
 
-function renderAccountSection(settings, status, helpTextOverride = "") {
-  const availableAccounts = Array.isArray(settings.availableAccounts) ? settings.availableAccounts : [];
-  renderAccountOptions(availableAccounts, settings.selectedAccountId || null);
+function renderWorkspaceSection(settings, status, helpTextOverride = "") {
+  const availableWorkspaces = Array.isArray(settings.availableWorkspaces) ? settings.availableWorkspaces : [];
+  renderWorkspaceOptions(availableWorkspaces, settings.selectedWorkspaceId || null);
 
   const hasToken = Boolean(settings.apiToken && settings.apiToken.trim());
   const isPro = status.instanceType === "pro";
-  const supportsHostedProAccountSelection = isHostedProPreset(settings.presetKey);
+  const supportsHostedProWorkspaceSelection = isHostedProPreset(settings.presetKey);
 
-  if (!isPro || !supportsHostedProAccountSelection) {
-    elements.accountSelect.disabled = true;
-    elements.accountSectionHelp.textContent = t("optionsAccountHelpHostedProOnly");
+  if (!isPro || !supportsHostedProWorkspaceSelection) {
+    elements.workspaceSelect.disabled = true;
+    elements.workspaceSectionHelp.textContent = t("optionsWorkspaceHelpHostedProOnly");
     return;
   }
 
   if (!hasToken) {
-    elements.accountSelect.disabled = true;
-    elements.accountSectionHelp.textContent = t("optionsAccountHelpAddToken");
+    elements.workspaceSelect.disabled = true;
+    elements.workspaceSectionHelp.textContent = t("optionsWorkspaceHelpAddToken");
     return;
   }
 
   if (helpTextOverride) {
-    elements.accountSectionHelp.textContent = helpTextOverride;
-  } else if (!availableAccounts.length) {
-    elements.accountSectionHelp.textContent = t("optionsAccountHelpNoAccountsLoaded");
-  } else if (availableAccounts.length === 1) {
-    elements.accountSectionHelp.textContent = t("optionsAccountHelpOneAccount");
+    elements.workspaceSectionHelp.textContent = helpTextOverride;
+  } else if (!availableWorkspaces.length) {
+    elements.workspaceSectionHelp.textContent = t("optionsWorkspaceHelpNoneLoaded");
+  } else if (availableWorkspaces.length === 1) {
+    elements.workspaceSectionHelp.textContent = t("optionsWorkspaceHelpOne");
   } else {
-    elements.accountSectionHelp.textContent = t("optionsAccountHelpChooseAccount");
+    elements.workspaceSectionHelp.textContent = t("optionsWorkspaceHelpChoose");
   }
 
-  elements.accountSelect.disabled = availableAccounts.length <= 1;
+  elements.workspaceSelect.disabled = availableWorkspaces.length <= 1;
 }
 
-function renderAccountOptions(accounts, selectedAccountId) {
-  elements.accountSelect.innerHTML = "";
+function renderWorkspaceOptions(workspaces, selectedWorkspaceId) {
+  elements.workspaceSelect.innerHTML = "";
 
-  if (!accounts.length) {
+  if (!workspaces.length) {
     const option = document.createElement("option");
     option.value = "";
-    option.textContent = t("optionsNoAccountsAvailable");
-    elements.accountSelect.appendChild(option);
+    option.textContent = t("optionsNoWorkspacesAvailable");
+    elements.workspaceSelect.appendChild(option);
     return;
   }
 
-  for (const account of accounts) {
+  for (const workspace of workspaces) {
     const option = document.createElement("option");
-    option.value = account.id;
-    option.textContent = account.name;
-    if (selectedAccountId && String(selectedAccountId) === String(account.id)) {
+    option.value = workspace.id;
+    option.textContent = workspace.name;
+    if (selectedWorkspaceId && String(selectedWorkspaceId) === String(workspace.id)) {
       option.selected = true;
     }
-    elements.accountSelect.appendChild(option);
+    elements.workspaceSelect.appendChild(option);
   }
 
-  if (!selectedAccountId) {
-    elements.accountSelect.selectedIndex = 0;
+  if (!selectedWorkspaceId) {
+    elements.workspaceSelect.selectedIndex = 0;
   }
 }
 
-async function resolveAccountState({baseUrl, apiToken, presetKey, instanceType, preferredSelectedAccountId}) {
+async function resolveWorkspaceState({baseUrl, apiToken, presetKey, instanceType, preferredSelectedWorkspaceId}) {
   if (instanceType !== "pro" || !isHostedProPreset(presetKey)) {
     return {
-      availableAccounts: [],
-      selectedAccountId: null,
-      helpText: t("optionsAccountHelpHostedProOnly"),
+      availableWorkspaces: [],
+      selectedWorkspaceId: null,
+      helpText: t("optionsWorkspaceHelpHostedProOnly"),
       statusMessage: ""
     };
   }
 
   if (!apiToken || !apiToken.trim()) {
     return {
-      availableAccounts: [],
-      selectedAccountId: null,
-      helpText: t("optionsAccountHelpAddToken"),
+      availableWorkspaces: [],
+      selectedWorkspaceId: null,
+      helpText: t("optionsWorkspaceHelpAddToken"),
       statusMessage: t("optionsStatusConnectionSucceeded")
     };
   }
 
-  const accountResult = await listAccounts({
+  const workspaceResult = await listWorkspaces({
     baseUrl,
     token: apiToken
   });
 
-  if (!accountResult.ok) {
+  if (!workspaceResult.ok) {
     return {
-      availableAccounts: [],
-      selectedAccountId: null,
-      helpText: accountResult.errorMessage || t("optionsErrorLoadAccountsForToken"),
-      statusMessage: t("optionsStatusConnectionSucceededAccountsFailed")
+      availableWorkspaces: [],
+      selectedWorkspaceId: null,
+      helpText: workspaceResult.errorMessage || t("optionsErrorLoadWorkspaces"),
+      statusMessage: t("optionsStatusConnectionSucceededWorkspacesFailed")
     };
   }
 
-  const availableAccounts = accountResult.data.accounts || [];
-  if (!availableAccounts.length) {
+  const availableWorkspaces = workspaceResult.data.workspaces || [];
+  if (!availableWorkspaces.length) {
     return {
-      availableAccounts,
-      selectedAccountId: null,
-      helpText: t("optionsAccountHelpNoAccess"),
+      availableWorkspaces,
+      selectedWorkspaceId: null,
+      helpText: t("optionsWorkspaceHelpNoAccess"),
       statusMessage: t("optionsStatusConnectionSucceeded")
     };
   }
 
-  const selectedAccountId = availableAccounts.some((account) => account.id === preferredSelectedAccountId)
-    ? preferredSelectedAccountId
-    : availableAccounts[0].id;
+  const selectedWorkspaceId = availableWorkspaces.some((workspace) => workspace.id === preferredSelectedWorkspaceId)
+    ? preferredSelectedWorkspaceId
+    : availableWorkspaces[0].id;
 
-  if (availableAccounts.length === 1) {
+  if (availableWorkspaces.length === 1) {
     return {
-      availableAccounts,
-      selectedAccountId,
-      helpText: t("optionsAccountHelpOneAvailable"),
+      availableWorkspaces,
+      selectedWorkspaceId,
+      helpText: t("optionsWorkspaceHelpOneAvailable"),
       statusMessage: t("optionsStatusConnectionSucceeded")
     };
   }
 
   return {
-    availableAccounts,
-    selectedAccountId,
-    helpText: t("optionsAccountHelpChooseAccount"),
+    availableWorkspaces,
+    selectedWorkspaceId,
+    helpText: t("optionsWorkspaceHelpChoose"),
     statusMessage: t("optionsStatusConnectionSucceeded")
   };
 }
@@ -516,9 +516,9 @@ function formatRequestsState(instanceType, apiToken, detectedValue) {
   return formatFeatureState(detectedValue);
 }
 
-function formatAccountsState(instanceType, apiToken, detectedValue) {
+function formatWorkspacesState(instanceType, apiToken, detectedValue) {
   if (instanceType === "oss") {
-    return t("optionsAccountsNotAvailableOss");
+    return t("optionsWorkspacesNotAvailableOss");
   }
 
   if (instanceType === "pro") {

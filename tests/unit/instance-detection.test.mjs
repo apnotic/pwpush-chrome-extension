@@ -26,7 +26,7 @@ describe("detectInstance", () => {
 
     expect(result.connected).toBe(false);
     expect(result.error).toContain("endpoint was not found");
-    expect(result.features.supportsAccountsApi).toBe("unknown");
+    expect(result.features.supportsWorkspacesApi).toBe("unknown");
     expect(result.features.supportsRequestsApi).toBe("unknown");
   });
 
@@ -59,11 +59,12 @@ describe("detectInstance", () => {
 
     expect(result.connected).toBe(true);
     expect(result.instanceType).toBe("pro");
-    expect(result.features.supportsAccountsApi).toBe("enabled");
+    expect(result.features.supportsWorkspacesApi).toBe("enabled");
     expect(result.features.supportsRequestsApi).toBe("disabled");
+    expect(String(global.fetch.mock.calls[1][0])).toContain("/api/v2/workspaces");
   });
 
-  it("classifies oss edition correctly", async () => {
+  it("classifies oss edition and treats the missing workspaces API as disabled", async () => {
     global.fetch
       .mockResolvedValueOnce({
         ok: true,
@@ -75,9 +76,9 @@ describe("detectInstance", () => {
         })
       })
       .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ([])
+        ok: false,
+        status: 404,
+        json: async () => ({})
       })
       .mockResolvedValueOnce({
         ok: false,
@@ -92,7 +93,8 @@ describe("detectInstance", () => {
 
     expect(result.connected).toBe(true);
     expect(result.instanceType).toBe("oss");
-    expect(result.features.supportsAccountsApi).toBe("enabled");
+    expect(result.features.supportsWorkspacesApi).toBe("disabled");
     expect(result.features.supportsRequestsApi).toBe("unknown");
+    expect(String(global.fetch.mock.calls[1][0])).toContain("/api/v2/workspaces");
   });
 });

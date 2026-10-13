@@ -217,7 +217,7 @@ async function createPushFromPayload(payload) {
     const createResult = await createPush(payload, {
       baseUrl: settings.baseUrl,
       token: settings.apiToken,
-      accountId: settings.selectedAccountId || "",
+      workspaceId: settings.selectedWorkspaceId || "",
       instanceType: instanceStatus.instanceType || "unknown",
       expireAfterDays: options.expireAfterDays,
       expireAfterViews: options.expireAfterViews,
@@ -315,7 +315,7 @@ async function loadPreviewQrSvg(lastPush) {
     const previewResult = await getPushPreview(lastPush.urlToken, {
       baseUrl,
       token: state.settings.apiToken || "",
-      accountId: state.settings.selectedAccountId || ""
+      workspaceId: state.settings.selectedWorkspaceId || ""
     });
     if (previewResult.ok && previewResult.data) {
       const apiCandidates = [];

@@ -249,7 +249,7 @@ select option {
   accent-color: var(--accent);
 }
 
-.account-section {
+.workspace-section {
   margin-top: 16px;
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -257,7 +257,7 @@ select option {
   background: var(--surface);
 }
 
-.account-section h3 {
+.workspace-section h3 {
   margin: 0 0 8px;
   font-size: 15px;
 }

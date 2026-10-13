@@ -3,8 +3,8 @@ const DEFAULT_SETTINGS = {
   presetKey: "",
   apiToken: "",
   rememberApiToken: true,
-  selectedAccountId: null,
-  availableAccounts: [],
+  selectedWorkspaceId: null,
+  availableWorkspaces: [],
   lastPushOptions: {
     expireAfterDays: 7,
     expireAfterViews: 5,
@@ -21,7 +21,7 @@ const DEFAULT_INSTANCE_STATUS = {
   edition: null,
   instanceType: null,
   features: {
-    supportsAccountsApi: "unknown",
+    supportsWorkspacesApi: "unknown",
     supportsRequestsApi: "unknown"
   },
   error: null
@@ -41,6 +41,34 @@ const DEFAULT_LAST_PUSH_RESULT = {
 
 const SESSION_API_TOKEN_KEY = "sessionApiToken";
 
+function workspaceFieldsFromSaved(savedSettings) {
+  const availableWorkspaces = Array.isArray(savedSettings.availableWorkspaces)
+    ? savedSettings.availableWorkspaces
+    : Array.isArray(savedSettings.availableAccounts)
+      ? savedSettings.availableAccounts
+      : [];
+  const selectedWorkspaceId = savedSettings.selectedWorkspaceId ?? savedSettings.selectedAccountId ?? null;
+
+  return {
+    availableWorkspaces,
+    selectedWorkspaceId
+  };
+}
+
+function withoutLegacyAccountFields(settings) {
+  const next = {...settings};
+  delete next.selectedAccountId;
+  delete next.availableAccounts;
+  return next;
+}
+
+function normalizeFeatures(features = {}) {
+  return {
+    supportsWorkspacesApi: features.supportsWorkspacesApi ?? features.supportsAccountsApi ?? "unknown",
+    supportsRequestsApi: features.supportsRequestsApi ?? "unknown"
+  };
+}
+
 export async function getSettings() {
   const [localResult, sessionResult] = await Promise.all([
     chrome.storage.local.get(["settings"]),
@@ -54,19 +82,17 @@ export async function getSettings() {
     : "";
 
   const effectiveApiToken = rememberApiToken ? storedApiToken : sessionApiToken;
-  return {
+  return withoutLegacyAccountFields({
     ...DEFAULT_SETTINGS,
     ...savedSettings,
     apiToken: effectiveApiToken,
     rememberApiToken,
-    availableAccounts: Array.isArray(savedSettings.availableAccounts)
-      ? savedSettings.availableAccounts
-      : [],
+    ...workspaceFieldsFromSaved(savedSettings),
     lastPushOptions: {
       ...DEFAULT_SETTINGS.lastPushOptions,
       ...(savedSettings.lastPushOptions || {})
     }
-  };
+  });
 }
 
 export async function saveSettings(settings) {
@@ -76,19 +102,17 @@ export async function saveSettings(settings) {
   const rememberApiToken = (settings || {}).rememberApiToken !== false;
   const storedApiToken = rememberApiToken ? rawApiToken : "";
 
-  const merged = {
+  const merged = withoutLegacyAccountFields({
     ...DEFAULT_SETTINGS,
     ...settings,
     apiToken: storedApiToken,
     rememberApiToken,
-    availableAccounts: Array.isArray((settings || {}).availableAccounts)
-      ? settings.availableAccounts
-      : [],
+    ...workspaceFieldsFromSaved(settings || {}),
     lastPushOptions: {
       ...DEFAULT_SETTINGS.lastPushOptions,
       ...((settings || {}).lastPushOptions || {})
     }
-  };
+  });
   await Promise.all([
     chrome.storage.local.set({settings: merged}),
     rememberApiToken
@@ -107,10 +131,7 @@ export async function getInstanceStatus() {
   return {
     ...DEFAULT_INSTANCE_STATUS,
     ...(result.instanceStatus || {}),
-    features: {
-      ...DEFAULT_INSTANCE_STATUS.features,
-      ...((result.instanceStatus || {}).features || {})
-    }
+    features: normalizeFeatures((result.instanceStatus || {}).features)
   };
 }
 
@@ -118,10 +139,7 @@ export async function saveInstanceStatus(status) {
   const merged = {
     ...DEFAULT_INSTANCE_STATUS,
     ...status,
-    features: {
-      ...DEFAULT_INSTANCE_STATUS.features,
-      ...((status || {}).features || {})
-    }
+    features: normalizeFeatures((status || {}).features)
   };
   await chrome.storage.local.set({instanceStatus: merged});
   return merged;

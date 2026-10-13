@@ -43,12 +43,12 @@ Use it with:
 - **Push selected text** from the active page using on-demand scripting.
 - **Advanced options** for expiry (days/views), retrieval step, and passphrase.
 
-### Connection and account awareness
+### Connection and workspace awareness
 
 - Detects instance metadata via `GET /api/v2/version`.
 - Distinguishes OSS vs commercial editions.
 - Probes API capabilities and displays them in settings.
-- Supports hosted Pro account selection when using an API token.
+- Supports hosted Pro workspace selection when using an API token.
 
 ### Result handling
 
@@ -112,7 +112,7 @@ CI workflow: `.github/workflows/chrome-extension-tests.yml`
 ## Security Notes
 
 - Required extension permissions:
-  - `storage` - persist extension configuration (server URL, optional API token, account, and non-sensitive defaults).
+  - `storage` - persist extension configuration (server URL, optional API token, workspace, and non-sensitive defaults).
   - `tabs` - read active tab URL and open created links.
   - `activeTab` + `scripting` - read selected text only when explicitly requested by the user.
 - Preset host permissions are pre-granted for official cloud endpoints (`oss`, `us`, `eu`).

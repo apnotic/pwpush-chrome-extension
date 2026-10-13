@@ -25,14 +25,15 @@ export async function requestJson(pathname, options = {}) {
     token = "",
     method = "GET",
     body,
-    accountId = "",
+    workspaceId = "",
     timeoutMs = 8000
   } = options;
 
   const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
   const requestUrl = new URL(pathname, `${normalizedBaseUrl}/`);
-  if (accountId && accountId.toString().trim()) {
-    requestUrl.searchParams.set("account_id", accountId.toString().trim());
+  const normalizedWorkspaceId = normalizeWorkspaceId(workspaceId);
+  if (normalizedWorkspaceId) {
+    requestUrl.searchParams.set("workspace_id", normalizedWorkspaceId);
   }
 
   const controller = new AbortController();
@@ -53,7 +54,7 @@ export async function requestJson(pathname, options = {}) {
     const response = await fetch(requestUrl, {
       method,
       headers,
-      body: body ? JSON.stringify(appendAccountIdToBody(body, accountId)) : undefined,
+      body: body ? JSON.stringify(appendWorkspaceIdToBody(body, normalizedWorkspaceId)) : undefined,
       signal: controller.signal
     });
 
@@ -117,7 +118,7 @@ export async function createPush(payload, options = {}) {
   const {
     baseUrl,
     token = "",
-    accountId = "",
+    workspaceId = "",
     instanceType = "unknown",
     expireAfterDays = 7,
     expireAfterViews = 5,
@@ -136,7 +137,7 @@ export async function createPush(payload, options = {}) {
   const createResult = await requestJson("/api/v2/pushes", {
     baseUrl,
     token,
-    accountId,
+    workspaceId,
     method: "POST",
     body: {
       push: pushPayload
@@ -152,7 +153,7 @@ export async function createPush(payload, options = {}) {
   const shareUrl = createData.html_url || await resolvePreviewUrl({
     baseUrl,
     token,
-    accountId,
+    workspaceId,
     urlToken
   });
 
@@ -178,7 +179,7 @@ export async function createPush(payload, options = {}) {
 }
 
 export async function getPushPreview(urlToken, options = {}) {
-  const {baseUrl, token = "", accountId = ""} = options;
+  const {baseUrl, token = "", workspaceId = ""} = options;
 
   if (!urlToken) {
     return {
@@ -194,7 +195,7 @@ export async function getPushPreview(urlToken, options = {}) {
   const result = await requestJson(`/api/v2/pushes/${tokenPath}/preview`, {
     baseUrl,
     token,
-    accountId
+    workspaceId
   });
 
   if (!result.ok) {
@@ -211,7 +212,7 @@ export async function getPushPreview(urlToken, options = {}) {
   };
 }
 
-export async function listAccounts(options = {}) {
+export async function listWorkspaces(options = {}) {
   const {baseUrl, token = ""} = options;
 
   if (!token || !token.trim()) {
@@ -220,11 +221,11 @@ export async function listAccounts(options = {}) {
       status: 0,
       data: null,
       errorType: "missing_token",
-      errorMessage: t("optionsAccountHelpAddToken", [], "Add an API token to load available accounts.")
+      errorMessage: t("optionsWorkspaceHelpAddToken", [], "Add an API token to load available workspaces.")
     };
   }
 
-  const result = await requestJson("/api/v2/accounts", {
+  const result = await requestJson("/api/v2/workspaces", {
     baseUrl,
     token
   });
@@ -233,19 +234,19 @@ export async function listAccounts(options = {}) {
     return result;
   }
 
-  const rawAccounts = Array.isArray(result.data) ? result.data : [];
-  const accounts = rawAccounts
-    .filter((account) => account && account.id)
-    .map((account) => ({
-      id: String(account.id),
-      name: String(account.name || `Account ${account.id}`)
+  const rawWorkspaces = Array.isArray(result.data) ? result.data : [];
+  const workspaces = rawWorkspaces
+    .filter((workspace) => workspace && workspace.id)
+    .map((workspace) => ({
+      id: String(workspace.id),
+      name: String(workspace.name || `Workspace ${workspace.id}`)
     }));
 
   return {
     ok: true,
     status: result.status,
     data: {
-      accounts
+      workspaces
     }
   };
 }
@@ -279,12 +280,12 @@ function buildPushPayload(payload, options = {}) {
   return push;
 }
 
-async function resolvePreviewUrl({baseUrl, token, accountId, urlToken}) {
+async function resolvePreviewUrl({baseUrl, token, workspaceId, urlToken}) {
   if (!urlToken) {
     return "";
   }
 
-  const previewResult = await getPushPreview(urlToken, {baseUrl, token, accountId});
+  const previewResult = await getPushPreview(urlToken, {baseUrl, token, workspaceId});
   if (!previewResult.ok) {
     return "";
   }
@@ -292,14 +293,22 @@ async function resolvePreviewUrl({baseUrl, token, accountId, urlToken}) {
   return (previewResult.data || {}).shareUrl || "";
 }
 
-function appendAccountIdToBody(body, accountId) {
-  if (!body || typeof body !== "object" || !accountId || !accountId.toString().trim()) {
+function normalizeWorkspaceId(workspaceId) {
+  if (!workspaceId || !workspaceId.toString().trim()) {
+    return "";
+  }
+
+  return workspaceId.toString().trim();
+}
+
+function appendWorkspaceIdToBody(body, workspaceId) {
+  if (!body || typeof body !== "object" || !workspaceId) {
     return body;
   }
 
   return {
     ...body,
-    account_id: accountId.toString().trim()
+    workspace_id: workspaceId
   };
 }
 
