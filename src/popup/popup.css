@@ -228,6 +228,15 @@ textarea {
   resize: vertical;
 }
 
+.selection-row {
+  display: flex;
+  margin-top: 8px;
+}
+
+.selection-row button {
+  width: auto;
+}
+
 input::placeholder,
 textarea::placeholder {
   color: var(--text-subtle);

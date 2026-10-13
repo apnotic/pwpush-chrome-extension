@@ -28,7 +28,7 @@ Use it with:
 
 | | |
 |---|---|
-| **⚡ Fast sharing workflow** | Push the current tab URL or highlighted text directly from the popup. |
+| **⚡ Fast sharing workflow** | Push the current tab URL, or add highlighted text when you choose to. |
 | **🔒 Security-first defaults** | Password Pusher expiry controls, optional retrieval step, and optional passphrase support. |
 | **🌍 Works across editions** | Connect to OSS, hosted Pro, or self-hosted instances with runtime host permissions. |
 | **🧭 Instance-aware UX** | Automatically detects edition/version and surfaces API capability status in settings. |
@@ -39,7 +39,7 @@ Use it with:
 
 ### Create pushes from browser context
 
-- **Push text** typed into the popup, or prefilled from text selected on the page.
+- **Push text** typed into the popup. **Add selected text** copies the page selection only when you click it.
 - **Push current URL** from the active tab.
 - **Advanced options** for expiry (days/views), retrieval step, and passphrase.
 
@@ -76,7 +76,7 @@ Use it with:
 ### 3) Create a push
 
 1. Click the extension icon.
-2. Enter text, or highlight text on the page before opening the popup so it is filled in for you.
+2. Enter text, or click **Add selected text** to copy a highlight from the page.
 3. Set expiry options if needed, then click **Push**. Use **Push Current URL** to share the page address instead.
 4. Copy/open the link or generate/download a QR PNG.
 
@@ -113,8 +113,8 @@ CI workflow: `.github/workflows/chrome-extension-tests.yml`
 
 - Required extension permissions:
   - `storage` - persist extension configuration (server URL, optional API token, workspace, and non-sensitive defaults).
-  - `tabs` - read active tab URL and open created links.
-  - `activeTab` + `scripting` - read selected text only when explicitly requested by the user.
+  - `activeTab` - read the active tab URL when you use the popup, and open created links.
+  - `scripting` - read selected text only when you click **Add selected text**.
 - Preset host permissions are pre-granted for official cloud endpoints (`oss`, `us`, `eu`).
 - Custom hosts are requested at runtime through optional host permissions (`https://*/*`).
 - Selected-text capture is on-demand only (no persistent all-pages content script).

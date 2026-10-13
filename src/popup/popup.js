@@ -22,6 +22,7 @@ const elements = {
   statusMessage: document.querySelector("#statusMessage"),
   payload: document.querySelector("#payload"),
   selectionHint: document.querySelector("#selectionHint"),
+  addSelectionButton: document.querySelector("#addSelectionButton"),
   pushButton: document.querySelector("#pushButton"),
   pushUrlButton: document.querySelector("#pushUrlButton"),
   expireAfterDays: document.querySelector("#expireAfterDays"),
@@ -42,10 +43,11 @@ let state = {
   settings: null,
   instanceStatus: null,
   lastPushResult: null,
-  isBusy: false
+  isBusy: false,
+  isReadingSelection: false
 };
 
-let prefilledSelection = "";
+let selectionSnapshot = "";
 
 applyDocumentI18n();
 
@@ -58,7 +60,7 @@ elements.settingsButton.addEventListener("click", async () => {
 });
 
 elements.payload.addEventListener("input", () => {
-  if (elements.payload.value !== prefilledSelection) {
+  if (elements.payload.value !== selectionSnapshot) {
     setSelectionHintVisible(false);
   }
   updateActionButtons();
@@ -69,6 +71,10 @@ elements.payload.addEventListener("keydown", (event) => {
     event.preventDefault();
     elements.pushButton.click();
   }
+});
+
+elements.addSelectionButton.addEventListener("click", async () => {
+  await addSelectedText();
 });
 
 elements.pushButton.addEventListener("click", async () => {
@@ -144,7 +150,6 @@ async function loadState() {
   hydrateAdvancedOptions(settings.lastPushOptions || {});
   renderConnection(settings, instanceStatus);
   renderResult(null);
-  await prefillPayloadFromSelection();
   updateActionButtons();
   if (!state.isBusy) {
     elements.payload.focus();
@@ -247,6 +252,10 @@ function hydrateAdvancedOptions(options) {
 }
 
 async function createFromCurrentUrl() {
+  if (!tryBeginBusy()) {
+    return;
+  }
+
   try {
     ensureServerConfigured();
     setStatus(t("popupReadingCurrentUrl"), "info");
@@ -263,41 +272,88 @@ async function createFromCurrentUrl() {
     await createPushFromPayload(url.toString());
   } catch (error) {
     setStatus(error.message || t("popupErrorCreateUrlPush"), "error");
+  } finally {
+    endBusy();
   }
 }
 
 async function createFromPayloadField() {
+  if (state.isBusy) {
+    return;
+  }
+
+  let payload = "";
   try {
     ensureServerConfigured();
-    const payload = elements.payload.value.trim();
+    payload = elements.payload.value.trim();
     if (!payload) {
       throw new Error(t("popupErrorEmptyPayload"));
     }
-
-    await createPushFromPayload(payload);
-    elements.payload.value = "";
-    prefilledSelection = "";
-    setSelectionHintVisible(false);
-    updateActionButtons();
   } catch (error) {
     setStatus(error.message || t("popupErrorPushCreationFailed"), "error");
+    return;
+  }
+
+  if (!tryBeginBusy()) {
+    return;
+  }
+
+  try {
+    await createPushFromPayload(payload);
+    elements.payload.value = "";
+    selectionSnapshot = "";
+    setSelectionHintVisible(false);
+  } catch (error) {
+    setStatus(error.message || t("popupErrorPushCreationFailed"), "error");
+  } finally {
+    endBusy();
   }
 }
 
-async function prefillPayloadFromSelection() {
-  if (elements.payload.value.trim()) {
+async function addSelectedText() {
+  if (state.isBusy || state.isReadingSelection) {
     return;
   }
 
-  const selection = await readActiveTabSelection();
-  if (!selection) {
-    setSelectionHintVisible(false);
+  state.isReadingSelection = true;
+  updateActionButtons();
+
+  try {
+    const selection = await readActiveTabSelection();
+    if (selection.status === "unavailable") {
+      setSelectionHintVisible(false);
+      setStatus(t("popupErrorSelectionUnavailable"), "error");
+      return;
+    }
+
+    if (!selection.text) {
+      setSelectionHintVisible(false);
+      setStatus(t("popupErrorNoSelection"), "error");
+      return;
+    }
+
+    appendSelection(selection.text);
+    selectionSnapshot = elements.payload.value;
+    setSelectionHintVisible(true);
+    setStatus("");
+    elements.payload.focus();
+    const end = elements.payload.value.length;
+    elements.payload.setSelectionRange(end, end);
+  } finally {
+    state.isReadingSelection = false;
+    updateActionButtons();
+  }
+}
+
+function appendSelection(selection) {
+  const current = elements.payload.value;
+  if (!current.trim()) {
+    elements.payload.value = selection;
     return;
   }
 
-  elements.payload.value = selection;
-  prefilledSelection = selection;
-  setSelectionHintVisible(true);
+  const separator = current.endsWith("\n") ? "" : "\n";
+  elements.payload.value = `${current}${separator}${selection}`;
 }
 
 function setSelectionHintVisible(visible) {
@@ -312,47 +368,39 @@ function setSelectionHintVisible(visible) {
 async function createPushFromPayload(payload) {
   const options = getPushOptions();
   await persistPushOptions(options);
-
-  state.isBusy = true;
-  updateActionButtons();
   setStatus(t("popupCreatingPush"), "info");
 
-  try {
-    const {settings, instanceStatus} = state;
-    const createResult = await createPush(payload, {
-      baseUrl: settings.baseUrl,
-      token: settings.apiToken,
-      workspaceId: settings.selectedWorkspaceId || "",
-      instanceType: instanceStatus.instanceType || "unknown",
-      expireAfterDays: options.expireAfterDays,
-      expireAfterViews: options.expireAfterViews,
-      retrievalStep: options.retrievalStep,
-      passphrase: options.passphrase
-    });
+  const {settings, instanceStatus} = state;
+  const createResult = await createPush(payload, {
+    baseUrl: settings.baseUrl,
+    token: settings.apiToken,
+    workspaceId: settings.selectedWorkspaceId || "",
+    instanceType: instanceStatus.instanceType || "unknown",
+    expireAfterDays: options.expireAfterDays,
+    expireAfterViews: options.expireAfterViews,
+    retrievalStep: options.retrievalStep,
+    passphrase: options.passphrase
+  });
 
-    if (!createResult.ok) {
-      throw new Error(createResult.errorMessage || t("popupErrorPushCreationFailed"));
-    }
-
-    const data = createResult.data || {};
-    const pushResult = {
-      createdAt: new Date().toISOString(),
-      shareUrl: resolveDisplayedShareUrl(data.shareUrl || "", data.urlToken || "", settings.baseUrl),
-      urlToken: data.urlToken || "",
-      qrSvg: "",
-      qrPngDataUrl: "",
-      expiresAt: data.expires_at || null,
-      expiresIn: data.expires_in || null,
-      viewsRemaining: data.views_remaining || null
-    };
-
-    state.lastPushResult = pushResult;
-    renderResult(state.lastPushResult);
-    setStatus(t("popupPushCreated"), "success");
-  } finally {
-    state.isBusy = false;
-    updateActionButtons();
+  if (!createResult.ok) {
+    throw new Error(createResult.errorMessage || t("popupErrorPushCreationFailed"));
   }
+
+  const data = createResult.data || {};
+  const pushResult = {
+    createdAt: new Date().toISOString(),
+    shareUrl: resolveDisplayedShareUrl(data.shareUrl || "", data.urlToken || "", settings.baseUrl),
+    urlToken: data.urlToken || "",
+    qrSvg: "",
+    qrPngDataUrl: "",
+    expiresAt: data.expires_at || null,
+    expiresIn: data.expires_in || null,
+    viewsRemaining: data.views_remaining || null
+  };
+
+  state.lastPushResult = pushResult;
+  renderResult(state.lastPushResult);
+  setStatus(t("popupPushCreated"), "success");
 }
 
 async function toggleQrForLatestPush() {
@@ -610,36 +658,49 @@ function ensureServerConfigured() {
   }
 }
 
-function withButtonsDisabled(disabled) {
-  state.isBusy = disabled;
+function tryBeginBusy() {
+  if (state.isBusy) {
+    return false;
+  }
+
+  state.isBusy = true;
+  updateActionButtons();
+  return true;
+}
+
+function endBusy() {
+  state.isBusy = false;
   updateActionButtons();
 }
 
 function updateActionButtons() {
   const hasPayload = Boolean(elements.payload.value.trim());
-  elements.pushButton.disabled = state.isBusy || !hasPayload;
-  elements.pushUrlButton.disabled = state.isBusy;
+  const locked = state.isBusy || state.isReadingSelection;
+  elements.pushButton.disabled = locked || !hasPayload;
+  elements.pushUrlButton.disabled = locked;
+  elements.addSelectionButton.disabled = locked;
 }
 
 async function readActiveTabSelection() {
   try {
     const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
     if (!tab || !tab.id || !tab.url) {
-      return "";
+      return {text: "", status: "unavailable"};
     }
 
     const url = new URL(tab.url);
     if (!["http:", "https:"].includes(url.protocol)) {
-      return "";
+      return {text: "", status: "unavailable"};
     }
 
     const results = await chrome.scripting.executeScript({
       target: {tabId: tab.id},
       func: () => (window.getSelection ? window.getSelection().toString() : "")
     });
-    return String((results && results[0] && results[0].result) || "").trim();
+    const text = String((results && results[0] && results[0].result) || "").trim();
+    return {text, status: text ? "ok" : "empty"};
   } catch (_error) {
-    return "";
+    return {text: "", status: "unavailable"};
   }
 }
 
