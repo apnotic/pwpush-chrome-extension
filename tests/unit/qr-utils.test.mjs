@@ -1,5 +1,5 @@
 import {describe, expect, it} from "vitest";
-import {buildPreviewUrl, buildPreviewUrlFromToken, extractFirstSvg} from "../../src/popup/qr-utils.js";
+import {buildPreviewUrl, buildPreviewUrlFromToken, extractFirstSvg, toConfiguredShareUrl} from "../../src/popup/qr-utils.js";
 
 describe("buildPreviewUrl", () => {
   it("appends /preview for absolute share URLs", () => {
@@ -16,6 +16,33 @@ describe("buildPreviewUrl", () => {
 
   it("throws when a relative share URL has no base URL", () => {
     expect(() => buildPreviewUrl("/p/abc123")).toThrow("Push URL is invalid for QR generation.");
+  });
+
+  it("pins preview fetches to the configured server", () => {
+    expect(buildPreviewUrl("https://evil.example/p/abc123", "https://pwpush.example"))
+      .toBe("https://pwpush.example/p/abc123/preview");
+  });
+
+  it("rejects preview URLs that are not push links", () => {
+    expect(() => buildPreviewUrl("https://evil.example/account/steal", "https://pwpush.example"))
+      .toThrow("Push URL is not a Password Pusher link on the configured server.");
+  });
+});
+
+describe("toConfiguredShareUrl", () => {
+  it("keeps a push link that is already on the configured server", () => {
+    expect(toConfiguredShareUrl("https://pwpush.example/p/abc123/r", "https://pwpush.example"))
+      .toBe("https://pwpush.example/p/abc123/r");
+  });
+
+  it("rewrites a foreign host onto the configured server and drops query data", () => {
+    expect(toConfiguredShareUrl("https://user:pass@evil.example/p/abc123/r?next=https://phish.example", "https://pwpush.example/settings"))
+      .toBe("https://pwpush.example/p/abc123/r");
+  });
+
+  it("rejects javascript URLs", () => {
+    expect(() => toConfiguredShareUrl("javascript:alert(1)", "https://pwpush.example"))
+      .toThrow("Push URL is not a Password Pusher link on the configured server.");
   });
 });
 

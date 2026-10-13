@@ -46,6 +46,7 @@
   "popupErrorReadCurrentUrl": {"message": "Impossibile leggere l'URL della scheda corrente."},
   "popupErrorOnlyHttpHttps": {"message": "Solo le pagine http/https possono essere inviate."},
   "popupErrorCreateUrlPush": {"message": "Impossibile creare il push URL."},
+  "popupErrorUntrustedShareUrl": {"message": "Questo link non e sul server Password Pusher configurato."},
   "popupCreatingPush": {"message": "Creazione push..."},
   "popupErrorPushCreationFailed": {"message": "Creazione push non riuscita."},
   "popupPushCreated": {"message": "Push creato. Copia il link o apri il QR."},

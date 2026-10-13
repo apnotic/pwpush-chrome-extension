@@ -46,6 +46,7 @@
   "popupErrorReadCurrentUrl": {"message": "Aktuelle Tab-URL konnte nicht gelesen werden."},
   "popupErrorOnlyHttpHttps": {"message": "Nur http/https-Seiten koennen gepusht werden."},
   "popupErrorCreateUrlPush": {"message": "URL-Push konnte nicht erstellt werden."},
+  "popupErrorUntrustedShareUrl": {"message": "Dieser Link liegt nicht auf dem konfigurierten Password-Pusher-Server."},
   "popupCreatingPush": {"message": "Push wird erstellt..."},
   "popupErrorPushCreationFailed": {"message": "Push-Erstellung fehlgeschlagen."},
   "popupPushCreated": {"message": "Push erstellt. Link kopieren oder QR oeffnen."},

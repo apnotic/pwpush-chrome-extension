@@ -46,6 +46,7 @@
   "popupErrorReadCurrentUrl": {"message": "Kan huidige tab-URL niet lezen."},
   "popupErrorOnlyHttpHttps": {"message": "Alleen http/https-pagina's kunnen worden gepusht."},
   "popupErrorCreateUrlPush": {"message": "Kan URL-push niet maken."},
+  "popupErrorUntrustedShareUrl": {"message": "Deze link staat niet op de geconfigureerde Password Pusher-server."},
   "popupCreatingPush": {"message": "Push maken..."},
   "popupErrorPushCreationFailed": {"message": "Push maken mislukt."},
   "popupPushCreated": {"message": "Push gemaakt. Kopieer de link of open QR."},

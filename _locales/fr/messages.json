@@ -46,6 +46,7 @@
   "popupErrorReadCurrentUrl": {"message": "Impossible de lire l'URL de l'onglet actuel."},
   "popupErrorOnlyHttpHttps": {"message": "Seules les pages http/https peuvent etre poussees."},
   "popupErrorCreateUrlPush": {"message": "Impossible de creer un push URL."},
+  "popupErrorUntrustedShareUrl": {"message": "Ce lien n'est pas sur le serveur Password Pusher configure."},
   "popupCreatingPush": {"message": "Creation du push..."},
   "popupErrorPushCreationFailed": {"message": "La creation du push a echoue."},
   "popupPushCreated": {"message": "Push cree. Copiez le lien ou ouvrez le QR."},

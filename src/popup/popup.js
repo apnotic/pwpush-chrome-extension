@@ -9,7 +9,7 @@ import {
   saveSettings
 } from "../lib/storage.js";
 import {applyDocumentI18n, t} from "../lib/i18n.js";
-import {buildPreviewUrl, buildPreviewUrlFromToken, extractFirstSvg} from "./qr-utils.js";
+import {buildPreviewUrl, buildPreviewUrlFromToken, extractFirstSvg, toConfiguredShareUrl} from "./qr-utils.js";
 
 const elements = {
   serverValue: document.querySelector("#serverValue"),
@@ -53,7 +53,7 @@ elements.recheckButton.addEventListener("click", async () => {
     if (!response || !response.ok) {
       throw new Error((response && response.error) || t("popupErrorRecheckServer"));
     }
-    await loadState();
+    await refreshConnection(response.status);
   });
 });
 
@@ -89,7 +89,16 @@ elements.copyLinkButton.addEventListener("click", async () => {
     return;
   }
 
-  await navigator.clipboard.writeText(shareUrl);
+  const baseUrl = ((state.settings || {}).baseUrl || "").trim();
+  let trustedShareUrl = "";
+  try {
+    trustedShareUrl = toConfiguredShareUrl(shareUrl, baseUrl);
+  } catch (_error) {
+    setStatus(t("popupErrorUntrustedShareUrl"), "error");
+    return;
+  }
+
+  await navigator.clipboard.writeText(trustedShareUrl);
   setStatus(t("popupLinkCopied"), "success");
 });
 
@@ -99,7 +108,16 @@ elements.openLinkButton.addEventListener("click", async () => {
     return;
   }
 
-  await chrome.tabs.create({url: shareUrl});
+  const baseUrl = ((state.settings || {}).baseUrl || "").trim();
+  let trustedShareUrl = "";
+  try {
+    trustedShareUrl = toConfiguredShareUrl(shareUrl, baseUrl);
+  } catch (_error) {
+    setStatus(t("popupErrorUntrustedShareUrl"), "error");
+    return;
+  }
+
+  await chrome.tabs.create({url: trustedShareUrl});
 });
 
 elements.showQrButton.addEventListener("click", async () => {
@@ -135,6 +153,15 @@ async function loadState() {
   if (!state.isBusy) {
     elements.payload.focus();
   }
+}
+
+async function refreshConnection(instanceStatus) {
+  const settings = state.settings || await getSettings();
+  state.settings = settings;
+  if (instanceStatus) {
+    state.instanceStatus = instanceStatus;
+  }
+  renderConnection(settings, state.instanceStatus || {});
 }
 
 function renderConnection(settings, instanceStatus) {
@@ -267,7 +294,7 @@ async function createPushFromPayload(payload) {
     const data = createResult.data || {};
     const pushResult = {
       createdAt: new Date().toISOString(),
-      shareUrl: data.shareUrl || "",
+      shareUrl: resolveDisplayedShareUrl(data.shareUrl || "", data.urlToken || "", settings.baseUrl),
       urlToken: data.urlToken || "",
       qrSvg: "",
       qrPngDataUrl: "",
@@ -369,7 +396,7 @@ async function loadPreviewQrSvg(lastPush) {
   }
 
   for (const previewCandidate of previewCandidates) {
-    const directSvg = await loadPreviewSvgFromUrl(previewCandidate);
+    const directSvg = await loadPreviewSvgFromUrl(previewCandidate, baseUrl);
     if (directSvg) {
       return directSvg;
     }
@@ -402,7 +429,7 @@ async function loadPreviewQrSvg(lastPush) {
       }
 
       for (const previewCandidate of apiCandidates) {
-        const svg = await loadPreviewSvgFromUrl(previewCandidate);
+        const svg = await loadPreviewSvgFromUrl(previewCandidate, baseUrl);
         if (svg) {
           return svg;
         }
@@ -412,9 +439,16 @@ async function loadPreviewQrSvg(lastPush) {
   return "";
 }
 
-async function loadPreviewSvgFromUrl(previewUrl) {
+async function loadPreviewSvgFromUrl(previewUrl, baseUrl) {
+  let trustedPreviewUrl = "";
   try {
-    const response = await fetch(previewUrl, {
+    trustedPreviewUrl = toConfiguredShareUrl(previewUrl, baseUrl);
+  } catch (_error) {
+    return "";
+  }
+
+  try {
+    const response = await fetch(trustedPreviewUrl, {
       method: "GET",
       headers: {Accept: "text/html"}
     });
@@ -467,6 +501,27 @@ function svgToPngDataUrl(svgMarkup, width, height) {
 
     image.src = blobUrl;
   });
+}
+
+function resolveDisplayedShareUrl(shareUrl, urlToken, baseUrl) {
+  try {
+    if (shareUrl) {
+      return toConfiguredShareUrl(shareUrl, baseUrl);
+    }
+  } catch (_error) {
+    // The server URL was not a push link on this host. Fall back to the token.
+  }
+
+  const token = String(urlToken || "").trim();
+  if (!token || !baseUrl) {
+    return "";
+  }
+
+  const trusted = new URL(baseUrl);
+  trusted.pathname = `/p/${encodeURIComponent(token)}`;
+  trusted.search = "";
+  trusted.hash = "";
+  return trusted.toString();
 }
 
 function setQrVisible(visible) {

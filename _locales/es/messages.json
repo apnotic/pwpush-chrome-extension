@@ -46,6 +46,7 @@
   "popupErrorReadCurrentUrl": {"message": "No se pudo leer la URL de la pestana actual."},
   "popupErrorOnlyHttpHttps": {"message": "Solo se pueden enviar paginas http/https."},
   "popupErrorCreateUrlPush": {"message": "No se pudo crear el push de URL."},
+  "popupErrorUntrustedShareUrl": {"message": "Este enlace no esta en el servidor de Password Pusher configurado."},
   "popupCreatingPush": {"message": "Creando push..."},
   "popupErrorPushCreationFailed": {"message": "Fallo la creacion del push."},
   "popupPushCreated": {"message": "Push creado. Copia el enlace o abre el QR."},
