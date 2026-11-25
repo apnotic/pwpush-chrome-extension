@@ -1,6 +1,8 @@
 import {
   createPush,
-  getPushPreview
+  createRequest,
+  getPushPreview,
+  getRequestPreview
 } from "../lib/api-client.js";
 import {
   clearLastPushResult,
@@ -20,6 +22,11 @@ const elements = {
   connectionStatus: document.querySelector("#connectionStatus"),
   settingsButton: document.querySelector("#settingsButton"),
   statusMessage: document.querySelector("#statusMessage"),
+  pushTab: document.querySelector("#pushTab"),
+  requestTab: document.querySelector("#requestTab"),
+  pushPanel: document.querySelector("#pushPanel"),
+  requestPanel: document.querySelector("#requestPanel"),
+  requestDisabledNotice: document.querySelector("#requestDisabledNotice"),
   payload: document.querySelector("#payload"),
   selectionHint: document.querySelector("#selectionHint"),
   addSelectionButton: document.querySelector("#addSelectionButton"),
@@ -30,6 +37,15 @@ const elements = {
   expireAfterViews: document.querySelector("#expireAfterViews"),
   retrievalStep: document.querySelector("#retrievalStep"),
   passphrase: document.querySelector("#passphrase"),
+  requestName: document.querySelector("#requestName"),
+  requestMessage: document.querySelector("#requestMessage"),
+  requestNote: document.querySelector("#requestNote"),
+  requestExpireDays: document.querySelector("#requestExpireDays"),
+  requestRetrievalStep: document.querySelector("#requestRetrievalStep"),
+  requestResponseFiles: document.querySelector("#requestResponseFiles"),
+  requestPassphrase: document.querySelector("#requestPassphrase"),
+  requestNotifyEmails: document.querySelector("#requestNotifyEmails"),
+  createRequestButton: document.querySelector("#createRequestButton"),
   resultSection: document.querySelector("#resultSection"),
   resultLink: document.querySelector("#resultLink"),
   resultMeta: document.querySelector("#resultMeta"),
@@ -45,7 +61,9 @@ let state = {
   instanceStatus: null,
   lastPushResult: null,
   isBusy: false,
-  isReadingSelection: false
+  isReadingSelection: false,
+  activeTab: "push",
+  requestsSupported: false
 };
 
 let selectionSnapshot = "";
@@ -136,6 +154,22 @@ elements.downloadQrButton.addEventListener("click", async () => {
   await downloadQrPng();
 });
 
+elements.pushTab.addEventListener("click", () => {
+  switchTab("push");
+});
+
+elements.requestTab.addEventListener("click", () => {
+  switchTab("request");
+});
+
+elements.requestMessage.addEventListener("input", () => {
+  updateActionButtons();
+});
+
+elements.createRequestButton.addEventListener("click", async () => {
+  await createRequestFromForm();
+});
+
 loadState().catch((error) => {
   setStatus(error.message || t("popupErrorLoadState"), "error");
 });
@@ -147,21 +181,72 @@ async function loadState() {
     getInstanceStatus()
   ]);
 
+  const requestsSupported = checkRequestsSupport(instanceStatus);
+
   state = {
     ...state,
     settings,
     instanceStatus,
-    lastPushResult: null
+    lastPushResult: null,
+    requestsSupported
   };
   hydrateAdvancedOptions(settings.lastPushOptions || {});
   renderConnection(settings, instanceStatus);
   renderResult(null);
   await restoreUrlPushCooldown();
   setSelectionButtonVisible(await activeTabHasSelection());
+  updateRequestsAvailability(requestsSupported);
   updateActionButtons();
   if (!state.isBusy) {
-    elements.payload.focus();
+    if (state.activeTab === "push") {
+      elements.payload.focus();
+    } else {
+      elements.requestName.focus();
+    }
   }
+}
+
+function checkRequestsSupport(instanceStatus) {
+  const features = (instanceStatus || {}).features || {};
+  return features.supportsRequestsApi === "enabled";
+}
+
+function updateRequestsAvailability(supported) {
+  if (supported) {
+    elements.requestTab.disabled = false;
+    elements.requestDisabledNotice.classList.add("hidden");
+  } else {
+    elements.requestTab.disabled = false;
+    elements.requestDisabledNotice.classList.remove("hidden");
+    if (state.activeTab === "request") {
+      switchTab("push");
+    }
+  }
+}
+
+function switchTab(tab) {
+  state.activeTab = tab;
+  
+  if (tab === "push") {
+    elements.pushTab.setAttribute("aria-selected", "true");
+    elements.requestTab.setAttribute("aria-selected", "false");
+    elements.pushTab.classList.add("active");
+    elements.requestTab.classList.remove("active");
+    elements.pushPanel.classList.remove("hidden");
+    elements.requestPanel.classList.add("hidden");
+    elements.payload.focus();
+  } else {
+    elements.pushTab.setAttribute("aria-selected", "false");
+    elements.requestTab.setAttribute("aria-selected", "true");
+    elements.pushTab.classList.remove("active");
+    elements.requestTab.classList.add("active");
+    elements.pushPanel.classList.add("hidden");
+    elements.requestPanel.classList.remove("hidden");
+    elements.requestName.focus();
+  }
+  
+  updateActionButtons();
+  setStatus("");
 }
 
 async function recheckConnection() {
@@ -216,6 +301,8 @@ async function refreshConnection(instanceStatus) {
   state.settings = settings;
   if (instanceStatus) {
     state.instanceStatus = instanceStatus;
+    state.requestsSupported = checkRequestsSupport(instanceStatus);
+    updateRequestsAvailability(state.requestsSupported);
   }
   renderConnection(settings, state.instanceStatus || {});
 }
@@ -319,6 +406,44 @@ async function createFromPayloadField() {
   }
 }
 
+async function createRequestFromForm() {
+  if (state.isBusy) {
+    return;
+  }
+
+  let requestMessage = "";
+  try {
+    ensureServerConfigured();
+    if (!state.requestsSupported) {
+      throw new Error(t("popupErrorRequestsNotSupported", [], "Requests are not supported on this instance."));
+    }
+    requestMessage = elements.requestMessage.value.trim();
+    if (!requestMessage) {
+      throw new Error(t("popupErrorEmptyRequestMessage", [], "Request message cannot be empty."));
+    }
+  } catch (error) {
+    setStatus(error.message || t("popupErrorRequestCreationFailed", [], "Request creation failed."), "error");
+    return;
+  }
+
+  if (!tryBeginBusy()) {
+    return;
+  }
+
+  try {
+    await createRequestFromMessage(requestMessage);
+    elements.requestMessage.value = "";
+    elements.requestName.value = "";
+    elements.requestNote.value = "";
+    elements.requestPassphrase.value = "";
+    elements.requestNotifyEmails.value = "";
+  } catch (error) {
+    setStatus(error.message || t("popupErrorRequestCreationFailed", [], "Request creation failed."), "error");
+  } finally {
+    endBusy();
+  }
+}
+
 async function addSelectedText() {
   if (state.isBusy || state.isReadingSelection) {
     return;
@@ -414,6 +539,49 @@ async function createPushFromPayload(payload) {
   state.lastPushResult = pushResult;
   renderResult(state.lastPushResult);
   setStatus(t("popupPushCreated"), "success");
+}
+
+async function createRequestFromMessage(requestMessage) {
+  const options = getRequestOptions();
+  setStatus(t("popupCreatingRequest", [], "Creating request..."), "info");
+
+  const {settings, instanceStatus} = state;
+  const createResult = await createRequest(requestMessage, {
+    baseUrl: settings.baseUrl,
+    token: settings.apiToken,
+    workspaceId: settings.selectedWorkspaceId || "",
+    instanceType: instanceStatus.instanceType || "unknown",
+    name: options.name,
+    note: options.note,
+    closeAfterDuration: options.closeAfterDuration,
+    retrievalStep: options.retrievalStep,
+    passphrase: options.passphrase,
+    notifyEmailsTo: options.notifyEmailsTo,
+    authenticatedRecipients: options.authenticatedRecipients,
+    notifyRecipients: options.notifyRecipients,
+    includeRequestor: options.includeRequestor,
+    responseFileAttachments: options.responseFileAttachments
+  });
+
+  if (!createResult.ok) {
+    throw new Error(createResult.errorMessage || t("popupErrorRequestCreationFailed", [], "Request creation failed."));
+  }
+
+  const data = createResult.data || {};
+  const requestResult = {
+    createdAt: new Date().toISOString(),
+    shareUrl: resolveDisplayedShareUrl(data.shareUrl || "", data.urlToken || "", settings.baseUrl),
+    urlToken: data.urlToken || "",
+    qrSvg: "",
+    qrPngDataUrl: "",
+    expiresAt: data.closes_at || data.expires_at || null,
+    expiresIn: null,
+    viewsRemaining: null
+  };
+
+  state.lastPushResult = requestResult;
+  renderResult(state.lastPushResult);
+  setStatus(t("popupRequestCreated", [], "Request created successfully!"), "success");
 }
 
 async function toggleQrForLatestPush() {
@@ -665,6 +833,37 @@ function getPushOptions() {
   };
 }
 
+function getRequestOptions() {
+  const expireDays = Number.parseInt(elements.requestExpireDays.value, 10) || 7;
+  return {
+    name: elements.requestName.value.trim(),
+    note: elements.requestNote.value.trim(),
+    closeAfterDuration: mapDaysToRequestDuration(expireDays),
+    retrievalStep: elements.requestRetrievalStep.checked,
+    passphrase: elements.requestPassphrase.value.trim(),
+    notifyEmailsTo: elements.requestNotifyEmails.value.trim(),
+    authenticatedRecipients: false,
+    notifyRecipients: Boolean(elements.requestNotifyEmails.value.trim()),
+    includeRequestor: false,
+    responseFileAttachments: elements.requestResponseFiles.checked
+  };
+}
+
+function mapDaysToRequestDuration(days) {
+  if (days === 1) return 6;
+  if (days === 2) return 7;
+  if (days === 3) return 8;
+  if (days === 4) return 9;
+  if (days === 5) return 10;
+  if (days === 6) return 11;
+  if (days === 7) return 12;
+  if (days <= 14) return 13;
+  if (days <= 21) return 14;
+  if (days <= 30) return 15;
+  if (days <= 60) return 16;
+  return 17;
+}
+
 function ensureServerConfigured() {
   if (!state.settings || !state.settings.baseUrl) {
     throw new Error(t("popupErrorConfigureServerFirst"));
@@ -688,10 +887,13 @@ function endBusy() {
 
 function updateActionButtons() {
   const hasPayload = Boolean(elements.payload.value.trim());
+  const hasRequestMessage = Boolean(elements.requestMessage.value.trim());
   const locked = state.isBusy || state.isReadingSelection;
+  
   elements.pushButton.disabled = locked || !hasPayload;
   elements.pushUrlButton.disabled = locked || urlPushCoolingDown();
   elements.addSelectionButton.disabled = locked;
+  elements.createRequestButton.disabled = locked || !hasRequestMessage || !state.requestsSupported;
 }
 
 function urlPushCoolingDown() {

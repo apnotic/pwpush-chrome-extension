@@ -243,6 +243,116 @@ export async function getPushPreview(urlToken, options = {}) {
   };
 }
 
+export async function createRequest(payload, options = {}) {
+  const {
+    baseUrl,
+    token = "",
+    workspaceId = "",
+    instanceType = "unknown",
+    name = "",
+    note = "",
+    closeAfterDuration = 12,
+    retrievalStep = true,
+    passphrase = "",
+    notifyEmailsTo = "",
+    authenticatedRecipients = false,
+    notifyRecipients = false,
+    includeRequestor = false,
+    responseFileAttachments = false
+  } = options;
+
+  const requestPayload = buildRequestPayload(payload, {
+    instanceType,
+    name,
+    note,
+    closeAfterDuration,
+    retrievalStep,
+    passphrase,
+    notifyEmailsTo,
+    authenticatedRecipients,
+    notifyRecipients,
+    includeRequestor,
+    responseFileAttachments
+  });
+
+  const createResult = await requestJson("/api/v2/requests", {
+    baseUrl,
+    token,
+    workspaceId,
+    method: "POST",
+    body: {
+      request: requestPayload
+    }
+  });
+
+  if (!createResult.ok) {
+    return createResult;
+  }
+
+  const createData = createResult.data || {};
+  const urlToken = createData.url_token || "";
+  const shareUrl = createData.html_url || await resolveRequestPreviewUrl({
+    baseUrl,
+    token,
+    workspaceId,
+    urlToken
+  });
+
+  if (!shareUrl) {
+    return {
+      ok: false,
+      status: createResult.status,
+      data: createData,
+      errorType: "invalid_response",
+      errorMessage: t("apiErrorRequestNoShareUrl", [], "Request created but no share URL was returned.")
+    };
+  }
+
+  return {
+    ok: true,
+    status: createResult.status,
+    data: {
+      ...createData,
+      urlToken,
+      shareUrl
+    }
+  };
+}
+
+export async function getRequestPreview(urlToken, options = {}) {
+  const {baseUrl, token = "", workspaceId = ""} = options;
+
+  if (!urlToken) {
+    return {
+      ok: false,
+      status: 0,
+      data: null,
+      errorType: "invalid_request",
+      errorMessage: t("apiErrorMissingRequestToken", [], "Missing request token for preview lookup.")
+    };
+  }
+
+  const tokenPath = encodeURIComponent(urlToken);
+  const result = await requestJson(`/api/v2/requests/${tokenPath}/preview`, {
+    baseUrl,
+    token,
+    workspaceId
+  });
+
+  if (!result.ok) {
+    return result;
+  }
+
+  return {
+    ok: true,
+    status: result.status,
+    data: {
+      ...result.data,
+      shareUrl: (result.data || {}).url || ""
+    }
+  };
+}
+
 export async function listWorkspaces(options = {}) {
   const {baseUrl, token = ""} = options;
 
@@ -311,12 +421,79 @@ function buildPushPayload(payload, options = {}) {
   return push;
 }
 
+function buildRequestPayload(payload, options = {}) {
+  const {
+    instanceType = "unknown",
+    name = "",
+    note = "",
+    closeAfterDuration = 12,
+    retrievalStep = true,
+    passphrase = "",
+    notifyEmailsTo = "",
+    authenticatedRecipients = false,
+    notifyRecipients = false,
+    includeRequestor = false,
+    responseFileAttachments = false
+  } = options;
+
+  const sanitizedPayload = String(payload || "").trim();
+  const sanitizedName = String(name || "").trim();
+  const sanitizedNote = String(note || "").trim();
+  const sanitizedEmails = String(notifyEmailsTo || "").trim();
+
+  const request = {
+    request: sanitizedPayload,
+    retrieval_step: Boolean(retrievalStep),
+    authenticated_recipients: Boolean(authenticatedRecipients),
+    notify_recipients: Boolean(notifyRecipients),
+    include_requestor: Boolean(includeRequestor),
+    response_file_attachments: Boolean(responseFileAttachments)
+  };
+
+  if (sanitizedName) {
+    request.name = sanitizedName;
+  }
+
+  if (sanitizedNote) {
+    request.note = sanitizedNote;
+  }
+
+  if (passphrase) {
+    request.passphrase = passphrase;
+  }
+
+  if (sanitizedEmails) {
+    request.notify_emails_to = sanitizedEmails;
+  }
+
+  if (instanceType === "pro") {
+    request.close_after_duration = clampToRange(closeAfterDuration, 6, 17);
+  } else {
+    request.close_after_duration = clampToRange(closeAfterDuration, 6, 17);
+  }
+
+  return request;
+}
+
 async function resolvePreviewUrl({baseUrl, token, workspaceId, urlToken}) {
   if (!urlToken) {
     return "";
   }
 
   const previewResult = await getPushPreview(urlToken, {baseUrl, token, workspaceId});
+  if (!previewResult.ok) {
+    return "";
+  }
+
+  return (previewResult.data || {}).shareUrl || "";
+}
+
+async function resolveRequestPreviewUrl({baseUrl, token, workspaceId, urlToken}) {
+  if (!urlToken) {
+    return "";
+  }
+
+  const previewResult = await getRequestPreview(urlToken, {baseUrl, token, workspaceId});
   if (!previewResult.ok) {
     return "";
   }
