@@ -37,22 +37,32 @@ Use it with:
 
 ## Features
 
-### Create pushes from browser context
+### Create pushes and requests from browser context
 
 - **Push text** typed into the popup. **Add selected text** copies the page selection only when you click it.
 - **Push current URL** from the active tab.
+- **Create secure requests** to ask others to securely send you sensitive information (Pro/Commercial instances only).
 - **Advanced options** for expiry (days/views), retrieval step, and passphrase.
+- **Tabbed interface** to switch between Push and Request creation modes.
+
+### Request support (Pro/Commercial instances)
+
+- **Pull-model security**: Request sensitive data from others instead of having them push it insecurely.
+- **Automatic detection**: Extension detects Request capability via `/api/v2/version` endpoint.
+- **Request options**: Name, message, note, expiry, passphrase protection, email notifications.
+- **Response file attachments**: Allow recipients to upload files (when supported by instance tier).
+- **Graceful degradation**: Request tab is disabled with clear explanation on OSS instances that don't support Requests.
 
 ### Connection and workspace awareness
 
 - Detects instance metadata via `GET /api/v2/version`.
 - Distinguishes OSS vs commercial editions.
-- Probes API capabilities and displays them in settings.
+- Probes API capabilities (Workspaces, Requests) and displays them in settings.
 - Supports hosted Pro workspace selection when using an API token.
 
 ### Result handling
 
-- Shows the latest generated share URL.
+- Shows the latest generated share URL (for both Pushes and Requests).
 - One-click copy/open actions.
 - QR generation and PNG download from the popup.
 
@@ -73,12 +83,26 @@ Use it with:
 3. Optionally add an API bearer token.
 4. Click **Test connection**, then **Save configuration**.
 
-### 3) Create a push
+### 3) Create a push or request
+
+#### To create a Push:
 
 1. Click the extension icon.
-2. Enter text, or click **Add selected text** to copy a highlight from the page.
-3. Set expiry options if needed, then click **Push**. Use **Push Current URL** to share the page address instead.
-4. Copy/open the link or generate/download a QR PNG.
+2. Stay on the **Push** tab (default).
+3. Enter text, or click **Add selected text** to copy a highlight from the page.
+4. Set expiry options if needed, then click **Push**. Use **Push Current URL** to share the page address instead.
+5. Copy/open the link or generate/download a QR PNG.
+
+#### To create a Request (Pro/Commercial instances only):
+
+1. Click the extension icon.
+2. Switch to the **Request** tab.
+3. Enter a request name and message describing what you need.
+4. Optionally add a note, set expiry, enable file attachments, or add notification emails.
+5. Click **Create Request**.
+6. Share the generated URL with the person you're requesting information from.
+
+**Note**: The Request tab is automatically disabled on OSS instances that don't support Requests. Configure a Pro/Commercial instance to use this feature.
 
 ---
 
@@ -137,10 +161,13 @@ CI workflow: `.github/workflows/chrome-extension-tests.yml`
 - Preset host permissions are pre-granted for official cloud endpoints (`oss`, `us`, `eu`).
 - Custom hosts are requested at runtime through optional host permissions (`https://*/*`).
 - Selected-text capture is on-demand only (no persistent all-pages content script).
-- Push payloads/selected text are not persisted by the extension.
-- The popup does not keep a historical trail of past pushes across sessions.
+- Push/Request payloads and selected text are not persisted by the extension.
+- The popup does not keep a historical trail of past pushes/requests across sessions.
 - Passphrases entered in advanced options are not stored as persistent settings.
 - Remote executable code is not loaded.
+- **Request security**: Email addresses entered for notifications are sent to the configured Password Pusher instance and are not stored locally by the extension.
+- **Input sanitization**: All user inputs are trimmed and validated before being sent to the API.
+- **Capability detection**: The extension detects instance capabilities via the official `/api/v2/version` endpoint and disables unsupported features gracefully.
 - For Password Pusher platform encryption and security architecture, see [The Security & Encryption of Password Pusher](https://docs.pwpush.com/docs/security/).
 
 ---
