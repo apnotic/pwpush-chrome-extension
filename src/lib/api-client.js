@@ -145,6 +145,110 @@ export async function requestJson(pathname, options = {}) {
   }
 }
 
+export async function requestMultipart(pathname, options = {}) {
+  const {
+    baseUrl,
+    token = "",
+    formData,
+    workspaceId = "",
+    timeoutMs = 30000
+  } = options;
+
+  const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
+  if (token && String(token).trim()) {
+    const confirmation = await confirmPasswordPusher(normalizedBaseUrl);
+    if (!confirmation.ok) {
+      return {
+        ok: false,
+        status: confirmation.status || 0,
+        data: null,
+        errorType: confirmation.errorType || "untrusted_server",
+        errorMessage: confirmation.errorMessage
+      };
+    }
+  }
+
+  const requestUrl = new URL(pathname, `${normalizedBaseUrl}/`);
+  const normalizedWorkspaceId = normalizeWorkspaceId(workspaceId);
+  if (normalizedWorkspaceId) {
+    requestUrl.searchParams.set("workspace_id", normalizedWorkspaceId);
+    formData.append("workspace_id", normalizedWorkspaceId);
+  }
+
+  const controller = new AbortController();
+  const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);
+  const headers = {
+    Accept: "application/json"
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  try {
+    const response = await fetch(requestUrl, {
+      method: "POST",
+      headers,
+      body: formData,
+      signal: controller.signal
+    });
+
+    let data = null;
+    let parseError = null;
+    try {
+      data = await response.json();
+    } catch (error) {
+      parseError = error;
+    }
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        status: response.status,
+        data,
+        errorType: "http_error",
+        errorMessage: parseApiError(response.status, data)
+      };
+    }
+
+    if (parseError) {
+      return {
+        ok: false,
+        status: response.status,
+        data: null,
+        errorType: "invalid_json",
+        errorMessage: t("apiErrorInvalidJson", [], "The server response was not valid JSON.")
+      };
+    }
+
+    return {
+      ok: true,
+      status: response.status,
+      data
+    };
+  } catch (error) {
+    if (error.name === "AbortError") {
+      return {
+        ok: false,
+        status: 0,
+        data: null,
+        errorType: "timeout",
+        errorMessage: t("apiErrorTimeout", [], "Request timed out. Please try again.")
+      };
+    }
+
+    return {
+      ok: false,
+      status: 0,
+      data: null,
+      errorType: "network_error",
+      errorMessage: t("apiErrorNetwork", [], "Unable to reach this server. Check URL, network, or CORS settings.")
+    };
+  } finally {
+    clearTimeout(timeoutHandle);
+  }
+}
+
 export async function createPush(payload, options = {}) {
   const {
     baseUrl,
@@ -154,7 +258,8 @@ export async function createPush(payload, options = {}) {
     expireAfterDays = 7,
     expireAfterViews = 5,
     retrievalStep = true,
-    passphrase = ""
+    passphrase = "",
+    files = []
   } = options;
 
   const pushPayload = buildPushPayload(payload, {
@@ -165,15 +270,34 @@ export async function createPush(payload, options = {}) {
     passphrase
   });
 
-  const createResult = await requestJson("/api/v2/pushes", {
-    baseUrl,
-    token,
-    workspaceId,
-    method: "POST",
-    body: {
-      push: pushPayload
-    }
-  });
+  let createResult;
+
+  if (files && files.length > 0) {
+    const formData = new FormData();
+    Object.keys(pushPayload).forEach((key) => {
+      formData.append(`push[${key}]`, pushPayload[key]);
+    });
+    files.forEach((file) => {
+      formData.append("push[files][]", file);
+    });
+
+    createResult = await requestMultipart("/api/v2/pushes", {
+      baseUrl,
+      token,
+      workspaceId,
+      formData
+    });
+  } else {
+    createResult = await requestJson("/api/v2/pushes", {
+      baseUrl,
+      token,
+      workspaceId,
+      method: "POST",
+      body: {
+        push: pushPayload
+      }
+    });
+  }
 
   if (!createResult.ok) {
     return createResult;
@@ -258,7 +382,8 @@ export async function createRequest(payload, options = {}) {
     authenticatedRecipients = false,
     notifyRecipients = false,
     includeRequestor = false,
-    responseFileAttachments = false
+    responseFileAttachments = false,
+    files = []
   } = options;
 
   const requestPayload = buildRequestPayload(payload, {
@@ -275,15 +400,34 @@ export async function createRequest(payload, options = {}) {
     responseFileAttachments
   });
 
-  const createResult = await requestJson("/api/v2/requests", {
-    baseUrl,
-    token,
-    workspaceId,
-    method: "POST",
-    body: {
-      request: requestPayload
-    }
-  });
+  let createResult;
+
+  if (files && files.length > 0) {
+    const formData = new FormData();
+    Object.keys(requestPayload).forEach((key) => {
+      formData.append(`request[${key}]`, requestPayload[key]);
+    });
+    files.forEach((file) => {
+      formData.append("request[files][]", file);
+    });
+
+    createResult = await requestMultipart("/api/v2/requests", {
+      baseUrl,
+      token,
+      workspaceId,
+      formData
+    });
+  } else {
+    createResult = await requestJson("/api/v2/requests", {
+      baseUrl,
+      token,
+      workspaceId,
+      method: "POST",
+      body: {
+        request: requestPayload
+      }
+    });
+  }
 
   if (!createResult.ok) {
     return createResult;

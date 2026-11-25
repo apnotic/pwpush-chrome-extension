@@ -189,5 +189,15 @@
   "popupRequestCreated": {"message": "Request created successfully!"},
   "popupErrorRequestsNotSupported": {"message": "Requests are not supported on this instance."},
   "popupErrorEmptyRequestMessage": {"message": "Request message cannot be empty."},
-  "popupErrorRequestCreationFailed": {"message": "Request creation failed."}
+  "popupErrorRequestCreationFailed": {"message": "Request creation failed."},
+
+  "popupFileAttachmentsLabel": {"message": "File Attachments (optional)"},
+  "popupRequestFileAttachmentsLabel": {"message": "File Attachments to Request (optional)"},
+  "popupChooseFilesButton": {"message": "Choose Files"},
+  "popupFileHint": {"message": "Select files to attach (max 10 files, 50MB each)"},
+  "popupFilesRequireAuth": {"message": "File attachments require authentication and a paid subscription."},
+  "popupRequestFilesRequireAuth": {"message": "File attachments on requests require authentication and a paid subscription."},
+  "popupRemoveFileButton": {"message": "Remove"},
+  "popupErrorTooManyFiles": {"message": "You can attach up to $1 files."},
+  "popupErrorFileTooLarge": {"message": "$1 is too large. Maximum size is $2."}
 }

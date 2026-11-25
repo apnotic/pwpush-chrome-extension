@@ -420,3 +420,114 @@ input[type="text"]:focus-visible {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--focus-ring);
 }
+
+.file-section {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--divider);
+}
+
+.file-input {
+  display: none;
+}
+
+.file-input-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.file-button {
+  flex: 0 0 auto;
+  font-size: 12px;
+  padding: 8px 12px;
+}
+
+.file-unavailable {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--error) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.file-unavailable p {
+  margin: 0;
+}
+
+.selected-files {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.selected-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  font-size: 12px;
+  gap: 8px;
+}
+
+.selected-file-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.selected-file-icon {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  background: var(--chip-bg);
+  border: 1px solid var(--chip-border);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.selected-file-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.selected-file-size {
+  flex: 0 0 auto;
+  font-size: 11px;
+  color: var(--text-subtle);
+}
+
+.selected-file-remove {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  font-size: 11px;
+  min-width: 0;
+  background: transparent;
+  border: 1px solid var(--button-border);
+  color: var(--error);
+  border-color: color-mix(in srgb, var(--error) 30%, transparent);
+}
+
+.selected-file-remove:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--error) 10%, transparent);
+  border-color: var(--error);
+}

@@ -52,14 +52,27 @@
               <span data-i18n="popupRetrievalStepLabel">Require a 1-click retrieval step before full content</span>
             </label>
 
-            <label for="passphrase" data-i18n="popupPassphraseLabel">Passphrase (optional)</label>
-            <input id="passphrase" type="password" autocomplete="off" placeholder="Optional passphrase" data-i18n-placeholder="popupPassphrasePlaceholder">
-          </div>
+          <label for="passphrase" data-i18n="popupPassphraseLabel">Passphrase (optional)</label>
+          <input id="passphrase" type="password" autocomplete="off" placeholder="Optional passphrase" data-i18n-placeholder="popupPassphrasePlaceholder">
 
-          <div class="action-grid form-actions">
-            <button id="pushButton" type="button" class="primary" disabled data-i18n="popupPushButton">Push</button>
-            <button id="pushUrlButton" type="button" data-i18n="popupPushCurrentUrlButton">Push Current URL</button>
+          <div id="pushFileSection" class="file-section hidden">
+            <label for="pushFileInput" data-i18n="popupFileAttachmentsLabel">File Attachments (optional)</label>
+            <div class="file-input-wrapper">
+              <input id="pushFileInput" type="file" multiple class="file-input">
+              <button id="pushChooseFilesButton" type="button" class="file-button" data-i18n="popupChooseFilesButton">Choose Files</button>
+            </div>
+            <p id="pushFileHint" class="field-hint" data-i18n="popupFileHint">Select files to attach (max 10 files, 50MB each)</p>
+            <div id="pushFilesUnavailable" class="file-unavailable hidden">
+              <p data-i18n="popupFilesRequireAuth">File attachments require authentication and a paid subscription.</p>
+            </div>
+            <div id="pushSelectedFiles" class="selected-files"></div>
           </div>
+        </div>
+
+        <div class="action-grid form-actions">
+          <button id="pushButton" type="button" class="primary" disabled data-i18n="popupPushButton">Push</button>
+          <button id="pushUrlButton" type="button" data-i18n="popupPushCurrentUrlButton">Push Current URL</button>
+        </div>
         </div>
 
         <div id="requestPanel" role="tabpanel" aria-labelledby="requestTab" class="hidden">
@@ -99,6 +112,19 @@
 
             <label for="requestNotifyEmails" data-i18n="popupRequestNotifyEmailsLabel">Notify emails (optional)</label>
             <input id="requestNotifyEmails" type="text" placeholder="email@example.com, another@example.com" data-i18n-placeholder="popupRequestNotifyEmailsPlaceholder">
+
+            <div id="requestFileSection" class="file-section hidden">
+              <label for="requestFileInput" data-i18n="popupRequestFileAttachmentsLabel">File Attachments to Request (optional)</label>
+              <div class="file-input-wrapper">
+                <input id="requestFileInput" type="file" multiple class="file-input">
+                <button id="requestChooseFilesButton" type="button" class="file-button" data-i18n="popupChooseFilesButton">Choose Files</button>
+              </div>
+              <p id="requestFileHint" class="field-hint" data-i18n="popupFileHint">Select files to attach (max 10 files, 50MB each)</p>
+              <div id="requestFilesUnavailable" class="file-unavailable hidden">
+                <p data-i18n="popupRequestFilesRequireAuth">File attachments on requests require authentication and a paid subscription.</p>
+              </div>
+              <div id="requestSelectedFiles" class="selected-files"></div>
+            </div>
           </div>
 
           <div class="action-grid form-actions">

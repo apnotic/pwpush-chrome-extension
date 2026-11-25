@@ -37,6 +37,11 @@ const elements = {
   expireAfterViews: document.querySelector("#expireAfterViews"),
   retrievalStep: document.querySelector("#retrievalStep"),
   passphrase: document.querySelector("#passphrase"),
+  pushFileSection: document.querySelector("#pushFileSection"),
+  pushFileInput: document.querySelector("#pushFileInput"),
+  pushChooseFilesButton: document.querySelector("#pushChooseFilesButton"),
+  pushFilesUnavailable: document.querySelector("#pushFilesUnavailable"),
+  pushSelectedFiles: document.querySelector("#pushSelectedFiles"),
   requestName: document.querySelector("#requestName"),
   requestMessage: document.querySelector("#requestMessage"),
   requestNote: document.querySelector("#requestNote"),
@@ -45,6 +50,11 @@ const elements = {
   requestResponseFiles: document.querySelector("#requestResponseFiles"),
   requestPassphrase: document.querySelector("#requestPassphrase"),
   requestNotifyEmails: document.querySelector("#requestNotifyEmails"),
+  requestFileSection: document.querySelector("#requestFileSection"),
+  requestFileInput: document.querySelector("#requestFileInput"),
+  requestChooseFilesButton: document.querySelector("#requestChooseFilesButton"),
+  requestFilesUnavailable: document.querySelector("#requestFilesUnavailable"),
+  requestSelectedFiles: document.querySelector("#requestSelectedFiles"),
   createRequestButton: document.querySelector("#createRequestButton"),
   resultSection: document.querySelector("#resultSection"),
   resultLink: document.querySelector("#resultLink"),
@@ -63,7 +73,11 @@ let state = {
   isBusy: false,
   isReadingSelection: false,
   activeTab: "push",
-  requestsSupported: false
+  requestsSupported: false,
+  pushFilesSupported: false,
+  requestFilesSupported: false,
+  pushSelectedFiles: [],
+  requestSelectedFiles: []
 };
 
 let selectionSnapshot = "";
@@ -170,6 +184,22 @@ elements.createRequestButton.addEventListener("click", async () => {
   await createRequestFromForm();
 });
 
+elements.pushChooseFilesButton.addEventListener("click", () => {
+  elements.pushFileInput.click();
+});
+
+elements.pushFileInput.addEventListener("change", (event) => {
+  handleFileSelection(event.target.files, "push");
+});
+
+elements.requestChooseFilesButton.addEventListener("click", () => {
+  elements.requestFileInput.click();
+});
+
+elements.requestFileInput.addEventListener("change", (event) => {
+  handleFileSelection(event.target.files, "request");
+});
+
 loadState().catch((error) => {
   setStatus(error.message || t("popupErrorLoadState"), "error");
 });
@@ -182,13 +212,18 @@ async function loadState() {
   ]);
 
   const requestsSupported = checkRequestsSupport(instanceStatus);
+  const {pushFilesSupported, requestFilesSupported} = checkFileAttachmentSupport(instanceStatus, settings);
 
   state = {
     ...state,
     settings,
     instanceStatus,
     lastPushResult: null,
-    requestsSupported
+    requestsSupported,
+    pushFilesSupported,
+    requestFilesSupported,
+    pushSelectedFiles: [],
+    requestSelectedFiles: []
   };
   hydrateAdvancedOptions(settings.lastPushOptions || {});
   renderConnection(settings, instanceStatus);
@@ -196,6 +231,7 @@ async function loadState() {
   await restoreUrlPushCooldown();
   setSelectionButtonVisible(await activeTabHasSelection());
   updateRequestsAvailability(requestsSupported);
+  updateFileAttachmentAvailability(pushFilesSupported, requestFilesSupported, settings);
   updateActionButtons();
   if (!state.isBusy) {
     if (state.activeTab === "push") {
@@ -209,6 +245,62 @@ async function loadState() {
 function checkRequestsSupport(instanceStatus) {
   const features = (instanceStatus || {}).features || {};
   return features.supportsRequestsApi === "enabled";
+}
+
+function checkFileAttachmentSupport(instanceStatus, settings) {
+  const versionData = (instanceStatus || {}).versionData || {};
+  const features = versionData.features || {};
+  const hasApiToken = Boolean((settings || {}).apiToken);
+  
+  const pushes = features.pushes || {};
+  const requests = features.requests || {};
+  
+  const pushFileAttachments = pushes.file_attachments || {};
+  const requestFileAttachments = requests.file_attachments || {};
+  
+  const pushFilesSupported = pushFileAttachments.enabled === true && 
+    (!pushFileAttachments.requires_authentication || hasApiToken);
+  
+  const requestFilesSupported = requestFileAttachments.enabled === true && 
+    (!requestFileAttachments.requires_authentication || hasApiToken);
+  
+  return {pushFilesSupported, requestFilesSupported};
+}
+
+function updateFileAttachmentAvailability(pushFilesSupported, requestFilesSupported, settings) {
+  const hasApiToken = Boolean((settings || {}).apiToken);
+  
+  if (pushFilesSupported) {
+    elements.pushFileSection.classList.remove("hidden");
+    elements.pushFilesUnavailable.classList.add("hidden");
+  } else {
+    elements.pushFileSection.classList.remove("hidden");
+    if (!hasApiToken) {
+      elements.pushFilesUnavailable.classList.remove("hidden");
+      elements.pushFileInput.disabled = true;
+      elements.pushChooseFilesButton.disabled = true;
+    } else {
+      elements.pushFilesUnavailable.classList.add("hidden");
+      elements.pushFileInput.disabled = false;
+      elements.pushChooseFilesButton.disabled = false;
+    }
+  }
+  
+  if (requestFilesSupported) {
+    elements.requestFileSection.classList.remove("hidden");
+    elements.requestFilesUnavailable.classList.add("hidden");
+  } else {
+    elements.requestFileSection.classList.remove("hidden");
+    if (!hasApiToken) {
+      elements.requestFilesUnavailable.classList.remove("hidden");
+      elements.requestFileInput.disabled = true;
+      elements.requestChooseFilesButton.disabled = true;
+    } else {
+      elements.requestFilesUnavailable.classList.add("hidden");
+      elements.requestFileInput.disabled = false;
+      elements.requestChooseFilesButton.disabled = false;
+    }
+  }
 }
 
 function updateRequestsAvailability(supported) {
@@ -302,7 +394,11 @@ async function refreshConnection(instanceStatus) {
   if (instanceStatus) {
     state.instanceStatus = instanceStatus;
     state.requestsSupported = checkRequestsSupport(instanceStatus);
+    const {pushFilesSupported, requestFilesSupported} = checkFileAttachmentSupport(instanceStatus, settings);
+    state.pushFilesSupported = pushFilesSupported;
+    state.requestFilesSupported = requestFilesSupported;
     updateRequestsAvailability(state.requestsSupported);
+    updateFileAttachmentAvailability(pushFilesSupported, requestFilesSupported, settings);
   }
   renderConnection(settings, state.instanceStatus || {});
 }
@@ -517,7 +613,8 @@ async function createPushFromPayload(payload) {
     expireAfterDays: options.expireAfterDays,
     expireAfterViews: options.expireAfterViews,
     retrievalStep: options.retrievalStep,
-    passphrase: options.passphrase
+    passphrase: options.passphrase,
+    files: state.pushSelectedFiles
   });
 
   if (!createResult.ok) {
@@ -537,6 +634,8 @@ async function createPushFromPayload(payload) {
   };
 
   state.lastPushResult = pushResult;
+  state.pushSelectedFiles = [];
+  renderSelectedFiles("push");
   renderResult(state.lastPushResult);
   setStatus(t("popupPushCreated"), "success");
 }
@@ -560,7 +659,8 @@ async function createRequestFromMessage(requestMessage) {
     authenticatedRecipients: options.authenticatedRecipients,
     notifyRecipients: options.notifyRecipients,
     includeRequestor: options.includeRequestor,
-    responseFileAttachments: options.responseFileAttachments
+    responseFileAttachments: options.responseFileAttachments,
+    files: state.requestSelectedFiles
   });
 
   if (!createResult.ok) {
@@ -580,6 +680,8 @@ async function createRequestFromMessage(requestMessage) {
   };
 
   state.lastPushResult = requestResult;
+  state.requestSelectedFiles = [];
+  renderSelectedFiles("request");
   renderResult(state.lastPushResult);
   setStatus(t("popupRequestCreated", [], "Request created successfully!"), "success");
 }
@@ -862,6 +964,122 @@ function mapDaysToRequestDuration(days) {
   if (days <= 30) return 15;
   if (days <= 60) return 16;
   return 17;
+}
+
+const MAX_FILE_SIZE = 50 * 1024 * 1024;
+const MAX_FILES = 10;
+
+function handleFileSelection(fileList, type) {
+  if (!fileList || fileList.length === 0) {
+    return;
+  }
+
+  const files = Array.from(fileList);
+  const stateKey = type === "push" ? "pushSelectedFiles" : "requestSelectedFiles";
+  const currentFiles = state[stateKey];
+  
+  const totalFiles = currentFiles.length + files.length;
+  if (totalFiles > MAX_FILES) {
+    setStatus(t("popupErrorTooManyFiles", [String(MAX_FILES)], `You can attach up to ${MAX_FILES} files.`), "error");
+    return;
+  }
+
+  const validFiles = [];
+  for (const file of files) {
+    if (file.size > MAX_FILE_SIZE) {
+      setStatus(t("popupErrorFileTooLarge", [file.name, formatFileSize(MAX_FILE_SIZE)], `${file.name} is too large. Maximum size is ${formatFileSize(MAX_FILE_SIZE)}.`), "error");
+      continue;
+    }
+    validFiles.push(file);
+  }
+
+  state[stateKey] = [...currentFiles, ...validFiles];
+  renderSelectedFiles(type);
+  
+  if (type === "push") {
+    elements.pushFileInput.value = "";
+  } else {
+    elements.requestFileInput.value = "";
+  }
+}
+
+function removeFile(type, index) {
+  const stateKey = type === "push" ? "pushSelectedFiles" : "requestSelectedFiles";
+  state[stateKey] = state[stateKey].filter((_, i) => i !== index);
+  renderSelectedFiles(type);
+}
+
+function renderSelectedFiles(type) {
+  const stateKey = type === "push" ? "pushSelectedFiles" : "requestSelectedFiles";
+  const container = type === "push" ? elements.pushSelectedFiles : elements.requestSelectedFiles;
+  const files = state[stateKey];
+  
+  container.textContent = "";
+  
+  if (files.length === 0) {
+    return;
+  }
+
+  files.forEach((file, index) => {
+    const fileEl = document.createElement("div");
+    fileEl.className = "selected-file";
+    
+    const infoEl = document.createElement("div");
+    infoEl.className = "selected-file-info";
+    
+    const iconEl = document.createElement("div");
+    iconEl.className = "selected-file-icon";
+    iconEl.textContent = getFileIcon(file.name);
+    
+    const nameEl = document.createElement("div");
+    nameEl.className = "selected-file-name";
+    nameEl.textContent = file.name;
+    nameEl.title = file.name;
+    
+    const sizeEl = document.createElement("div");
+    sizeEl.className = "selected-file-size";
+    sizeEl.textContent = formatFileSize(file.size);
+    
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "selected-file-remove";
+    removeBtn.textContent = t("popupRemoveFileButton", [], "Remove");
+    removeBtn.addEventListener("click", () => removeFile(type, index));
+    
+    infoEl.appendChild(iconEl);
+    infoEl.appendChild(nameEl);
+    fileEl.appendChild(infoEl);
+    fileEl.appendChild(sizeEl);
+    fileEl.appendChild(removeBtn);
+    container.appendChild(fileEl);
+  });
+}
+
+function formatFileSize(bytes) {
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+}
+
+function getFileIcon(filename) {
+  const ext = filename.split(".").pop().toLowerCase();
+  const icons = {
+    pdf: "📄",
+    doc: "📝",
+    docx: "📝",
+    txt: "📝",
+    jpg: "🖼️",
+    jpeg: "🖼️",
+    png: "🖼️",
+    gif: "🖼️",
+    zip: "📦",
+    rar: "📦",
+    tar: "📦",
+    gz: "📦"
+  };
+  return icons[ext] || "📎";
 }
 
 function ensureServerConfigured() {
