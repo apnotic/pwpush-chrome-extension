@@ -88,14 +88,16 @@
         </div>
 
         <div id="requestPanel" role="tabpanel" aria-labelledby="requestTab" class="hidden">
-          <div id="requestInstanceNotSupported" class="notice hidden" role="status">
+          <div id="requestInstanceNotSupported" class="empty-state hidden" role="status">
             <p data-i18n="popupRequestsNotSupported">Requests are not supported on this Password Pusher instance. Use the Push tab to create expiring pushes, or configure a Pro instance that supports Requests.</p>
           </div>
           
-          <div id="requestNeedsToken" class="notice hidden" role="status">
-            <p data-i18n="popupRequestsNeedToken">Requests require authentication. Please add an API token in <button id="goToSettingsButton" type="button" class="link-button" data-i18n="popupSettingsLink">Settings</button> to use this feature.</p>
+          <div id="requestNeedsToken" class="empty-state hidden" role="status" aria-live="polite">
+            <p data-i18n="popupRequestsNeedTokenMessage">Requests require authentication to protect your account and data.</p>
+            <button id="goToSettingsButton" type="button" class="primary" data-i18n="popupAddApiTokenButton">Add API Token in Settings</button>
           </div>
 
+          <div id="requestFormContainer" class="hidden">
           <label for="requestName" data-i18n="popupRequestNameLabel">Request Name</label>
           <input id="requestName" type="text" placeholder="e.g., API Key for Staging" data-i18n-placeholder="popupRequestNamePlaceholder">
 
@@ -148,6 +150,7 @@
 
           <div class="action-grid form-actions">
             <button id="createRequestButton" type="button" class="primary" disabled data-i18n="popupCreateRequestButton">Create Request</button>
+          </div>
           </div>
         </div>
       </section>

@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Popup now listens for storage changes to update capabilities in real-time
 - Request support detection now checks both instance capability AND API token presence
 - Authentication-gated fields (Push name/note, Request notify emails) update live when token changes
+- **Request tab empty state UX**: When instance supports Requests but no API token is configured, the entire form is now hidden and replaced with a friendly empty state message and prominent "Add API Token in Settings" button (instead of showing the form with an inline notice)
 
 ### Fixed
 

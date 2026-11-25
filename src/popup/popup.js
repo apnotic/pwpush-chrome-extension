@@ -28,6 +28,7 @@ const elements = {
   requestPanel: document.querySelector("#requestPanel"),
   requestInstanceNotSupported: document.querySelector("#requestInstanceNotSupported"),
   requestNeedsToken: document.querySelector("#requestNeedsToken"),
+  requestFormContainer: document.querySelector("#requestFormContainer"),
   goToSettingsButton: document.querySelector("#goToSettingsButton"),
   payload: document.querySelector("#payload"),
   selectionHint: document.querySelector("#selectionHint"),
@@ -402,10 +403,12 @@ function updateRequestsAvailability(requestsSupported, settings) {
     elements.requestTab.disabled = false;
     elements.requestInstanceNotSupported.classList.add("hidden");
     elements.requestNeedsToken.classList.add("hidden");
+    elements.requestFormContainer.classList.remove("hidden");
   } else if (instanceSupportsRequests && !hasRequiredToken) {
     elements.requestTab.disabled = false;
     elements.requestInstanceNotSupported.classList.add("hidden");
     elements.requestNeedsToken.classList.remove("hidden");
+    elements.requestFormContainer.classList.add("hidden");
     if (state.activeTab === "request") {
       switchTab("push");
     }
@@ -413,6 +416,7 @@ function updateRequestsAvailability(requestsSupported, settings) {
     elements.requestTab.disabled = false;
     elements.requestInstanceNotSupported.classList.remove("hidden");
     elements.requestNeedsToken.classList.add("hidden");
+    elements.requestFormContainer.classList.add("hidden");
     if (state.activeTab === "request") {
       switchTab("push");
     }
