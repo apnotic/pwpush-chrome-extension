@@ -369,7 +369,7 @@ button.danger:hover:not(:disabled) {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 @media (max-width: 720px) {
