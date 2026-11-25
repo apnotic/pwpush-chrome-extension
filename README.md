@@ -84,6 +84,11 @@ Use it with:
 
 ## Development
 
+### Prerequisites
+
+- Node.js 20
+- Install dependencies: `npm install`
+
 ### Validate and test
 
 ```bash
@@ -93,8 +98,22 @@ npm test
 
 ### Run smoke E2E (Playwright)
 
+Install Playwright's Chromium once, and again after Playwright upgrades:
+
+```bash
+npx playwright install chromium
+```
+
+Then:
+
 ```bash
 npm run test:e2e
+```
+
+The smoke test launches headed Chromium, so a display is required. On Linux without a GUI:
+
+```bash
+xvfb-run -a npm run test:e2e
 ```
 
 ### Build Chrome Web Store package
