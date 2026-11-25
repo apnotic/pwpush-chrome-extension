@@ -15,7 +15,7 @@
   "popupTitle": {"message": "Password Pusher"},
   "popupBrandAlt": {"message": "Password Pusher"},
   "popupSettingsButton": {"message": "Instellingen"},
-  "popupSubtitle": {"message": "Deel links en tekst veilig met automatische vervaldatum."},
+  "popupSubtitle": {"message": "Deel geheimen met verlopende links, of vraag ze veilig aan."},
   "popupPushCurrentUrlButton": {"message": "Huidige URL pushen"},
   "popupPushCurrentUrlCooldown": {"message": "Huidige URL pushen ($1s)"},
   "popupPushButton": {"message": "Pushen"},
@@ -167,5 +167,5 @@
   "apiErrorRequestFailedStatus": {"message": "Verzoek mislukt met status $1."},
   "popupRequestsNeedTokenHeading": {"message": "Verzoeken vereisen een API-token."},
   "popupRequestsNeedTokenDetails": {"message": "Basisverzoeken zijn gratis bij elk account. Betaalde abonnementen voegen branding, aangepaste domeinen en bestandsbijlagen toe."},
-  "popupPushFileAttachmentsNeedAuth": {"message": "Bestandsbijlagen vereisen authenticatie en een betaald abonnement."}
+  "popupPushAuthSummaryNotice": {"message": "Voeg een API-token toe in Instellingen om Naam- en Notitieveldenvrij te schakelen. Bestandsbijlagen vereisen ook een betaald abonnement."}
 }

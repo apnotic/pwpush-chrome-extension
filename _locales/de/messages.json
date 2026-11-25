@@ -15,7 +15,7 @@
   "popupTitle": {"message": "Password Pusher"},
   "popupBrandAlt": {"message": "Password Pusher"},
   "popupSettingsButton": {"message": "Einstellungen"},
-  "popupSubtitle": {"message": "Links und Texte sicher mit automatischem Ablauf teilen."},
+  "popupSubtitle": {"message": "Teilen Sie Geheimnisse mit ablaufenden Links oder fordern Sie sie sicher an."},
   "popupPushCurrentUrlButton": {"message": "Aktuelle URL pushen"},
   "popupPushCurrentUrlCooldown": {"message": "Aktuelle URL pushen ($1s)"},
   "popupPushButton": {"message": "Pushen"},
@@ -167,5 +167,5 @@
   "apiErrorRequestFailedStatus": {"message": "Anfrage fehlgeschlagen mit Status $1."},
   "popupRequestsNeedTokenHeading": {"message": "Anfragen erfordern einen API-Token."},
   "popupRequestsNeedTokenDetails": {"message": "Basis-Anfragen sind bei jedem Konto kostenlos. Bezahlte Abonnements fuegen Branding, benutzerdefinierte Domains und Dateianhänge hinzu."},
-  "popupPushFileAttachmentsNeedAuth": {"message": "Dateianhänge erfordern Authentifizierung und ein bezahltes Abonnement."}
+  "popupPushAuthSummaryNotice": {"message": "Fuegen Sie in den Einstellungen einen API-Token hinzu, um Name- und Notiz-Felder freizuschalten. Dateianhänge erfordern zusätzlich ein bezahltes Abonnement."}
 }

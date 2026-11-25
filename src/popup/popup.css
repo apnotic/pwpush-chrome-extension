@@ -366,7 +366,7 @@ button:disabled {
   border-radius: 0;
 }
 
-.tab:hover:not(:disabled) {
+.tab:hover:not(:disabled):not(.active) {
   color: var(--text);
   background: transparent;
   border-color: transparent;

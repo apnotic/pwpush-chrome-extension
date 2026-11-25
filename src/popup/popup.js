@@ -35,7 +35,7 @@ const elements = {
   addSelectionButton: document.querySelector("#addSelectionButton"),
   selectionRow: document.querySelector("#selectionRow"),
   pushAuthFields: document.querySelector("#pushAuthFields"),
-  pushAuthFieldsUnavailable: document.querySelector("#pushAuthFieldsUnavailable"),
+  pushAuthSummaryNotice: document.querySelector("#pushAuthSummaryNotice"),
   pushName: document.querySelector("#pushName"),
   pushNote: document.querySelector("#pushNote"),
   pushButton: document.querySelector("#pushButton"),
@@ -44,7 +44,6 @@ const elements = {
   expireAfterViews: document.querySelector("#expireAfterViews"),
   retrievalStep: document.querySelector("#retrievalStep"),
   passphrase: document.querySelector("#passphrase"),
-  pushFileAttachmentsNeedAuth: document.querySelector("#pushFileAttachmentsNeedAuth"),
   pushFileSection: document.querySelector("#pushFileSection"),
   pushFileInput: document.querySelector("#pushFileInput"),
   pushChooseFilesButton: document.querySelector("#pushChooseFilesButton"),
@@ -357,13 +356,10 @@ function updateFileAttachmentAvailability(pushFilesSupported, requestFilesSuppor
   // Push tab: hide entire file section when no token
   if (!hasApiToken) {
     elements.pushFileSection.classList.add("hidden");
-    elements.pushFileAttachmentsNeedAuth.classList.remove("hidden");
     // Clear any selected files when gating kicks in
     state.pushSelectedFiles = [];
     renderSelectedFiles("push");
   } else {
-    elements.pushFileAttachmentsNeedAuth.classList.add("hidden");
-    
     if (pushFilesSupported) {
       elements.pushFileSection.classList.remove("hidden");
       elements.pushFilesUnavailable.classList.add("hidden");
@@ -397,11 +393,11 @@ function updatePushFieldAvailability(settings) {
   
   if (hasApiToken) {
     elements.pushAuthFields.classList.remove("hidden");
-    elements.pushAuthFieldsUnavailable.classList.add("hidden");
+    elements.pushAuthSummaryNotice.classList.add("hidden");
     elements.requestNotifyEmailsField.classList.remove("hidden");
   } else {
     elements.pushAuthFields.classList.add("hidden");
-    elements.pushAuthFieldsUnavailable.classList.remove("hidden");
+    elements.pushAuthSummaryNotice.classList.remove("hidden");
     elements.requestNotifyEmailsField.classList.add("hidden");
   }
 }

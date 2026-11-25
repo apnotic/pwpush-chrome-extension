@@ -15,7 +15,7 @@
   "popupTitle": {"message": "Password Pusher"},
   "popupBrandAlt": {"message": "Password Pusher"},
   "popupSettingsButton": {"message": "Parametres"},
-  "popupSubtitle": {"message": "Partagez des liens et textes en toute securite avec expiration automatique."},
+  "popupSubtitle": {"message": "Partagez des secrets avec des liens expirants, ou demandez-les en toute sécurité."},
   "popupPushCurrentUrlButton": {"message": "Pousser l'URL actuelle"},
   "popupPushCurrentUrlCooldown": {"message": "Pousser l'URL actuelle ($1s)"},
   "popupPushButton": {"message": "Pousser"},
@@ -167,5 +167,5 @@
   "apiErrorRequestFailedStatus": {"message": "La requete a echoue avec le statut $1."},
   "popupRequestsNeedTokenHeading": {"message": "Les demandes nécessitent un jeton API."},
   "popupRequestsNeedTokenDetails": {"message": "Les demandes de base sont gratuites avec n'importe quel compte. Les abonnements payants ajoutent l'image de marque, les domaines personnalisés et les pièces jointes."},
-  "popupPushFileAttachmentsNeedAuth": {"message": "Les pièces jointes nécessitent une authentification et un abonnement payant."}
+  "popupPushAuthSummaryNotice": {"message": "Ajoutez un jeton API dans Paramètres pour déverrouiller les champs Nom et Note. Les pièces jointes nécessitent également un abonnement payant."}
 }

@@ -7,7 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Active Tab Styling**: Fixed Request tab not showing active state (blue text/underline)
+  - Root cause: `.tab:hover` rule overrode `.tab.active` due to equal CSS specificity and later position
+  - Fix: Changed `.tab:hover:not(:disabled)` to `.tab:hover:not(:disabled):not(.active)` to exclude active tabs from hover styling
+  - Both Push and Request tabs now correctly display blue accent color and underline when active
+
 ### Changed
+
+- **Push Tab "Text" Label**: Removed visible label above main textarea for cleaner UI
+  - Maintains accessibility with `aria-label="Text"` on textarea element
+  - Screen readers still announce the field properly
+- **Push Tab Auth Notice**: Consolidated two separate notices into one unified notice below Push buttons
+  - Previous: Two notices ("Add an API token... Name and Note" + "File attachments... paid subscription")
+  - New: Single notice "Add an API token in Settings to unlock Name and Note fields. File attachments also require a paid subscription."
+  - Positioned below Push/Push Current URL buttons for better visibility
+  - Hidden when API token is present; updates live via storage.onChanged listener
+  - Cleaner UX, less visual clutter
+- **Header Tagline**: Updated to reflect both Pushes and Requests functionality
+  - Previous: "Securely share links and text with expiring pushes."
+  - New: "Share secrets with expiring links, or request them securely."
+  - Concise one-line explanation of extension capabilities at 430px width
 
 - **Popup Width**: Increased popup width from 390px to 430px for improved layout and readability
 - **Request Empty State Copy**: Updated "Requests require authentication" message to clarify:
