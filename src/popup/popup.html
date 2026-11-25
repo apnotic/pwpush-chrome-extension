@@ -35,6 +35,18 @@
           </div>
           <p id="selectionHint" class="field-hint hidden" data-i18n="popupSelectionAdded">Added from the text selected on this page.</p>
 
+          <div id="pushAuthFields" class="auth-fields hidden">
+            <label for="pushName" data-i18n="popupPushNameLabel">Name (optional)</label>
+            <input id="pushName" type="text" placeholder="e.g., Production API Key" data-i18n-placeholder="popupPushNamePlaceholder">
+
+            <label for="pushNote" data-i18n="popupPushNoteLabel">Note (optional)</label>
+            <input id="pushNote" type="text" placeholder="Additional context or instructions" data-i18n-placeholder="popupPushNotePlaceholder">
+          </div>
+
+          <div id="pushAuthFieldsUnavailable" class="field-unavailable hidden">
+            <p data-i18n="popupPushAuthFieldsHint">Add an API token in Settings to use Name and Note fields.</p>
+          </div>
+
           <div class="push-options" id="advancedOptions">
             <div class="option-pair">
               <div>
@@ -76,8 +88,12 @@
         </div>
 
         <div id="requestPanel" role="tabpanel" aria-labelledby="requestTab" class="hidden">
-          <div id="requestDisabledNotice" class="notice hidden" role="status">
-            <p data-i18n="popupRequestsNotSupported">Requests are not supported on this Password Pusher instance.</p>
+          <div id="requestInstanceNotSupported" class="notice hidden" role="status">
+            <p data-i18n="popupRequestsNotSupported">Requests are not supported on this Password Pusher instance. Use the Push tab to create expiring pushes, or configure a Pro instance that supports Requests.</p>
+          </div>
+          
+          <div id="requestNeedsToken" class="notice hidden" role="status">
+            <p data-i18n="popupRequestsNeedToken">Requests require authentication. Please add an API token in <button id="goToSettingsButton" type="button" class="link-button" data-i18n="popupSettingsLink">Settings</button> to use this feature.</p>
           </div>
 
           <label for="requestName" data-i18n="popupRequestNameLabel">Request Name</label>
@@ -110,8 +126,11 @@
             <label for="requestPassphrase" data-i18n="popupRequestPassphraseLabel">Passphrase (optional)</label>
             <input id="requestPassphrase" type="password" autocomplete="off" placeholder="Optional passphrase" data-i18n-placeholder="popupRequestPassphrasePlaceholder">
 
-            <label for="requestNotifyEmails" data-i18n="popupRequestNotifyEmailsLabel">Notify emails (optional)</label>
-            <input id="requestNotifyEmails" type="text" placeholder="email@example.com, another@example.com" data-i18n-placeholder="popupRequestNotifyEmailsPlaceholder">
+            <div id="requestNotifyEmailsField" class="hidden">
+              <label for="requestNotifyEmails" data-i18n="popupRequestNotifyEmailsLabel">Notify emails (optional, paid subscription required)</label>
+              <input id="requestNotifyEmails" type="text" placeholder="email@example.com, another@example.com" data-i18n-placeholder="popupRequestNotifyEmailsPlaceholder">
+              <p class="field-hint" data-i18n="popupRequestNotifyEmailsHint">Email notifications require a paid subscription. The server will reject this request if your account doesn't have access.</p>
+            </div>
 
             <div id="requestFileSection" class="file-section hidden">
               <label for="requestFileInput" data-i18n="popupRequestFileAttachmentsLabel">File Attachments to Request (optional)</label>

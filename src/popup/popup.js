@@ -26,11 +26,17 @@ const elements = {
   requestTab: document.querySelector("#requestTab"),
   pushPanel: document.querySelector("#pushPanel"),
   requestPanel: document.querySelector("#requestPanel"),
-  requestDisabledNotice: document.querySelector("#requestDisabledNotice"),
+  requestInstanceNotSupported: document.querySelector("#requestInstanceNotSupported"),
+  requestNeedsToken: document.querySelector("#requestNeedsToken"),
+  goToSettingsButton: document.querySelector("#goToSettingsButton"),
   payload: document.querySelector("#payload"),
   selectionHint: document.querySelector("#selectionHint"),
   addSelectionButton: document.querySelector("#addSelectionButton"),
   selectionRow: document.querySelector("#selectionRow"),
+  pushAuthFields: document.querySelector("#pushAuthFields"),
+  pushAuthFieldsUnavailable: document.querySelector("#pushAuthFieldsUnavailable"),
+  pushName: document.querySelector("#pushName"),
+  pushNote: document.querySelector("#pushNote"),
   pushButton: document.querySelector("#pushButton"),
   pushUrlButton: document.querySelector("#pushUrlButton"),
   expireAfterDays: document.querySelector("#expireAfterDays"),
@@ -49,6 +55,7 @@ const elements = {
   requestRetrievalStep: document.querySelector("#requestRetrievalStep"),
   requestResponseFiles: document.querySelector("#requestResponseFiles"),
   requestPassphrase: document.querySelector("#requestPassphrase"),
+  requestNotifyEmailsField: document.querySelector("#requestNotifyEmailsField"),
   requestNotifyEmails: document.querySelector("#requestNotifyEmails"),
   requestFileSection: document.querySelector("#requestFileSection"),
   requestFileInput: document.querySelector("#requestFileInput"),
@@ -73,7 +80,11 @@ let state = {
   isBusy: false,
   isReadingSelection: false,
   activeTab: "push",
-  requestsSupported: false,
+  requestsSupported: {
+    instanceSupportsRequests: false,
+    hasRequiredToken: false,
+    available: false
+  },
   pushFilesSupported: false,
   requestFilesSupported: false,
   pushSelectedFiles: [],
@@ -91,6 +102,10 @@ applyDocumentI18n();
 
 elements.recheckButton.addEventListener("click", async () => {
   await recheckConnection();
+});
+
+elements.goToSettingsButton.addEventListener("click", () => {
+  chrome.runtime.openOptionsPage();
 });
 
 elements.settingsButton.addEventListener("click", async () => {
@@ -216,16 +231,17 @@ chrome.storage.onChanged.addListener(async (changes, areaName) => {
     }
 
     state.instanceStatus = newStatus;
-    state.requestsSupported = checkRequestsSupport(newStatus);
-    
     const settings = state.settings || await getSettings();
+    state.requestsSupported = checkRequestsSupport(newStatus, settings);
+    
     const {pushFilesSupported, requestFilesSupported} = checkFileAttachmentSupport(newStatus, settings);
     state.pushFilesSupported = pushFilesSupported;
     state.requestFilesSupported = requestFilesSupported;
 
     renderConnection(settings, newStatus);
-    updateRequestsAvailability(state.requestsSupported);
+    updateRequestsAvailability(state.requestsSupported, settings);
     updateFileAttachmentAvailability(pushFilesSupported, requestFilesSupported, settings);
+    updatePushFieldAvailability(settings);
     updateActionButtons();
   }
 
@@ -243,12 +259,15 @@ chrome.storage.onChanged.addListener(async (changes, areaName) => {
 
     if (baseUrlChanged || tokenChanged) {
       const instanceStatus = state.instanceStatus || {};
+      state.requestsSupported = checkRequestsSupport(instanceStatus, newSettings);
       const {pushFilesSupported, requestFilesSupported} = checkFileAttachmentSupport(instanceStatus, newSettings);
       state.pushFilesSupported = pushFilesSupported;
       state.requestFilesSupported = requestFilesSupported;
 
       renderConnection(newSettings, instanceStatus);
+      updateRequestsAvailability(state.requestsSupported, newSettings);
       updateFileAttachmentAvailability(pushFilesSupported, requestFilesSupported, newSettings);
+      updatePushFieldAvailability(newSettings);
       updateActionButtons();
     }
   }
@@ -261,7 +280,7 @@ async function loadState() {
     getInstanceStatus()
   ]);
 
-  const requestsSupported = checkRequestsSupport(instanceStatus);
+  const requestsSupported = checkRequestsSupport(instanceStatus, settings);
   const {pushFilesSupported, requestFilesSupported} = checkFileAttachmentSupport(instanceStatus, settings);
 
   state = {
@@ -280,8 +299,9 @@ async function loadState() {
   renderResult(null);
   await restoreUrlPushCooldown();
   setSelectionButtonVisible(await activeTabHasSelection());
-  updateRequestsAvailability(requestsSupported);
+  updateRequestsAvailability(requestsSupported, settings);
   updateFileAttachmentAvailability(pushFilesSupported, requestFilesSupported, settings);
+  updatePushFieldAvailability(settings);
   updateActionButtons();
   if (!state.isBusy) {
     if (state.activeTab === "push") {
@@ -292,9 +312,17 @@ async function loadState() {
   }
 }
 
-function checkRequestsSupport(instanceStatus) {
-  const features = (instanceStatus || {}).features || {};
-  return features.supportsRequestsApi === "enabled";
+function checkRequestsSupport(instanceStatus, settings) {
+  const versionData = (instanceStatus || {}).versionData || {};
+  const features = versionData.features || {};
+  const requests = features.requests || {};
+  const hasApiToken = Boolean((settings || {}).apiToken);
+  
+  return {
+    instanceSupportsRequests: requests.enabled === true,
+    hasRequiredToken: hasApiToken,
+    available: requests.enabled === true && hasApiToken
+  };
 }
 
 function checkFileAttachmentSupport(instanceStatus, settings) {
@@ -353,13 +381,38 @@ function updateFileAttachmentAvailability(pushFilesSupported, requestFilesSuppor
   }
 }
 
-function updateRequestsAvailability(supported) {
-  if (supported) {
+function updatePushFieldAvailability(settings) {
+  const hasApiToken = Boolean((settings || {}).apiToken);
+  
+  if (hasApiToken) {
+    elements.pushAuthFields.classList.remove("hidden");
+    elements.pushAuthFieldsUnavailable.classList.add("hidden");
+    elements.requestNotifyEmailsField.classList.remove("hidden");
+  } else {
+    elements.pushAuthFields.classList.add("hidden");
+    elements.pushAuthFieldsUnavailable.classList.remove("hidden");
+    elements.requestNotifyEmailsField.classList.add("hidden");
+  }
+}
+
+function updateRequestsAvailability(requestsSupported, settings) {
+  const {instanceSupportsRequests, hasRequiredToken, available} = requestsSupported;
+  
+  if (available) {
     elements.requestTab.disabled = false;
-    elements.requestDisabledNotice.classList.add("hidden");
+    elements.requestInstanceNotSupported.classList.add("hidden");
+    elements.requestNeedsToken.classList.add("hidden");
+  } else if (instanceSupportsRequests && !hasRequiredToken) {
+    elements.requestTab.disabled = false;
+    elements.requestInstanceNotSupported.classList.add("hidden");
+    elements.requestNeedsToken.classList.remove("hidden");
+    if (state.activeTab === "request") {
+      switchTab("push");
+    }
   } else {
     elements.requestTab.disabled = false;
-    elements.requestDisabledNotice.classList.remove("hidden");
+    elements.requestInstanceNotSupported.classList.remove("hidden");
+    elements.requestNeedsToken.classList.add("hidden");
     if (state.activeTab === "request") {
       switchTab("push");
     }
@@ -443,12 +496,13 @@ async function refreshConnection(instanceStatus) {
   state.settings = settings;
   if (instanceStatus) {
     state.instanceStatus = instanceStatus;
-    state.requestsSupported = checkRequestsSupport(instanceStatus);
+    state.requestsSupported = checkRequestsSupport(instanceStatus, settings);
     const {pushFilesSupported, requestFilesSupported} = checkFileAttachmentSupport(instanceStatus, settings);
     state.pushFilesSupported = pushFilesSupported;
     state.requestFilesSupported = requestFilesSupported;
-    updateRequestsAvailability(state.requestsSupported);
+    updateRequestsAvailability(state.requestsSupported, settings);
     updateFileAttachmentAvailability(pushFilesSupported, requestFilesSupported, settings);
+    updatePushFieldAvailability(settings);
   }
   renderConnection(settings, state.instanceStatus || {});
 }
@@ -560,7 +614,7 @@ async function createRequestFromForm() {
   let requestMessage = "";
   try {
     ensureServerConfigured();
-    if (!state.requestsSupported) {
+    if (!state.requestsSupported.available) {
       throw new Error(t("popupErrorRequestsNotSupported", [], "Requests are not supported on this instance."));
     }
     requestMessage = elements.requestMessage.value.trim();
@@ -664,6 +718,8 @@ async function createPushFromPayload(payload) {
     expireAfterViews: options.expireAfterViews,
     retrievalStep: options.retrievalStep,
     passphrase: options.passphrase,
+    name: elements.pushName.value.trim(),
+    note: elements.pushNote.value.trim(),
     files: state.pushSelectedFiles
   });
 
@@ -1161,7 +1217,7 @@ function updateActionButtons() {
   elements.pushButton.disabled = locked || !hasPayload;
   elements.pushUrlButton.disabled = locked || urlPushCoolingDown();
   elements.addSelectionButton.disabled = locked;
-  elements.createRequestButton.disabled = locked || !hasRequestMessage || !state.requestsSupported;
+  elements.createRequestButton.disabled = locked || !hasRequestMessage || !state.requestsSupported.available;
 }
 
 function urlPushCoolingDown() {

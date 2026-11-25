@@ -259,6 +259,8 @@ export async function createPush(payload, options = {}) {
     expireAfterViews = 5,
     retrievalStep = true,
     passphrase = "",
+    name = "",
+    note = "",
     files = []
   } = options;
 
@@ -267,7 +269,9 @@ export async function createPush(payload, options = {}) {
     expireAfterDays,
     expireAfterViews,
     retrievalStep,
-    passphrase
+    passphrase,
+    name,
+    note
   });
 
   let createResult;
@@ -542,7 +546,9 @@ function buildPushPayload(payload, options = {}) {
     expireAfterDays = 7,
     expireAfterViews = 5,
     retrievalStep = true,
-    passphrase = ""
+    passphrase = "",
+    name = "",
+    note = ""
   } = options;
 
   const sanitizedPayload = String(payload || "").trim();
@@ -554,6 +560,14 @@ function buildPushPayload(payload, options = {}) {
 
   if (passphrase) {
     push.passphrase = passphrase;
+  }
+
+  if (name) {
+    push.name = String(name).trim();
+  }
+
+  if (note) {
+    push.note = String(note).trim();
   }
 
   if (instanceType === "pro") {
