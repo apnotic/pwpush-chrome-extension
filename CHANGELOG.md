@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Options Page Layout**: Reorganized to two-column layout on wide screens for better use of space
+  - **Wide viewports (>800px)**: Two-column CSS Grid layout
+    - Left column: Brand header + Server selection/configuration card
+    - Right column: Detected instance card + About card
+    - Max-width: 1280px with 24px gap between columns
+  - **Narrow viewports (≤800px)**: Single-column stacked layout (responsive)
+    - Collapses to original single-column design for usability on small screens
+  - **Keyboard navigation**: Tab order preserved (left column first, then right column)
+  - **No behavioral changes**: All existing functionality intact (save, test connection, token field, instance status, storage)
+
 ### Added
 
 - **Request Tab "What are Requests?" Link**: Added educational link in instance-not-supported empty state
