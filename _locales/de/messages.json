@@ -164,5 +164,8 @@
   "apiErrorAuthRequired": {"message": "Authentifizierung ist fuer diese Anfrage erforderlich."},
   "apiErrorAccessForbidden": {"message": "Zugriff fuer diese Anfrage ist verboten."},
   "apiErrorEndpointNotFound": {"message": "Dieser Endpunkt wurde auf dem ausgewaehlten Server nicht gefunden."},
-  "apiErrorRequestFailedStatus": {"message": "Anfrage fehlgeschlagen mit Status $1."}
+  "apiErrorRequestFailedStatus": {"message": "Anfrage fehlgeschlagen mit Status $1."},
+  "popupRequestsNeedTokenHeading": {"message": "Anfragen erfordern einen API-Token."},
+  "popupRequestsNeedTokenDetails": {"message": "Basis-Anfragen sind bei jedem Konto kostenlos. Bezahlte Abonnements fuegen Branding, benutzerdefinierte Domains und Dateianhänge hinzu."},
+  "popupPushFileAttachmentsNeedAuth": {"message": "Dateianhänge erfordern Authentifizierung und ein bezahltes Abonnement."}
 }

@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Popup Width**: Increased popup width from 390px to 430px for improved layout and readability
+- **Request Empty State Copy**: Updated "Requests require authentication" message to clarify:
+  - Heading: "Requests require an API token."
+  - Details: "Basic Requests are free with any account. Paid subscriptions add branding, custom domains and file attachments."
+- **Push File Attachments**: Completely hide file attachment section (picker, file list, limits) when no API token is configured
+  - Shows friendly message: "File attachments require authentication and a paid subscription." with Settings link
+  - Previously showed disabled controls; now cleaner UX with complete hiding
+  - Selected files are cleared when token is removed (live via storage.onChanged listener)
+  - Guards prevent file submission when hidden
+
+### Fixed
+
+- **CSS Specificity Bug**: Fixed double empty state display on Request tab (Pro instance without token)
+  - Root cause: `.empty-state { display: flex; }` overrode `.hidden { display: none; }` due to equal specificity and CSS cascade order
+  - Fix: Added `!important` to `.hidden` class to ensure it always wins regardless of other display rules
+  - Both `popup.css` and `options.css` updated for consistency
+  - Added automated Playwright visual tests to prevent regression
+
 ### Added
 
 - **Request Support**: Added ability to create secure Requests (pull-model) on Pro/Commercial instances

@@ -44,6 +44,7 @@ const elements = {
   expireAfterViews: document.querySelector("#expireAfterViews"),
   retrievalStep: document.querySelector("#retrievalStep"),
   passphrase: document.querySelector("#passphrase"),
+  pushFileAttachmentsNeedAuth: document.querySelector("#pushFileAttachmentsNeedAuth"),
   pushFileSection: document.querySelector("#pushFileSection"),
   pushFileInput: document.querySelector("#pushFileInput"),
   pushChooseFilesButton: document.querySelector("#pushChooseFilesButton"),
@@ -106,6 +107,10 @@ elements.recheckButton.addEventListener("click", async () => {
 });
 
 elements.goToSettingsButton.addEventListener("click", () => {
+  chrome.runtime.openOptionsPage();
+});
+
+document.querySelector("#goToSettingsFromPush")?.addEventListener("click", () => {
   chrome.runtime.openOptionsPage();
 });
 
@@ -349,19 +354,24 @@ function checkFileAttachmentSupport(instanceStatus, settings) {
 function updateFileAttachmentAvailability(pushFilesSupported, requestFilesSupported, settings) {
   const hasApiToken = Boolean((settings || {}).apiToken);
   
-  if (pushFilesSupported) {
-    elements.pushFileSection.classList.remove("hidden");
-    elements.pushFilesUnavailable.classList.add("hidden");
+  // Push tab: hide entire file section when no token
+  if (!hasApiToken) {
+    elements.pushFileSection.classList.add("hidden");
+    elements.pushFileAttachmentsNeedAuth.classList.remove("hidden");
+    // Clear any selected files when gating kicks in
+    state.pushSelectedFiles = [];
+    renderSelectedFiles("push");
   } else {
-    elements.pushFileSection.classList.remove("hidden");
-    if (!hasApiToken) {
+    elements.pushFileAttachmentsNeedAuth.classList.add("hidden");
+    
+    if (pushFilesSupported) {
+      elements.pushFileSection.classList.remove("hidden");
+      elements.pushFilesUnavailable.classList.add("hidden");
+    } else {
+      elements.pushFileSection.classList.remove("hidden");
       elements.pushFilesUnavailable.classList.remove("hidden");
       elements.pushFileInput.disabled = true;
       elements.pushChooseFilesButton.disabled = true;
-    } else {
-      elements.pushFilesUnavailable.classList.add("hidden");
-      elements.pushFileInput.disabled = false;
-      elements.pushChooseFilesButton.disabled = false;
     }
   }
   

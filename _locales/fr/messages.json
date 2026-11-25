@@ -164,5 +164,8 @@
   "apiErrorAuthRequired": {"message": "Authentification requise pour cette requete."},
   "apiErrorAccessForbidden": {"message": "Acces interdit pour cette requete."},
   "apiErrorEndpointNotFound": {"message": "Ce point d'acces est introuvable sur le serveur selectionne."},
-  "apiErrorRequestFailedStatus": {"message": "La requete a echoue avec le statut $1."}
+  "apiErrorRequestFailedStatus": {"message": "La requete a echoue avec le statut $1."},
+  "popupRequestsNeedTokenHeading": {"message": "Les demandes nécessitent un jeton API."},
+  "popupRequestsNeedTokenDetails": {"message": "Les demandes de base sont gratuites avec n'importe quel compte. Les abonnements payants ajoutent l'image de marque, les domaines personnalisés et les pièces jointes."},
+  "popupPushFileAttachmentsNeedAuth": {"message": "Les pièces jointes nécessitent une authentification et un abonnement payant."}
 }

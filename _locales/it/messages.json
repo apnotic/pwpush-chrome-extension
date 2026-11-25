@@ -164,5 +164,8 @@
   "apiErrorAuthRequired": {"message": "Autenticazione richiesta per questa richiesta."},
   "apiErrorAccessForbidden": {"message": "Accesso vietato per questa richiesta."},
   "apiErrorEndpointNotFound": {"message": "Endpoint non trovato sul server selezionato."},
-  "apiErrorRequestFailedStatus": {"message": "Richiesta non riuscita con stato $1."}
+  "apiErrorRequestFailedStatus": {"message": "Richiesta non riuscita con stato $1."},
+  "popupRequestsNeedTokenHeading": {"message": "Le richieste richiedono un token API."},
+  "popupRequestsNeedTokenDetails": {"message": "Le richieste di base sono gratuite con qualsiasi account. Gli abbonamenti a pagamento aggiungono branding, domini personalizzati e allegati."},
+  "popupPushFileAttachmentsNeedAuth": {"message": "Gli allegati richiedono autenticazione e un abbonamento a pagamento."}
 }

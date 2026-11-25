@@ -67,6 +67,11 @@
           <label for="passphrase" data-i18n="popupPassphraseLabel">Passphrase (optional)</label>
           <input id="passphrase" type="password" autocomplete="off" placeholder="Optional passphrase" data-i18n-placeholder="popupPassphrasePlaceholder">
 
+          <div id="pushFileAttachmentsNeedAuth" class="field-unavailable hidden">
+            <p data-i18n="popupPushFileAttachmentsNeedAuth">File attachments require authentication and a paid subscription.</p>
+            <button id="goToSettingsFromPush" type="button" class="link-button" data-i18n="popupAddApiTokenButton">Add API Token in Settings</button>
+          </div>
+
           <div id="pushFileSection" class="file-section hidden">
             <label for="pushFileInput" data-i18n="popupFileAttachmentsLabel">File Attachments (optional)</label>
             <div class="file-input-wrapper">
@@ -93,7 +98,8 @@
           </div>
           
           <div id="requestNeedsToken" class="empty-state hidden" role="status" aria-live="polite">
-            <p data-i18n="popupRequestsNeedTokenMessage">Requests require authentication to protect your account and data.</p>
+            <p><strong data-i18n="popupRequestsNeedTokenHeading">Requests require an API token.</strong></p>
+            <p data-i18n="popupRequestsNeedTokenDetails">Basic Requests are free with any account. Paid subscriptions add branding, custom domains and file attachments.</p>
             <button id="goToSettingsButton" type="button" class="primary" data-i18n="popupAddApiTokenButton">Add API Token in Settings</button>
           </div>
 

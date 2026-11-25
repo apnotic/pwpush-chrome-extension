@@ -164,5 +164,8 @@
   "apiErrorAuthRequired": {"message": "Authenticatie is vereist voor dit verzoek."},
   "apiErrorAccessForbidden": {"message": "Toegang is verboden voor dit verzoek."},
   "apiErrorEndpointNotFound": {"message": "Dit endpoint is niet gevonden op de geselecteerde server."},
-  "apiErrorRequestFailedStatus": {"message": "Verzoek mislukt met status $1."}
+  "apiErrorRequestFailedStatus": {"message": "Verzoek mislukt met status $1."},
+  "popupRequestsNeedTokenHeading": {"message": "Verzoeken vereisen een API-token."},
+  "popupRequestsNeedTokenDetails": {"message": "Basisverzoeken zijn gratis bij elk account. Betaalde abonnementen voegen branding, aangepaste domeinen en bestandsbijlagen toe."},
+  "popupPushFileAttachmentsNeedAuth": {"message": "Bestandsbijlagen vereisen authenticatie en een betaald abonnement."}
 }
