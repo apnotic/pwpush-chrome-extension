@@ -184,8 +184,12 @@ h2 {
 
 .push-options {
   margin-top: 12px;
-  border-top: 1px solid var(--divider);
   padding-top: 10px;
+}
+
+/* Only show divider when auth fields are visible */
+#pushAuthFields:not(.hidden) ~ .push-options {
+  border-top: 1px solid var(--divider);
 }
 
 .option-pair {
@@ -373,13 +377,19 @@ button:disabled {
 }
 
 .tab.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
+  color: var(--accent) !important;
+  border-bottom-color: var(--accent) !important;
+  background: transparent !important;
 }
 
 .tab:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.tab:focus {
+  outline: none;
+  background: transparent;
 }
 
 .tab:focus-visible {
@@ -400,6 +410,10 @@ button:disabled {
 
 .notice p {
   margin: 0;
+}
+
+#pushAuthSummaryNotice {
+  margin-top: 14px;
 }
 
 .empty-state {

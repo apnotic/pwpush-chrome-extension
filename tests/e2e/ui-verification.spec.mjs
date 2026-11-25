@@ -164,7 +164,7 @@ test.describe("UI Verification - Empty states, file gating, accessibility", () =
     await context.close();
   });
 
-  test("Push tab: Consolidated auth notice (no token)", async ({}, testInfo) => {
+  test("Push tab: Consolidated auth notice (no token) with proper spacing", async ({}, testInfo) => {
     const userDataDir = testInfo.outputPath("user-data-push-notice");
     const context = await chromium.launchPersistentContext(userDataDir, {
       channel: "chromium",
@@ -198,6 +198,13 @@ test.describe("UI Verification - Empty states, file gating, accessibility", () =
     const pushAuthSummaryNotice = await checkVisibility(page, "#pushAuthSummaryNotice");
     expect(pushAuthSummaryNotice.isHidden).toBe(false);
 
+    // Check margin-top for spacing
+    const noticeMarginTop = await page.evaluate(() => {
+      const notice = document.querySelector("#pushAuthSummaryNotice");
+      return window.getComputedStyle(notice).marginTop;
+    });
+    expect(noticeMarginTop).toBe("14px");
+
     // Check content of consolidated notice
     const noticeContent = await page.textContent("#pushAuthSummaryNotice");
     expect(noticeContent).toContain("Name and Note");
@@ -211,6 +218,13 @@ test.describe("UI Verification - Empty states, file gating, accessibility", () =
     // Check file section is hidden
     const pushFileSection = await checkVisibility(page, "#pushFileSection");
     expect(pushFileSection.isHidden).toBe(true);
+
+    // Check divider is hidden (no border-top on .push-options when auth fields hidden)
+    const pushOptionsBorderTop = await page.evaluate(() => {
+      const options = document.querySelector(".push-options");
+      return window.getComputedStyle(options).borderTopWidth;
+    });
+    expect(pushOptionsBorderTop).toBe("0px");
 
     await page.screenshot({path: path.join(ARTIFACTS_DIR, "push-consolidated-notice.png"), fullPage: true});
     await context.close();
@@ -306,8 +320,8 @@ test.describe("UI Verification - Empty states, file gating, accessibility", () =
     await context.close();
   });
 
-  test("Active tab styling: Request tab", async ({}, testInfo) => {
-    const userDataDir = testInfo.outputPath("user-data-request-active");
+  test("Active tab styling: Both tabs identical when active", async ({}, testInfo) => {
+    const userDataDir = testInfo.outputPath("user-data-tabs-identical");
     const context = await chromium.launchPersistentContext(userDataDir, {
       channel: "chromium",
       headless: true,
@@ -335,24 +349,48 @@ test.describe("UI Verification - Empty states, file gating, accessibility", () =
     const popupUrl = `chrome-extension://${extensionId}/src/popup/popup.html`;
     await page.goto(popupUrl);
     await page.waitForLoadState("networkidle");
+
+    // Push tab active by default
+    let tabState = await checkActiveTab(page);
+    const pushActiveColor = tabState.pushTab.color;
+    const pushActiveBorder = tabState.pushTab.borderBottomColor;
+    const pushActiveBackground = await page.evaluate(() => {
+      const tab = document.querySelector("#pushTab");
+      return window.getComputedStyle(tab).backgroundColor;
+    });
+
+    console.log("Push tab active - color:", pushActiveColor);
+    console.log("Push tab active - borderBottomColor:", pushActiveBorder);
+    console.log("Push tab active - backgroundColor:", pushActiveBackground);
+
+    // Switch to Request tab
     await page.click("#requestTab");
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(300);
 
-    // Request tab should be active after click
-    const tabState = await checkActiveTab(page);
-    expect(tabState.pushTab.hasActiveClass).toBe(false);
-    expect(tabState.requestTab.hasActiveClass).toBe(true);
+    tabState = await checkActiveTab(page);
+    const requestActiveColor = tabState.requestTab.color;
+    const requestActiveBorder = tabState.requestTab.borderBottomColor;
+    const requestActiveBackground = await page.evaluate(() => {
+      const tab = document.querySelector("#requestTab");
+      return window.getComputedStyle(tab).backgroundColor;
+    });
 
-    // Check computed color values (should be accent color, not text-secondary)
-    console.log("Request tab active - color:", tabState.requestTab.color);
-    console.log("Request tab active - borderBottomColor:", tabState.requestTab.borderBottomColor);
-    console.log("Push tab inactive - color:", tabState.pushTab.color);
+    console.log("Request tab active - color:", requestActiveColor);
+    console.log("Request tab active - borderBottomColor:", requestActiveBorder);
+    console.log("Request tab active - backgroundColor:", requestActiveBackground);
+
+    // Both tabs should have identical styling when active
+    expect(pushActiveColor).toBe(requestActiveColor);
+    expect(pushActiveBackground).toBe(requestActiveBackground);
+    
+    // Border colors should be identical (solid accent, no pale variants)
+    expect(pushActiveBorder).toBe(requestActiveBorder);
 
     await page.screenshot({path: path.join(ARTIFACTS_DIR, "request-tab-active.png"), fullPage: true});
     await context.close();
   });
 
-  test("Request tab: OSS instance - only 'not supported' notice", async ({}, testInfo) => {
+  test("Request tab: OSS instance - 'not supported' notice with link", async ({}, testInfo) => {
     const userDataDir = testInfo.outputPath("user-data-oss");
     const context = await chromium.launchPersistentContext(userDataDir, {
       channel: "chromium",
@@ -391,6 +429,17 @@ test.describe("UI Verification - Empty states, file gating, accessibility", () =
     expect(notSupported.isHidden).toBe(false);
     expect(needsToken.isHidden).toBe(true);
     expect(formContainer.isHidden).toBe(true);
+
+    // Check "What are Requests?" link
+    const linkHref = await page.getAttribute("#whatAreRequestsLink", "href");
+    const linkText = await page.textContent("#whatAreRequestsLink");
+    const linkTarget = await page.getAttribute("#whatAreRequestsLink", "target");
+    const linkRel = await page.getAttribute("#whatAreRequestsLink", "rel");
+    
+    expect(linkHref).toBe("https://eu.pwpush.com/requests");
+    expect(linkText).toContain("Requests");
+    expect(linkTarget).toBe("_blank");
+    expect(linkRel).toBe("noopener noreferrer");
 
     // Check active tab styling
     const tabState = await checkActiveTab(page);

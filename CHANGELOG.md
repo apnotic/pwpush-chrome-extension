@@ -7,7 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Request Tab "What are Requests?" Link**: Added educational link in instance-not-supported empty state
+  - Link text: "What are Requests?" (i18n in all 6 locales)
+  - Points to: https://eu.pwpush.com/requests
+  - Opens safely in new tab with `target="_blank" rel="noopener noreferrer"`
+  - Helps users understand Requests feature when unavailable
+
 ### Fixed
+
+- **Active Tab Styling Polish**: Fixed Request tab showing light background and pale underline when active
+  - Added `!important` to `.tab.active` rules to override all state-specific styling (hover, focus)
+  - Added `background: transparent` to `.tab:focus` to prevent focus state background
+  - Both Push and Request tabs now display identical solid accent color and underline when active
+  - Keyboard focus indicator (`:focus-visible`) still works correctly with outline
+- **Push Tab Divider Polish**: Fixed stray divider line showing under textarea when name/note fields hidden
+  - Divider (border-top on `.push-options`) now only shows when `#pushAuthFields` is visible
+  - Uses CSS sibling combinator: `#pushAuthFields:not(.hidden) ~ .push-options { border-top: ... }`
+  - Cleaner visual appearance when no token configured
 
 - **Active Tab Styling**: Fixed Request tab not showing active state (blue text/underline)
   - Root cause: `.tab:hover` rule overrode `.tab.active` due to equal CSS specificity and later position
@@ -22,9 +40,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Push Tab Auth Notice**: Consolidated two separate notices into one unified notice below Push buttons
   - Previous: Two notices ("Add an API token... Name and Note" + "File attachments... paid subscription")
   - New: Single notice "Add an API token in Settings to unlock Name and Note fields. File attachments also require a paid subscription."
-  - Positioned below Push/Push Current URL buttons for better visibility
+  - Positioned below Push/Push Current URL buttons with proper spacing (14px margin-top)
   - Hidden when API token is present; updates live via storage.onChanged listener
-  - Cleaner UX, less visual clutter
+  - Cleaner UX, less visual clutter, better breathing room
 - **Header Tagline**: Updated to reflect both Pushes and Requests functionality
   - Previous: "Securely share links and text with expiring pushes."
   - New: "Share secrets with expiring links, or request them securely."

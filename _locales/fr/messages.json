@@ -165,6 +165,7 @@
   "apiErrorAccessForbidden": {"message": "Acces interdit pour cette requete."},
   "apiErrorEndpointNotFound": {"message": "Ce point d'acces est introuvable sur le serveur selectionne."},
   "apiErrorRequestFailedStatus": {"message": "La requete a echoue avec le statut $1."},
+  "popupWhatAreRequestsLink": {"message": "Que sont les Demandes ?"},
   "popupRequestsNeedTokenHeading": {"message": "Les demandes nécessitent un jeton API."},
   "popupRequestsNeedTokenDetails": {"message": "Les demandes de base sont gratuites avec n'importe quel compte. Les abonnements payants ajoutent l'image de marque, les domaines personnalisés et les pièces jointes."},
   "popupPushAuthSummaryNotice": {"message": "Ajoutez un jeton API dans Paramètres pour déverrouiller les champs Nom et Note. Les pièces jointes nécessitent également un abonnement payant."}

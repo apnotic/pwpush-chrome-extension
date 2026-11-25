@@ -165,6 +165,7 @@
   "apiErrorAccessForbidden": {"message": "Acceso prohibido para esta solicitud."},
   "apiErrorEndpointNotFound": {"message": "No se encontro este endpoint en el servidor seleccionado."},
   "apiErrorRequestFailedStatus": {"message": "La solicitud fallo con estado $1."},
+  "popupWhatAreRequestsLink": {"message": "¿Qué son las Solicitudes?"},
   "popupRequestsNeedTokenHeading": {"message": "Las solicitudes requieren un token de API."},
   "popupRequestsNeedTokenDetails": {"message": "Las solicitudes básicas son gratuitas con cualquier cuenta. Las suscripciones de pago agregan marca, dominios personalizados y archivos adjuntos."},
   "popupPushAuthSummaryNotice": {"message": "Agregue un token de API en Configuración para desbloquear los campos de Nombre y Nota. Los archivos adjuntos también requieren una suscripción de pago."}

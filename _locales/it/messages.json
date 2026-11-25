@@ -165,6 +165,7 @@
   "apiErrorAccessForbidden": {"message": "Accesso vietato per questa richiesta."},
   "apiErrorEndpointNotFound": {"message": "Endpoint non trovato sul server selezionato."},
   "apiErrorRequestFailedStatus": {"message": "Richiesta non riuscita con stato $1."},
+  "popupWhatAreRequestsLink": {"message": "Cosa sono le Richieste?"},
   "popupRequestsNeedTokenHeading": {"message": "Le richieste richiedono un token API."},
   "popupRequestsNeedTokenDetails": {"message": "Le richieste di base sono gratuite con qualsiasi account. Gli abbonamenti a pagamento aggiungono branding, domini personalizzati e allegati."},
   "popupPushAuthSummaryNotice": {"message": "Aggiungi un token API in Impostazioni per sbloccare i campi Nome e Nota. Gli allegati richiedono anche un abbonamento a pagamento."}

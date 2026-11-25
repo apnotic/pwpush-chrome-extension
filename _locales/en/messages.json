@@ -171,6 +171,7 @@
   "popupPushTabLabel": {"message": "Push"},
   "popupRequestTabLabel": {"message": "Request"},
   "popupRequestsNotSupported": {"message": "Requests are not supported on this Password Pusher instance. Use the Push tab to create expiring pushes, or configure a Pro instance that supports Requests."},
+  "popupWhatAreRequestsLink": {"message": "What are Requests?"},
   "popupRequestsNeedTokenHeading": {"message": "Requests require an API token."},
   "popupRequestsNeedTokenDetails": {"message": "Basic Requests are free with any account. Paid subscriptions add branding, custom domains and file attachments."},
   "popupAddApiTokenButton": {"message": "Add API Token in Settings"},
