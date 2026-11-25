@@ -12,6 +12,7 @@ mkdirSync(outputDir, {recursive: true});
 
 cpSync(join(projectRoot, "manifest.json"), join(outputDir, "manifest.json"));
 cpSync(join(projectRoot, "src"), join(outputDir, "src"), {recursive: true});
+cpSync(join(projectRoot, "_locales"), join(outputDir, "_locales"), {recursive: true});
 
 if (existsSync(packageZip)) {
   rmSync(packageZip, {force: true});

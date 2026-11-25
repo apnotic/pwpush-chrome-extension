@@ -14,7 +14,7 @@ This checklist is for publishing this extension as the official Apnotic listing.
 - Run:
   - `npm run validate:manifest`
   - `npm run package`
-- Verify ZIP contains `manifest.json` at root.
+- Verify ZIP contains `manifest.json` at root, `default_locale` in that manifest, and `_locales/<default_locale>/messages.json`.
 - Confirm requested permissions are minimal and justified:
   - `storage`
   - host permissions for Password Pusher endpoints
