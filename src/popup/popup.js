@@ -204,6 +204,56 @@ loadState().catch((error) => {
   setStatus(error.message || t("popupErrorLoadState"), "error");
 });
 
+chrome.storage.onChanged.addListener(async (changes, areaName) => {
+  if (areaName !== "local") {
+    return;
+  }
+
+  if (changes.instanceStatus) {
+    const newStatus = changes.instanceStatus.newValue;
+    if (!newStatus) {
+      return;
+    }
+
+    state.instanceStatus = newStatus;
+    state.requestsSupported = checkRequestsSupport(newStatus);
+    
+    const settings = state.settings || await getSettings();
+    const {pushFilesSupported, requestFilesSupported} = checkFileAttachmentSupport(newStatus, settings);
+    state.pushFilesSupported = pushFilesSupported;
+    state.requestFilesSupported = requestFilesSupported;
+
+    renderConnection(settings, newStatus);
+    updateRequestsAvailability(state.requestsSupported);
+    updateFileAttachmentAvailability(pushFilesSupported, requestFilesSupported, settings);
+    updateActionButtons();
+  }
+
+  if (changes.settings) {
+    const newSettings = changes.settings.newValue;
+    if (!newSettings) {
+      return;
+    }
+
+    const oldSettings = state.settings || {};
+    const baseUrlChanged = oldSettings.baseUrl !== newSettings.baseUrl;
+    const tokenChanged = oldSettings.apiToken !== newSettings.apiToken;
+
+    state.settings = newSettings;
+
+    if (baseUrlChanged || tokenChanged) {
+      const instanceStatus = state.instanceStatus || {};
+      const {pushFilesSupported, requestFilesSupported} = checkFileAttachmentSupport(instanceStatus, newSettings);
+      state.pushFilesSupported = pushFilesSupported;
+      state.requestFilesSupported = requestFilesSupported;
+
+      renderConnection(newSettings, instanceStatus);
+      updateFileAttachmentAvailability(pushFilesSupported, requestFilesSupported, newSettings);
+      updateActionButtons();
+    }
+  }
+});
+
 async function loadState() {
   await clearLastPushResult();
   const [settings, instanceStatus] = await Promise.all([
