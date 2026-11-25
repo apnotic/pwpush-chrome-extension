@@ -10,13 +10,13 @@ This document tracks all information needed for Chrome Web Store submission and 
 
 **Name**: Password Pusher
 
-**Version**: 0.5.0
+**Version**: 0.6.0
 
 **Single Purpose Statement**: 
-Create secure, expiring Password Pusher links directly from the browser without navigating away from the current page.
+Create secure, expiring Password Pusher links and requests directly from the browser without navigating away from the current page.
 
 **Detailed Single Purpose**: 
-This extension connects to Password Pusher APIv2 instances (official hosted services or self-hosted deployments) to create expiring, self-destructing text and URL pushes. Users can share sensitive information with automatic expiration controls without leaving their browser or current workflow.
+This extension connects to Password Pusher APIv2 instances (official hosted services or self-hosted deployments) to create expiring, self-destructing text and URL pushes, and secure pull-model requests. Users can share sensitive information with automatic expiration controls and request secrets from others without leaving their browser or current workflow.
 
 ---
 
@@ -27,14 +27,18 @@ Create secure Password Pusher links from your browser in seconds. Connect to any
 
 ### Detailed Description
 
-The Password Pusher Chrome Extension connects your browser to Password Pusher APIv2 instances so you can create expiring, self-destructing links without leaving the page you're on.
+The Password Pusher Chrome Extension connects your browser to Password Pusher APIv2 instances so you can create expiring, self-destructing links and secure requests without leaving the page you're on.
 
 **What you can do:**
-- Push text typed into the popup or selected on any webpage (when you click to add it)
-- Push the current tab URL to share links securely
-- Configure expiry controls (days/views), optional retrieval step, and optional passphrase
-- Generate and download QR codes for created pushes
-- Connect to official hosted services (oss.pwpush.com, us.pwpush.com, eu.pwpush.com) or any self-hosted Password Pusher instance
+- **Push text** typed into the popup or selected on any webpage (when you click to add it)
+- **Push the current tab URL** to share links securely
+- **Create secure requests** to ask others to send you sensitive information (Pro instances with API token)
+- **Attach files** to pushes and requests (Pro instances with paid subscription)
+- **Configure expiry controls** (days/views), optional retrieval step, and optional passphrase
+- **Add optional name and note** to pushes for organization (requires API token)
+- **Email notifications** for requests (Pro instances with paid subscription)
+- **Generate and download QR codes** for created pushes
+- **Connect to official hosted services** (oss.pwpush.com, us.pwpush.com, eu.pwpush.com) or any self-hosted Password Pusher instance
 
 **Works with:**
 - Official open source service: https://oss.pwpush.com
@@ -42,10 +46,13 @@ The Password Pusher Chrome Extension connects your browser to Password Pusher AP
 - Any private/self-hosted Password Pusher instance running APIv2
 
 **Key features:**
-- Fast workflow: create pushes without navigating away from your current tab
-- Security-first defaults: Password Pusher expiry controls prevent permanent exposure
-- Instance-aware: automatically detects edition (OSS vs commercial) and API capabilities
-- Self-hosted friendly: request runtime host permissions for custom domains
+- **Fast workflow**: create pushes and requests without navigating away from your current tab
+- **Security-first defaults**: Password Pusher expiry controls prevent permanent exposure
+- **Pull-model requests**: ask others to securely send you information (Pro instances)
+- **File attachments**: attach files to pushes and requests (Pro paid tier)
+- **Instance-aware**: automatically detects edition (OSS vs commercial), API capabilities, and authentication requirements
+- **Real-time updates**: UI adapts instantly when you change server or add an API token
+- **Self-hosted friendly**: request runtime host permissions for custom domains
 
 Password Pusher is an open source tool for sharing sensitive content with automatic expiration. Learn more at https://pwpush.com and https://docs.pwpush.com
 
@@ -98,15 +105,17 @@ API calls include:
 The extension collects and stores locally:
 - Password Pusher server URL selected by the user
 - Optional API bearer token entered by the user (stored in Chrome extension storage on the user's browser profile only)
-- Server capability/version metadata retrieved from API probes
+- Server capability/version metadata retrieved from API probes (including whether Requests and file attachments are supported)
 - Optional workspace selection metadata (for hosted Pro workflows)
 - Non-sensitive push defaults (expire-after days/views, retrieval-step preference)
 
 ### Data NOT Collected or Stored
-- Push payload content (text or URLs) is not persisted after the push is created
+- Push or request payload content (text, URLs, or files) is not persisted after creation
 - Selected text from webpages is not stored
 - Passphrases entered in advanced options are not stored
-- History of past pushes is not retained across popup sessions
+- File contents are kept in memory only during upload and cleared immediately after
+- History of past pushes or requests is not retained across popup sessions
+- Email addresses entered in request notify fields are not stored
 
 ### Data Usage
 - Data is used only to connect the extension to the configured Password Pusher instance
@@ -127,7 +136,10 @@ The extension collects and stores locally:
 ### Security
 - The extension does not load remote executable code
 - Selected text capture is user-triggered and on-demand only
+- File selection requires explicit user interaction through native file picker
+- File contents never stored to disk by the extension (memory only during upload)
 - API tokens are stored in Chrome extension storage, inaccessible to other extensions
+- No new manifest permissions required for Requests or file attachments
 - For Password Pusher platform encryption and security architecture, see https://docs.pwpush.com/docs/security/
 
 ### Privacy Policy URL
@@ -167,7 +179,17 @@ All icon files exist and are correctly sized.
 
 ## Version History
 
-### v0.5.0 (Current)
+### v0.6.0 (Current)
+- **Request support** (pull-model): Create secure requests on Pro instances to ask others to send you information
+- **File attachments**: Upload files with pushes and requests (Pro paid tier)
+- **Push name and note fields**: Add optional name/note for organization (requires API token)
+- **Request email notifications**: Notify recipients by email (Pro paid tier)
+- **Authentication gating**: UI shows appropriate messages and hints based on instance capabilities and API token presence
+- **Real-time capability updates**: UI adapts instantly when server or token changes (no popup reload needed)
+- **Tabbed interface**: Separate Push and Request tabs for clear workflows
+- Comprehensive i18n strings for all new features
+
+### v0.5.0
 - Multi-language support with internationalization (i18n)
 - Workspace selection for hosted Pro instances
 - Instance capability detection (Requests API, Workspaces API, Push API)
@@ -221,10 +243,16 @@ This extension is the official browser companion for Password Pusher, an open so
 
 1. Does not modify webpage content or appearance
 2. Only reads tab URLs and selected text when the user explicitly requests it
-3. Stores all configuration data locally in Chrome extension storage
-4. Makes API calls only to Password Pusher instances (official hosted services or user-configured self-hosted instances)
-5. Does not embed analytics, tracking, or third-party services
-6. Uses runtime host permissions for self-hosted instances to minimize default permissions
+3. Only reads files when the user explicitly selects them through native file picker
+4. Stores all configuration data locally in Chrome extension storage
+5. Makes API calls only to Password Pusher instances (official hosted services or user-configured self-hosted instances)
+6. Does not embed analytics, tracking, or third-party services
+7. Uses runtime host permissions for self-hosted instances to minimize default permissions
+8. **New features (v0.6.0)** add no new manifest permissions:
+   - Requests and file attachments use existing `storage` and `activeTab` permissions
+   - File uploads use browser's native FormData API
+   - File contents kept in memory only during upload, cleared immediately after
+   - Authentication-gated features (name/note, email notifications) show appropriate hints when unavailable
 
 The optional `https://*/*` host permission is requested at runtime only when users configure a custom server URL, and Chrome's permission UI scopes it to the specific domain entered.
 
