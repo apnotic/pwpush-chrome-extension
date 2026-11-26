@@ -65,6 +65,24 @@ describe("detectInstance", () => {
         })
       })
       .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          edition: "commercial",
+          api_version: "2",
+          application_version: "3.0.0",
+          subscription: {
+            workspace_id: 123,
+            workspace_name: "Acme",
+            subscribed: true,
+            plan_name: "Pro"
+          },
+          features: {
+            pushes: {file_attachments: {enabled: true}}
+          }
+        })
+      })
+      .mockResolvedValueOnce({
         ok: false,
         status: 401,
         json: async () => ({})
@@ -82,11 +100,16 @@ describe("detectInstance", () => {
 
     expect(result.connected).toBe(true);
     expect(result.instanceType).toBe("pro");
+    expect(result.subscription.workspace_name).toBe("Acme");
+    expect(result.subscription.subscribed).toBe(true);
+    expect(result.workspaceIdInvalid).toBe(false);
     expect(result.features.supportsWorkspacesApi).toBe("enabled");
     expect(result.features.supportsRequestsApi).toBe("disabled");
     expect(global.fetch.mock.calls[0][1].headers.Authorization).toBeUndefined();
-    expect(String(global.fetch.mock.calls[1][0])).toContain("/api/v2/workspaces");
+    expect(String(global.fetch.mock.calls[1][0])).toContain("/api/v2/version");
     expect(global.fetch.mock.calls[1][1].headers.Authorization).toBe("Bearer token-123");
+    expect(String(global.fetch.mock.calls[2][0])).toContain("/api/v2/workspaces");
+    expect(global.fetch.mock.calls[2][1].headers.Authorization).toBe("Bearer token-123");
   });
 
   it("classifies oss edition and treats the missing workspaces API as disabled", async () => {
@@ -118,8 +141,106 @@ describe("detectInstance", () => {
 
     expect(result.connected).toBe(true);
     expect(result.instanceType).toBe("oss");
+    expect(result.subscription).toBeNull();
     expect(result.features.supportsWorkspacesApi).toBe("disabled");
     expect(result.features.supportsRequestsApi).toBe("unknown");
     expect(String(global.fetch.mock.calls[1][0])).toContain("/api/v2/workspaces");
+  });
+
+  it("retries a 401 workspace_id once without the parameter", async () => {
+    global.fetch
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          edition: "commercial",
+          api_version: "2",
+          application_version: "3.0.0"
+        })
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        json: async () => ({error: "not a member"})
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          edition: "commercial",
+          api_version: "2",
+          application_version: "3.0.0",
+          subscription: {
+            workspace_id: 5,
+            workspace_name: "Default",
+            subscribed: false,
+            plan_name: "Free"
+          },
+          features: {
+            pushes: {file_attachments: {enabled: false}}
+          }
+        })
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ([])
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        json: async () => ({})
+      });
+
+    const result = await detectInstance({
+      baseUrl: "https://eu.pwpush.com",
+      token: "token-123",
+      workspaceId: "999"
+    });
+
+    expect(result.connected).toBe(true);
+    expect(result.workspaceIdInvalid).toBe(true);
+    expect(result.subscription.workspace_name).toBe("Default");
+    expect(String(global.fetch.mock.calls[1][0])).toContain("workspace_id=999");
+    expect(global.fetch.mock.calls[1][1].headers.Authorization).toBe("Bearer token-123");
+    expect(String(global.fetch.mock.calls[2][0])).toContain("/api/v2/version");
+    expect(String(global.fetch.mock.calls[2][0])).not.toContain("workspace_id=");
+  });
+
+  it("does not flag the workspace when a 401 without workspace_id is a bad token", async () => {
+    global.fetch
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          edition: "commercial",
+          api_version: "2",
+          application_version: "3.0.0"
+        })
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        json: async () => ({error: "unauthorized"})
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        json: async () => ({})
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        json: async () => ({})
+      });
+
+    const result = await detectInstance({
+      baseUrl: "https://eu.pwpush.com",
+      token: "token-123"
+    });
+
+    expect(result.connected).toBe(true);
+    expect(result.workspaceIdInvalid).toBe(false);
+    expect(result.subscription).toBeNull();
   });
 });

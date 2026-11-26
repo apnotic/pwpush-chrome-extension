@@ -12,7 +12,14 @@ import {
 } from "../lib/storage.js";
 import {applyDocumentI18n, t} from "../lib/i18n.js";
 import {buildPreviewUrl, buildPreviewUrlFromToken, extractFirstSvg, toConfiguredShareUrl} from "./qr-utils.js";
-import {getPushNoTokenNotice, getRequestNoTokenNotice, shouldShowPushAuthNotice} from "../lib/instance-copy.js";
+import {
+  getNotifyEmailsCopy,
+  getPushNoTokenNotice,
+  getRequestNoTokenNotice,
+  getSubscriptionBadge,
+  getSubscriptionCopy,
+  shouldShowPushAuthNotice
+} from "../lib/instance-copy.js";
 
 const elements = {
   serverValue: document.querySelector("#serverValue"),
@@ -20,7 +27,10 @@ const elements = {
   apiValue: document.querySelector("#apiValue"),
   recheckButton: document.querySelector("#recheckButton"),
   connectionChips: document.querySelector("#connectionChips"),
+  planBadge: document.querySelector("#planBadge"),
   connectionStatus: document.querySelector("#connectionStatus"),
+  planNotice: document.querySelector("#planNotice"),
+  planNoticeText: document.querySelector("#planNoticeText"),
   settingsButton: document.querySelector("#settingsButton"),
   statusMessage: document.querySelector("#statusMessage"),
   pushTab: document.querySelector("#pushTab"),
@@ -58,6 +68,8 @@ const elements = {
   requestResponseFiles: document.querySelector("#requestResponseFiles"),
   requestPassphrase: document.querySelector("#requestPassphrase"),
   requestNotifyEmailsField: document.querySelector("#requestNotifyEmailsField"),
+  requestNotifyEmailsLabel: document.querySelector('label[for="requestNotifyEmails"]'),
+  requestNotifyEmailsHint: document.querySelector("#requestNotifyEmailsField .field-hint"),
   requestNotifyEmails: document.querySelector("#requestNotifyEmails"),
   requestFileSection: document.querySelector("#requestFileSection"),
   requestFileInput: document.querySelector("#requestFileInput"),
@@ -351,77 +363,146 @@ function checkFileAttachmentSupport(instanceStatus, settings) {
   return {pushFilesSupported, requestFilesSupported};
 }
 
-function updateFileAttachmentAvailability(pushFilesSupported, requestFilesSupported, settings) {
-  const hasApiToken = Boolean((settings || {}).apiToken);
-  
-  // Push tab: hide entire file section when no token
-  if (!hasApiToken) {
-    elements.pushFileSection.classList.add("hidden");
-    // Clear any selected files when gating kicks in
-    state.pushSelectedFiles = [];
-    renderSelectedFiles("push");
-  } else {
-    if (pushFilesSupported) {
-      elements.pushFileSection.classList.remove("hidden");
-      elements.pushFilesUnavailable.classList.add("hidden");
-    } else {
-      elements.pushFileSection.classList.remove("hidden");
-      elements.pushFilesUnavailable.classList.remove("hidden");
-      elements.pushFileInput.disabled = true;
-      elements.pushChooseFilesButton.disabled = true;
-    }
-  }
-  
-  if (requestFilesSupported) {
-    elements.requestFileSection.classList.remove("hidden");
-    elements.requestFilesUnavailable.classList.add("hidden");
-  } else {
-    elements.requestFileSection.classList.remove("hidden");
-    if (!hasApiToken) {
-      elements.requestFilesUnavailable.classList.remove("hidden");
-      elements.requestFileInput.disabled = true;
-      elements.requestChooseFilesButton.disabled = true;
-    } else {
-      elements.requestFilesUnavailable.classList.add("hidden");
-      elements.requestFileInput.disabled = false;
-      elements.requestChooseFilesButton.disabled = false;
-    }
-  }
-}
-
-function updatePushFieldAvailability(settings) {
-  const hasApiToken = Boolean((settings || {}).apiToken);
+function instanceCopyContext(settings) {
   const instanceStatus = state.instanceStatus || {};
   const versionData = instanceStatus.versionData || {};
-  const edition = versionData.edition || "oss";
-  const features = versionData.features || {};
-  const apiTokenAuthEnabled = features.api_token_authentication !== false;
+  return {
+    edition: versionData.edition || instanceStatus.edition || "oss",
+    features: versionData.features || {},
+    subscription: versionData.subscription ?? instanceStatus.subscription ?? null,
+    hasToken: Boolean((settings || {}).apiToken && String((settings || {}).apiToken).trim()),
+    baseUrl: (settings || {}).baseUrl || ""
+  };
+}
+
+function attachmentControlsVisible(feature, hasToken) {
+  if (!feature || feature.enabled !== true) {
+    return false;
+  }
+  if (feature.requires_authentication === true && !hasToken) {
+    return false;
+  }
+  return true;
+}
+
+function applyInstanceCopy(settings) {
+  const {edition, features, subscription, hasToken, baseUrl} = instanceCopyContext(settings);
   const fileAttachmentsEnabled = Boolean(features.pushes?.file_attachments?.enabled);
-  
-  if (hasApiToken) {
-    elements.pushAuthFields.classList.remove("hidden");
-    elements.pushAuthSummaryNotice.classList.add("hidden");
-    elements.requestNotifyEmailsField.classList.remove("hidden");
-  } else {
-    elements.pushAuthFields.classList.add("hidden");
-    
-    // Update notice text based on instance features
-    const noticeText = getPushNoTokenNotice({
+  const apiTokenAuthEnabled = features.api_token_authentication !== false;
+
+  const pushNotice = elements.pushAuthSummaryNotice.querySelector("p");
+  if (pushNotice) {
+    pushNotice.textContent = getPushNoTokenNotice({
       edition,
       fileAttachmentsEnabled,
       apiTokenAuthEnabled
     });
-    const noticeP = elements.pushAuthSummaryNotice.querySelector("p");
-    if (noticeP) {
-      noticeP.textContent = noticeText;
+  }
+
+  const requestNotice = elements.requestNeedsToken.querySelector("p");
+  if (requestNotice) {
+    requestNotice.textContent = getRequestNoTokenNotice({
+      edition,
+      apiTokenAuthEnabled
+    });
+  }
+
+  const emails = getNotifyEmailsCopy({edition, subscription});
+  if (elements.requestNotifyEmailsLabel) {
+    elements.requestNotifyEmailsLabel.textContent = emails.label;
+  }
+  if (elements.requestNotifyEmailsHint) {
+    elements.requestNotifyEmailsHint.textContent = emails.hint;
+  }
+
+  for (const node of [elements.pushFilesUnavailable, elements.requestFilesUnavailable]) {
+    const paragraph = node?.querySelector("p");
+    if (paragraph) {
+      paragraph.textContent = "";
     }
-    
-    if (shouldShowPushAuthNotice({hasToken: hasApiToken, apiTokenAuthEnabled})) {
-      elements.pushAuthSummaryNotice.classList.remove("hidden");
-    } else {
-      elements.pushAuthSummaryNotice.classList.add("hidden");
-    }
-    
+    node?.classList.add("hidden");
+  }
+
+  renderSubscriptionNotice(getSubscriptionCopy({
+    edition,
+    hasToken,
+    subscription,
+    features,
+    baseUrl
+  }));
+}
+
+function renderSubscriptionNotice(copy) {
+  const notice = elements.planNotice;
+  const text = elements.planNoticeText;
+  if (!notice || !text) {
+    return;
+  }
+
+  text.replaceChildren();
+  if (!copy.subscriptionHint) {
+    notice.classList.add("hidden");
+    return;
+  }
+
+  text.append(document.createTextNode(copy.subscriptionHint));
+  if (copy.subscriptionLinkUrl) {
+    text.append(document.createTextNode(" "));
+    const link = document.createElement("a");
+    link.href = copy.subscriptionLinkUrl;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = copy.subscriptionLinkLabel || "View billing";
+    text.append(link);
+  }
+  notice.classList.remove("hidden");
+}
+
+function updateFileAttachmentAvailability(_pushFilesSupported, _requestFilesSupported, settings) {
+  const {features, hasToken} = instanceCopyContext(settings);
+  applyInstanceCopy(settings);
+
+  if (attachmentControlsVisible(features.pushes?.file_attachments, hasToken)) {
+    elements.pushFileSection.classList.remove("hidden");
+    elements.pushFileInput.disabled = false;
+    elements.pushChooseFilesButton.disabled = false;
+  } else {
+    elements.pushFileSection.classList.add("hidden");
+    state.pushSelectedFiles = [];
+    renderSelectedFiles("push");
+    elements.pushFileInput.disabled = true;
+    elements.pushChooseFilesButton.disabled = true;
+  }
+
+  if (attachmentControlsVisible(features.requests?.file_attachments, hasToken)) {
+    elements.requestFileSection.classList.remove("hidden");
+    elements.requestFileInput.disabled = false;
+    elements.requestChooseFilesButton.disabled = false;
+  } else {
+    elements.requestFileSection.classList.add("hidden");
+    state.requestSelectedFiles = [];
+    renderSelectedFiles("request");
+    elements.requestFileInput.disabled = true;
+    elements.requestChooseFilesButton.disabled = true;
+  }
+}
+
+function updatePushFieldAvailability(settings) {
+  const {edition, features, hasToken} = instanceCopyContext(settings);
+  const apiTokenAuthEnabled = features.api_token_authentication !== false;
+  applyInstanceCopy(settings);
+
+  if (hasToken) {
+    elements.pushAuthFields.classList.remove("hidden");
+    elements.pushAuthSummaryNotice.classList.add("hidden");
+    const isOss = String(edition).trim().toLowerCase() === "oss";
+    elements.requestNotifyEmailsField.classList.toggle("hidden", isOss);
+  } else {
+    elements.pushAuthFields.classList.add("hidden");
+    elements.pushAuthSummaryNotice.classList.toggle(
+      "hidden",
+      !shouldShowPushAuthNotice({hasToken, apiTokenAuthEnabled})
+    );
     elements.requestNotifyEmailsField.classList.add("hidden");
   }
 }
@@ -437,34 +518,7 @@ function updateRequestsAvailability(requestsSupported, settings) {
   } else if (instanceSupportsRequests && !hasRequiredToken) {
     elements.requestTab.disabled = false;
     elements.requestInstanceNotSupported.classList.add("hidden");
-    
-    // Update notice text based on instance features
-    const instanceStatus = state.instanceStatus || {};
-    const versionData = instanceStatus.versionData || {};
-    const edition = versionData.edition || "oss";
-    const features = versionData.features || {};
-    const apiTokenAuthEnabled = features.api_token_authentication !== false;
-    
-    const noticeText = getRequestNoTokenNotice({edition, apiTokenAuthEnabled});
-    
-    // Update the notice content
-    const noticeHeading = elements.requestNeedsToken.querySelector("strong");
-    const noticeDetails = elements.requestNeedsToken.querySelector("p:nth-of-type(2)");
-    
-    if (noticeHeading) {
-      noticeHeading.textContent = "Requests require an API token.";
-    }
-    
-    if (noticeDetails) {
-      // For OSS, hide the details paragraph; for commercial, show it
-      if (edition === "oss") {
-        noticeDetails.style.display = "none";
-      } else {
-        noticeDetails.style.display = "";
-        noticeDetails.textContent = "Basic Requests are free with any account. Paid subscriptions add branding, custom domains and file attachments.";
-      }
-    }
-    
+    applyInstanceCopy(settings);
     elements.requestNeedsToken.classList.remove("hidden");
     elements.requestFormContainer.classList.add("hidden");
     if (state.activeTab === "request") {
@@ -575,6 +629,15 @@ function renderConnection(settings, instanceStatus) {
   elements.apiValue.textContent = instanceStatus.apiVersion
     ? t("popupApiVersionValue", [String(instanceStatus.apiVersion)])
     : t("popupApiUnknown");
+
+  const versionData = (instanceStatus || {}).versionData || {};
+  const subscription = versionData.subscription ?? (instanceStatus || {}).subscription ?? null;
+  const badge = getSubscriptionBadge(subscription);
+  if (!elements.planBadge) {
+    return;
+  }
+  elements.planBadge.textContent = badge;
+  elements.planBadge.classList.toggle("hidden", !badge);
 }
 
 function renderResult(result) {

@@ -136,6 +136,7 @@
   "optionsErrorProvideServerUrl": {"message": "Bitte Server-URL angeben."},
   "optionsErrorHostPermissionDenied": {"message": "Host-Berechtigung wurde verweigert. Diese Erweiterung kann den Server nicht aufrufen."},
   "optionsWorkspaceHelpHostedProOnly": {"message": "Arbeitsbereichsauswahl ist nur fuer gehostete Pro-Instanzen (us/eu) mit API-Token verfuegbar."},
+  "optionsWorkspaceInvalidNote": {"message": "Der gespeicherte Arbeitsbereich ist nicht mehr verfuegbar. Waehlen Sie einen anderen oder speichern Sie erneut, um den Standard zu verwenden."},
   "optionsWorkspaceHelpAddToken": {"message": "API-Token hinzufuegen, um verfuegbare Arbeitsbereiche zu laden."},
   "optionsWorkspaceHelpNoneLoaded": {"message": "Noch keine Arbeitsbereiche geladen. Klicke auf Verbindung testen."},
   "optionsWorkspaceHelpOne": {"message": "Dieses Token hat einen Arbeitsbereich. Er wird automatisch verwendet."},
@@ -167,6 +168,6 @@
   "apiErrorRequestFailedStatus": {"message": "Anfrage fehlgeschlagen mit Status $1."},
   "popupWhatAreRequestsLink": {"message": "Was sind Anfragen?"},
   "popupRequestsNeedTokenHeading": {"message": "Anfragen erfordern einen API-Token."},
-  "popupRequestsNeedTokenDetails": {"message": "Basis-Anfragen sind bei jedem Konto kostenlos. Bezahlte Abonnements fuegen Branding, benutzerdefinierte Domains und Dateianhänge hinzu."},
-  "popupPushAuthSummaryNotice": {"message": "Fuegen Sie in den Einstellungen einen API-Token hinzu, um Name- und Notiz-Felder freizuschalten. Dateianhänge erfordern zusätzlich ein bezahltes Abonnement."}
+  "popupRequestsNeedTokenDetails": {"message": "Anfragen erfordern einen API-Token."},
+  "popupPushAuthSummaryNotice": {"message": "Fuegen Sie in den Einstellungen einen API-Token hinzu, um weitere Felder freizuschalten."}
 }

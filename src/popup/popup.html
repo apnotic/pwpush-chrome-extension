@@ -26,6 +26,9 @@
         </div>
 
         <p id="statusMessage" class="status" role="status" aria-live="polite"></p>
+        <div id="planNotice" class="notice hidden">
+          <p id="planNoticeText"></p>
+        </div>
 
         <div id="pushPanel" role="tabpanel" aria-labelledby="pushTab">
           <textarea id="payload" name="payload" rows="4" spellcheck="false" autocomplete="off" placeholder="Paste a secret, note, or link" aria-label="Text" data-i18n-placeholder="popupPayloadPlaceholder" data-i18n-aria-label="popupPayloadLabel"></textarea>
@@ -70,7 +73,7 @@
             </div>
             <p id="pushFileHint" class="field-hint" data-i18n="popupFileHint">Select files to attach (max 10 files, 50MB each)</p>
             <div id="pushFilesUnavailable" class="file-unavailable hidden">
-              <p data-i18n="popupFilesRequireAuth">File attachments require authentication and a paid subscription.</p>
+              <p data-i18n="popupFilesRequireAuth">File attachments are unavailable.</p>
             </div>
             <div id="pushSelectedFiles" class="selected-files"></div>
           </div>
@@ -82,7 +85,7 @@
         </div>
 
         <div id="pushAuthSummaryNotice" class="notice hidden">
-          <p data-i18n="popupPushAuthSummaryNotice">Add an API token in Settings to unlock Name and Note fields. File attachments also require a paid subscription.</p>
+          <p data-i18n="popupPushAuthSummaryNotice">Add an API token in Settings to unlock additional features.</p>
           <button id="goToSettingsFromPush" type="button" class="link-button" data-i18n="popupAddApiTokenButton">Add API Token in Settings</button>
         </div>
         </div>
@@ -94,8 +97,7 @@
           </div>
           
           <div id="requestNeedsToken" class="empty-state hidden" role="status" aria-live="polite">
-            <p><strong data-i18n="popupRequestsNeedTokenHeading">Requests require an API token.</strong></p>
-            <p data-i18n="popupRequestsNeedTokenDetails">Basic Requests are free with any account. Paid subscriptions add branding, custom domains and file attachments.</p>
+            <p data-i18n="popupRequestsNeedTokenDetails">Requests require an API token.</p>
             <button id="goToSettingsButton" type="button" class="primary" data-i18n="popupAddApiTokenButton">Add API Token in Settings</button>
           </div>
 
@@ -131,9 +133,9 @@
             <input id="requestPassphrase" type="password" autocomplete="off" placeholder="Optional passphrase" data-i18n-placeholder="popupRequestPassphrasePlaceholder">
 
             <div id="requestNotifyEmailsField" class="hidden">
-              <label for="requestNotifyEmails" data-i18n="popupRequestNotifyEmailsLabel">Notify emails (optional, paid subscription required)</label>
+              <label for="requestNotifyEmails" data-i18n="popupRequestNotifyEmailsLabel">Notify emails (optional)</label>
               <input id="requestNotifyEmails" type="text" placeholder="email@example.com, another@example.com" data-i18n-placeholder="popupRequestNotifyEmailsPlaceholder">
-              <p class="field-hint" data-i18n="popupRequestNotifyEmailsHint">Email notifications require a paid subscription. The server will reject this request if your account doesn't have access.</p>
+              <p class="field-hint" data-i18n="popupRequestNotifyEmailsHint"></p>
             </div>
 
             <div id="requestFileSection" class="file-section hidden">
@@ -144,7 +146,7 @@
               </div>
               <p id="requestFileHint" class="field-hint" data-i18n="popupFileHint">Select files to attach (max 10 files, 50MB each)</p>
               <div id="requestFilesUnavailable" class="file-unavailable hidden">
-                <p data-i18n="popupRequestFilesRequireAuth">File attachments on requests require authentication and a paid subscription.</p>
+                <p data-i18n="popupRequestFilesRequireAuth">File attachments are unavailable.</p>
               </div>
               <div id="requestSelectedFiles" class="selected-files"></div>
             </div>
@@ -179,6 +181,7 @@
         <div class="chip-row" id="connectionChips">
           <span class="chip" id="instanceValue" data-i18n="commonUnknown">Unknown</span>
           <span class="chip" id="apiValue" data-i18n="popupApiUnknown">API ?</span>
+          <span class="chip hidden" id="planBadge"></span>
         </div>
         <p id="connectionStatus" class="connection-status" role="status" aria-live="polite"></p>
       </section>

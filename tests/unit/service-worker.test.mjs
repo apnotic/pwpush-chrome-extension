@@ -95,7 +95,7 @@ describe("background/service-worker", () => {
 
   it("returns configured-instance status for recheck message", async () => {
     const setup = await setupServiceWorkerTest({
-      settings: {baseUrl: "https://example.com", apiToken: "token-123"},
+      settings: {baseUrl: "https://example.com", apiToken: "token-123", selectedWorkspaceId: "42"},
       detectStatus: {connected: true, instanceType: "pro"}
     });
     const sendResponse = vi.fn();
@@ -106,7 +106,8 @@ describe("background/service-worker", () => {
     await flushAsyncCallbacks();
     expect(setup.detectInstance).toHaveBeenCalledWith({
       baseUrl: "https://example.com",
-      token: "token-123"
+      token: "token-123",
+      workspaceId: "42"
     });
     expect(setup.saveInstanceStatus).toHaveBeenCalledWith({connected: true, instanceType: "pro"});
     expect(sendResponse).toHaveBeenCalledWith({

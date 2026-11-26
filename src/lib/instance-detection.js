@@ -1,6 +1,6 @@
-import {confirmPasswordPusher, requestJson} from "./api-client.js";
+import {confirmPasswordPusher, getVersionWithAuth, requestJson} from "./api-client.js";
 
-export async function detectInstance({baseUrl, token = ""}) {
+export async function detectInstance({baseUrl, token = "", workspaceId = ""}) {
   const checkedAt = new Date().toISOString();
   const confirmation = await confirmPasswordPusher(baseUrl);
 
@@ -12,6 +12,8 @@ export async function detectInstance({baseUrl, token = ""}) {
       applicationVersion: null,
       edition: null,
       instanceType: null,
+      subscription: null,
+      workspaceIdInvalid: false,
       features: {
         supportsWorkspacesApi: "unknown",
         supportsRequestsApi: "unknown"
@@ -21,7 +23,37 @@ export async function detectInstance({baseUrl, token = ""}) {
     };
   }
 
-  const versionPayload = confirmation.version || {};
+  let versionPayload = confirmation.version || {};
+  let subscriptionData = null;
+  let workspaceIdInvalid = false;
+
+  // If token is provided, fetch authenticated version to get subscription info
+  if (token && token.trim()) {
+    const authVersionResult = await getVersionWithAuth({
+      baseUrl,
+      token,
+      workspaceId: workspaceId || ""
+    });
+
+    // Handle 401 with workspace_id: retry without it
+    if (authVersionResult.needsRetryWithoutWorkspace) {
+      workspaceIdInvalid = true;
+      const retryResult = await getVersionWithAuth({
+        baseUrl,
+        token,
+        workspaceId: ""
+      });
+
+      if (retryResult.ok && retryResult.data) {
+        versionPayload = retryResult.data;
+        subscriptionData = retryResult.data.subscription || null;
+      }
+    } else if (authVersionResult.ok && authVersionResult.data) {
+      versionPayload = authVersionResult.data;
+      subscriptionData = authVersionResult.data.subscription || null;
+    }
+  }
+
   const edition = String(versionPayload.edition || "").toLowerCase();
   const instanceType = edition === "commercial" ? "pro" : edition === "oss" ? "oss" : "unknown";
 
@@ -37,6 +69,8 @@ export async function detectInstance({baseUrl, token = ""}) {
     applicationVersion: versionPayload.application_version || null,
     edition: versionPayload.edition || null,
     instanceType,
+    subscription: subscriptionData,
+    workspaceIdInvalid,
     features: {
       supportsWorkspacesApi: workspacesProbe,
       supportsRequestsApi: requestsProbe

@@ -136,6 +136,7 @@
   "optionsErrorProvideServerUrl": {"message": "Geef een server-URL op."},
   "optionsErrorHostPermissionDenied": {"message": "Host-toestemming geweigerd. Deze extensie kan die server niet aanroepen."},
   "optionsWorkspaceHelpHostedProOnly": {"message": "Werkruimteselectie is alleen beschikbaar voor gehoste Pro-instances (us/eu) met API-token."},
+  "optionsWorkspaceInvalidNote": {"message": "De opgeslagen werkruimte is niet meer beschikbaar. Kies een andere of sla opnieuw op om de standaard te gebruiken."},
   "optionsWorkspaceHelpAddToken": {"message": "Voeg een API-token toe om beschikbare werkruimten te laden."},
   "optionsWorkspaceHelpNoneLoaded": {"message": "Nog geen werkruimten geladen. Klik op Verbinding testen."},
   "optionsWorkspaceHelpOne": {"message": "Dit token heeft een werkruimte. Deze wordt automatisch gebruikt."},
@@ -167,6 +168,6 @@
   "apiErrorRequestFailedStatus": {"message": "Verzoek mislukt met status $1."},
   "popupWhatAreRequestsLink": {"message": "Wat zijn Verzoeken?"},
   "popupRequestsNeedTokenHeading": {"message": "Verzoeken vereisen een API-token."},
-  "popupRequestsNeedTokenDetails": {"message": "Basisverzoeken zijn gratis bij elk account. Betaalde abonnementen voegen branding, aangepaste domeinen en bestandsbijlagen toe."},
-  "popupPushAuthSummaryNotice": {"message": "Voeg een API-token toe in Instellingen om Naam- en Notitieveldenvrij te schakelen. Bestandsbijlagen vereisen ook een betaald abonnement."}
+  "popupRequestsNeedTokenDetails": {"message": "Verzoeken vereisen een API-token."},
+  "popupPushAuthSummaryNotice": {"message": "Voeg een API-token toe in Instellingen om extra velden te gebruiken."}
 }

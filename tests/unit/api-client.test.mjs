@@ -3,6 +3,7 @@ import {
   clearPasswordPusherConfirmationCache,
   createPush,
   getPushPreview,
+  getVersionWithAuth,
   listWorkspaces,
   normalizeBaseUrl,
   requestJson
@@ -353,5 +354,75 @@ describe("listWorkspaces", () => {
       {id: "acct_1", name: "Primary"},
       {id: "acct_2", name: "Workspace acct_2"}
     ]);
+  });
+});
+
+describe("getVersionWithAuth", () => {
+  const originalFetch = global.fetch;
+
+  beforeEach(() => {
+    global.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  it("sends the bearer token and workspace_id query", async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        edition: "commercial",
+        subscription: {workspace_id: 456, workspace_name: "Acme", subscribed: true, plan_name: "Pro"}
+      })
+    });
+
+    const result = await getVersionWithAuth({
+      baseUrl: "https://eu.pwpush.com",
+      token: "dummy-token",
+      workspaceId: "456"
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.data.subscription.workspace_name).toBe("Acme");
+    const [url, options] = global.fetch.mock.calls[0];
+    expect(String(url)).toContain("/api/v2/version");
+    expect(String(url)).toContain("workspace_id=456");
+    expect(options.headers.Authorization).toBe("Bearer dummy-token");
+  });
+
+  it("marks a 401 that included workspace_id for one retry", async () => {
+    global.fetch.mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({error: "unauthorized"})
+    });
+
+    const withWorkspace = await getVersionWithAuth({
+      baseUrl: "https://eu.pwpush.com",
+      token: "dummy-token",
+      workspaceId: "999"
+    });
+    const withoutWorkspace = await getVersionWithAuth({
+      baseUrl: "https://eu.pwpush.com",
+      token: "dummy-token"
+    });
+
+    expect(withWorkspace.needsRetryWithoutWorkspace).toBe(true);
+    expect(withoutWorkspace.needsRetryWithoutWorkspace).toBe(false);
+  });
+
+  it("omits the Authorization header when no token is set", async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({edition: "oss"})
+    });
+
+    await getVersionWithAuth({baseUrl: "https://oss.pwpush.com", token: ""});
+
+    expect(global.fetch.mock.calls[0][1].headers.Authorization).toBeUndefined();
+    expect(String(global.fetch.mock.calls[0][0])).not.toContain("workspace_id");
   });
 });

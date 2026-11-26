@@ -194,7 +194,8 @@ async function testConnection(shouldSave) {
 
     const status = await detectInstance({
       baseUrl,
-      token: userInput.apiToken
+      token: userInput.apiToken,
+      workspaceId: userInput.selectedWorkspaceId || existingSettings.selectedWorkspaceId || ""
     });
     await saveInstanceStatus(status);
 
@@ -322,6 +323,17 @@ function renderStatusBlock(settings, status) {
 function renderWorkspaceSection(settings, status, helpTextOverride = "") {
   const availableWorkspaces = Array.isArray(settings.availableWorkspaces) ? settings.availableWorkspaces : [];
   renderWorkspaceOptions(availableWorkspaces, settings.selectedWorkspaceId || null);
+
+  if (status && status.workspaceIdInvalid) {
+    elements.workspaceSection.classList.remove("hidden");
+    elements.workspaceSectionHelp.textContent = t(
+      "optionsWorkspaceInvalidNote",
+      [],
+      "The saved workspace is no longer available. Choose another workspace, or save again to use your default workspace."
+    );
+    elements.workspaceSelect.disabled = availableWorkspaces.length <= 1;
+    return;
+  }
 
   const hasToken = Boolean(settings.apiToken && settings.apiToken.trim());
   const isPro = status.instanceType === "pro";

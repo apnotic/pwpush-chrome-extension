@@ -708,6 +708,63 @@ export async function confirmPasswordPusher(baseUrl) {
   return confirmation;
 }
 
+export async function getVersionWithAuth(options = {}) {
+  const {baseUrl, token = "", workspaceId = ""} = options;
+  const origin = normalizeBaseUrl(baseUrl);
+
+  const headers = {
+    Accept: "application/json"
+  };
+
+  if (token && token.trim()) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const requestUrl = new URL(VERSION_PATH, `${origin}/`);
+  const normalizedWorkspaceId = normalizeWorkspaceId(workspaceId);
+  if (normalizedWorkspaceId) {
+    requestUrl.searchParams.set("workspace_id", normalizedWorkspaceId);
+  }
+
+  try {
+    const response = await fetch(requestUrl, {
+      method: "GET",
+      headers,
+      signal: AbortSignal.timeout(8000)
+    });
+
+    let data = null;
+    try {
+      data = await response.json();
+    } catch (_error) {
+      // Ignore parse errors
+    }
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        status: response.status,
+        data,
+        needsRetryWithoutWorkspace: response.status === 401 && Boolean(normalizedWorkspaceId)
+      };
+    }
+
+    return {
+      ok: true,
+      status: response.status,
+      data,
+      needsRetryWithoutWorkspace: false
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: 0,
+      data: null,
+      needsRetryWithoutWorkspace: false
+    };
+  }
+}
+
 function normalizeWorkspaceId(workspaceId) {
   if (!workspaceId || !workspaceId.toString().trim()) {
     return "";

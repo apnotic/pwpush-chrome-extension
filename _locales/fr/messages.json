@@ -136,6 +136,7 @@
   "optionsErrorProvideServerUrl": {"message": "Fournissez une URL de serveur."},
   "optionsErrorHostPermissionDenied": {"message": "Permission d'hote refusee. Cette extension ne peut pas appeler ce serveur."},
   "optionsWorkspaceHelpHostedProOnly": {"message": "La selection d'espace de travail est disponible uniquement pour les instances Pro hebergees (us/eu) avec jeton API."},
+  "optionsWorkspaceInvalidNote": {"message": "L'espace de travail enregistre n'est plus disponible. Choisissez-en un autre ou enregistrez a nouveau pour utiliser celui par defaut."},
   "optionsWorkspaceHelpAddToken": {"message": "Ajoutez un jeton API pour charger les espaces de travail disponibles."},
   "optionsWorkspaceHelpNoneLoaded": {"message": "Aucun espace de travail charge. Cliquez sur Tester la connexion pour charger les espaces de travail."},
   "optionsWorkspaceHelpOne": {"message": "Ce jeton a un seul espace de travail. Il sera utilise automatiquement."},
@@ -167,6 +168,6 @@
   "apiErrorRequestFailedStatus": {"message": "La requete a echoue avec le statut $1."},
   "popupWhatAreRequestsLink": {"message": "Que sont les Demandes ?"},
   "popupRequestsNeedTokenHeading": {"message": "Les demandes nécessitent un jeton API."},
-  "popupRequestsNeedTokenDetails": {"message": "Les demandes de base sont gratuites avec n'importe quel compte. Les abonnements payants ajoutent l'image de marque, les domaines personnalisés et les pièces jointes."},
-  "popupPushAuthSummaryNotice": {"message": "Ajoutez un jeton API dans Paramètres pour déverrouiller les champs Nom et Note. Les pièces jointes nécessitent également un abonnement payant."}
+  "popupRequestsNeedTokenDetails": {"message": "Les demandes necessitent un jeton API."},
+  "popupPushAuthSummaryNotice": {"message": "Ajoutez un jeton API dans Parametres pour deverrouiller d'autres champs."}
 }
