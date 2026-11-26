@@ -24,6 +24,7 @@ const DEFAULT_INSTANCE_STATUS = {
     supportsWorkspacesApi: "unknown",
     supportsRequestsApi: "unknown"
   },
+  versionData: null,
   error: null
 };
 

@@ -16,6 +16,7 @@ export async function detectInstance({baseUrl, token = ""}) {
         supportsWorkspacesApi: "unknown",
         supportsRequestsApi: "unknown"
       },
+      versionData: null,
       error: confirmation.errorMessage
     };
   }
@@ -40,6 +41,7 @@ export async function detectInstance({baseUrl, token = ""}) {
       supportsWorkspacesApi: workspacesProbe,
       supportsRequestsApi: requestsProbe
     },
+    versionData: versionPayload,
     error: null
   };
 }

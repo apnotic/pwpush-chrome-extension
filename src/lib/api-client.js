@@ -145,6 +145,110 @@ export async function requestJson(pathname, options = {}) {
   }
 }
 
+export async function requestMultipart(pathname, options = {}) {
+  const {
+    baseUrl,
+    token = "",
+    formData,
+    workspaceId = "",
+    timeoutMs = 30000
+  } = options;
+
+  const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
+  if (token && String(token).trim()) {
+    const confirmation = await confirmPasswordPusher(normalizedBaseUrl);
+    if (!confirmation.ok) {
+      return {
+        ok: false,
+        status: confirmation.status || 0,
+        data: null,
+        errorType: confirmation.errorType || "untrusted_server",
+        errorMessage: confirmation.errorMessage
+      };
+    }
+  }
+
+  const requestUrl = new URL(pathname, `${normalizedBaseUrl}/`);
+  const normalizedWorkspaceId = normalizeWorkspaceId(workspaceId);
+  if (normalizedWorkspaceId) {
+    requestUrl.searchParams.set("workspace_id", normalizedWorkspaceId);
+    formData.append("workspace_id", normalizedWorkspaceId);
+  }
+
+  const controller = new AbortController();
+  const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);
+  const headers = {
+    Accept: "application/json"
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  try {
+    const response = await fetch(requestUrl, {
+      method: "POST",
+      headers,
+      body: formData,
+      signal: controller.signal
+    });
+
+    let data = null;
+    let parseError = null;
+    try {
+      data = await response.json();
+    } catch (error) {
+      parseError = error;
+    }
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        status: response.status,
+        data,
+        errorType: "http_error",
+        errorMessage: parseApiError(response.status, data)
+      };
+    }
+
+    if (parseError) {
+      return {
+        ok: false,
+        status: response.status,
+        data: null,
+        errorType: "invalid_json",
+        errorMessage: t("apiErrorInvalidJson", [], "The server response was not valid JSON.")
+      };
+    }
+
+    return {
+      ok: true,
+      status: response.status,
+      data
+    };
+  } catch (error) {
+    if (error.name === "AbortError") {
+      return {
+        ok: false,
+        status: 0,
+        data: null,
+        errorType: "timeout",
+        errorMessage: t("apiErrorTimeout", [], "Request timed out. Please try again.")
+      };
+    }
+
+    return {
+      ok: false,
+      status: 0,
+      data: null,
+      errorType: "network_error",
+      errorMessage: t("apiErrorNetwork", [], "Unable to reach this server. Check URL, network, or CORS settings.")
+    };
+  } finally {
+    clearTimeout(timeoutHandle);
+  }
+}
+
 export async function createPush(payload, options = {}) {
   const {
     baseUrl,
@@ -154,7 +258,10 @@ export async function createPush(payload, options = {}) {
     expireAfterDays = 7,
     expireAfterViews = 5,
     retrievalStep = true,
-    passphrase = ""
+    passphrase = "",
+    name = "",
+    note = "",
+    files = []
   } = options;
 
   const pushPayload = buildPushPayload(payload, {
@@ -162,18 +269,39 @@ export async function createPush(payload, options = {}) {
     expireAfterDays,
     expireAfterViews,
     retrievalStep,
-    passphrase
+    passphrase,
+    name,
+    note
   });
 
-  const createResult = await requestJson("/api/v2/pushes", {
-    baseUrl,
-    token,
-    workspaceId,
-    method: "POST",
-    body: {
-      push: pushPayload
-    }
-  });
+  let createResult;
+
+  if (files && files.length > 0) {
+    const formData = new FormData();
+    Object.keys(pushPayload).forEach((key) => {
+      formData.append(`push[${key}]`, pushPayload[key]);
+    });
+    files.forEach((file) => {
+      formData.append("push[files][]", file);
+    });
+
+    createResult = await requestMultipart("/api/v2/pushes", {
+      baseUrl,
+      token,
+      workspaceId,
+      formData
+    });
+  } else {
+    createResult = await requestJson("/api/v2/pushes", {
+      baseUrl,
+      token,
+      workspaceId,
+      method: "POST",
+      body: {
+        push: pushPayload
+      }
+    });
+  }
 
   if (!createResult.ok) {
     return createResult;
@@ -243,6 +371,136 @@ export async function getPushPreview(urlToken, options = {}) {
   };
 }
 
+export async function createRequest(payload, options = {}) {
+  const {
+    baseUrl,
+    token = "",
+    workspaceId = "",
+    instanceType = "unknown",
+    name = "",
+    note = "",
+    closeAfterDuration = 12,
+    retrievalStep = true,
+    passphrase = "",
+    notifyEmailsTo = "",
+    authenticatedRecipients = false,
+    notifyRecipients = false,
+    includeRequestor = false,
+    responseFileAttachments = false,
+    files = []
+  } = options;
+
+  const requestPayload = buildRequestPayload(payload, {
+    instanceType,
+    name,
+    note,
+    closeAfterDuration,
+    retrievalStep,
+    passphrase,
+    notifyEmailsTo,
+    authenticatedRecipients,
+    notifyRecipients,
+    includeRequestor,
+    responseFileAttachments
+  });
+
+  let createResult;
+
+  if (files && files.length > 0) {
+    const formData = new FormData();
+    Object.keys(requestPayload).forEach((key) => {
+      formData.append(`request[${key}]`, requestPayload[key]);
+    });
+    files.forEach((file) => {
+      formData.append("request[files][]", file);
+    });
+
+    createResult = await requestMultipart("/api/v2/requests", {
+      baseUrl,
+      token,
+      workspaceId,
+      formData
+    });
+  } else {
+    createResult = await requestJson("/api/v2/requests", {
+      baseUrl,
+      token,
+      workspaceId,
+      method: "POST",
+      body: {
+        request: requestPayload
+      }
+    });
+  }
+
+  if (!createResult.ok) {
+    return createResult;
+  }
+
+  const createData = createResult.data || {};
+  const urlToken = createData.url_token || "";
+  const shareUrl = createData.html_url || await resolveRequestPreviewUrl({
+    baseUrl,
+    token,
+    workspaceId,
+    urlToken
+  });
+
+  if (!shareUrl) {
+    return {
+      ok: false,
+      status: createResult.status,
+      data: createData,
+      errorType: "invalid_response",
+      errorMessage: t("apiErrorRequestNoShareUrl", [], "Request created but no share URL was returned.")
+    };
+  }
+
+  return {
+    ok: true,
+    status: createResult.status,
+    data: {
+      ...createData,
+      urlToken,
+      shareUrl
+    }
+  };
+}
+
+export async function getRequestPreview(urlToken, options = {}) {
+  const {baseUrl, token = "", workspaceId = ""} = options;
+
+  if (!urlToken) {
+    return {
+      ok: false,
+      status: 0,
+      data: null,
+      errorType: "invalid_request",
+      errorMessage: t("apiErrorMissingRequestToken", [], "Missing request token for preview lookup.")
+    };
+  }
+
+  const tokenPath = encodeURIComponent(urlToken);
+  const result = await requestJson(`/api/v2/requests/${tokenPath}/preview`, {
+    baseUrl,
+    token,
+    workspaceId
+  });
+
+  if (!result.ok) {
+    return result;
+  }
+
+  return {
+    ok: true,
+    status: result.status,
+    data: {
+      ...result.data,
+      shareUrl: (result.data || {}).url || ""
+    }
+  };
+}
+
 export async function listWorkspaces(options = {}) {
   const {baseUrl, token = ""} = options;
 
@@ -288,7 +546,9 @@ function buildPushPayload(payload, options = {}) {
     expireAfterDays = 7,
     expireAfterViews = 5,
     retrievalStep = true,
-    passphrase = ""
+    passphrase = "",
+    name = "",
+    note = ""
   } = options;
 
   const sanitizedPayload = String(payload || "").trim();
@@ -302,6 +562,14 @@ function buildPushPayload(payload, options = {}) {
     push.passphrase = passphrase;
   }
 
+  if (name) {
+    push.name = String(name).trim();
+  }
+
+  if (note) {
+    push.note = String(note).trim();
+  }
+
   if (instanceType === "pro") {
     push.expire_after_duration = mapDaysToDurationEnum(expireAfterDays);
   } else {
@@ -311,12 +579,79 @@ function buildPushPayload(payload, options = {}) {
   return push;
 }
 
+function buildRequestPayload(payload, options = {}) {
+  const {
+    instanceType = "unknown",
+    name = "",
+    note = "",
+    closeAfterDuration = 12,
+    retrievalStep = true,
+    passphrase = "",
+    notifyEmailsTo = "",
+    authenticatedRecipients = false,
+    notifyRecipients = false,
+    includeRequestor = false,
+    responseFileAttachments = false
+  } = options;
+
+  const sanitizedPayload = String(payload || "").trim();
+  const sanitizedName = String(name || "").trim();
+  const sanitizedNote = String(note || "").trim();
+  const sanitizedEmails = String(notifyEmailsTo || "").trim();
+
+  const request = {
+    request: sanitizedPayload,
+    retrieval_step: Boolean(retrievalStep),
+    authenticated_recipients: Boolean(authenticatedRecipients),
+    notify_recipients: Boolean(notifyRecipients),
+    include_requestor: Boolean(includeRequestor),
+    response_file_attachments: Boolean(responseFileAttachments)
+  };
+
+  if (sanitizedName) {
+    request.name = sanitizedName;
+  }
+
+  if (sanitizedNote) {
+    request.note = sanitizedNote;
+  }
+
+  if (passphrase) {
+    request.passphrase = passphrase;
+  }
+
+  if (sanitizedEmails) {
+    request.notify_emails_to = sanitizedEmails;
+  }
+
+  if (instanceType === "pro") {
+    request.close_after_duration = clampToRange(closeAfterDuration, 6, 17);
+  } else {
+    request.close_after_duration = clampToRange(closeAfterDuration, 6, 17);
+  }
+
+  return request;
+}
+
 async function resolvePreviewUrl({baseUrl, token, workspaceId, urlToken}) {
   if (!urlToken) {
     return "";
   }
 
   const previewResult = await getPushPreview(urlToken, {baseUrl, token, workspaceId});
+  if (!previewResult.ok) {
+    return "";
+  }
+
+  return (previewResult.data || {}).shareUrl || "";
+}
+
+async function resolveRequestPreviewUrl({baseUrl, token, workspaceId, urlToken}) {
+  if (!urlToken) {
+    return "";
+  }
+
+  const previewResult = await getRequestPreview(urlToken, {baseUrl, token, workspaceId});
   if (!previewResult.ok) {
     return "";
   }

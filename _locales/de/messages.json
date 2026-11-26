@@ -15,7 +15,7 @@
   "popupTitle": {"message": "Password Pusher"},
   "popupBrandAlt": {"message": "Password Pusher"},
   "popupSettingsButton": {"message": "Einstellungen"},
-  "popupSubtitle": {"message": "Links und Texte sicher mit automatischem Ablauf teilen."},
+  "popupSubtitle": {"message": "Teilen Sie Geheimnisse mit ablaufenden Links oder fordern Sie sie sicher an."},
   "popupPushCurrentUrlButton": {"message": "Aktuelle URL pushen"},
   "popupPushCurrentUrlCooldown": {"message": "Aktuelle URL pushen ($1s)"},
   "popupPushButton": {"message": "Pushen"},
@@ -164,5 +164,9 @@
   "apiErrorAuthRequired": {"message": "Authentifizierung ist fuer diese Anfrage erforderlich."},
   "apiErrorAccessForbidden": {"message": "Zugriff fuer diese Anfrage ist verboten."},
   "apiErrorEndpointNotFound": {"message": "Dieser Endpunkt wurde auf dem ausgewaehlten Server nicht gefunden."},
-  "apiErrorRequestFailedStatus": {"message": "Anfrage fehlgeschlagen mit Status $1."}
+  "apiErrorRequestFailedStatus": {"message": "Anfrage fehlgeschlagen mit Status $1."},
+  "popupWhatAreRequestsLink": {"message": "Was sind Anfragen?"},
+  "popupRequestsNeedTokenHeading": {"message": "Anfragen erfordern einen API-Token."},
+  "popupRequestsNeedTokenDetails": {"message": "Basis-Anfragen sind bei jedem Konto kostenlos. Bezahlte Abonnements fuegen Branding, benutzerdefinierte Domains und Dateianhänge hinzu."},
+  "popupPushAuthSummaryNotice": {"message": "Fuegen Sie in den Einstellungen einen API-Token hinzu, um Name- und Notiz-Felder freizuschalten. Dateianhänge erfordern zusätzlich ein bezahltes Abonnement."}
 }

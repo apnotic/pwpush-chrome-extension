@@ -15,7 +15,7 @@
   "popupTitle": {"message": "Password Pusher"},
   "popupBrandAlt": {"message": "Password Pusher"},
   "popupSettingsButton": {"message": "Instellingen"},
-  "popupSubtitle": {"message": "Deel links en tekst veilig met automatische vervaldatum."},
+  "popupSubtitle": {"message": "Deel geheimen met verlopende links, of vraag ze veilig aan."},
   "popupPushCurrentUrlButton": {"message": "Huidige URL pushen"},
   "popupPushCurrentUrlCooldown": {"message": "Huidige URL pushen ($1s)"},
   "popupPushButton": {"message": "Pushen"},
@@ -164,5 +164,9 @@
   "apiErrorAuthRequired": {"message": "Authenticatie is vereist voor dit verzoek."},
   "apiErrorAccessForbidden": {"message": "Toegang is verboden voor dit verzoek."},
   "apiErrorEndpointNotFound": {"message": "Dit endpoint is niet gevonden op de geselecteerde server."},
-  "apiErrorRequestFailedStatus": {"message": "Verzoek mislukt met status $1."}
+  "apiErrorRequestFailedStatus": {"message": "Verzoek mislukt met status $1."},
+  "popupWhatAreRequestsLink": {"message": "Wat zijn Verzoeken?"},
+  "popupRequestsNeedTokenHeading": {"message": "Verzoeken vereisen een API-token."},
+  "popupRequestsNeedTokenDetails": {"message": "Basisverzoeken zijn gratis bij elk account. Betaalde abonnementen voegen branding, aangepaste domeinen en bestandsbijlagen toe."},
+  "popupPushAuthSummaryNotice": {"message": "Voeg een API-token toe in Instellingen om Naam- en Notitieveldenvrij te schakelen. Bestandsbijlagen vereisen ook een betaald abonnement."}
 }

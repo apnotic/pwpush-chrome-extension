@@ -1,6 +1,8 @@
 import {
   createPush,
-  getPushPreview
+  createRequest,
+  getPushPreview,
+  getRequestPreview
 } from "../lib/api-client.js";
 import {
   clearLastPushResult,
@@ -20,16 +22,48 @@ const elements = {
   connectionStatus: document.querySelector("#connectionStatus"),
   settingsButton: document.querySelector("#settingsButton"),
   statusMessage: document.querySelector("#statusMessage"),
+  pushTab: document.querySelector("#pushTab"),
+  requestTab: document.querySelector("#requestTab"),
+  pushPanel: document.querySelector("#pushPanel"),
+  requestPanel: document.querySelector("#requestPanel"),
+  requestInstanceNotSupported: document.querySelector("#requestInstanceNotSupported"),
+  requestNeedsToken: document.querySelector("#requestNeedsToken"),
+  requestFormContainer: document.querySelector("#requestFormContainer"),
+  goToSettingsButton: document.querySelector("#goToSettingsButton"),
   payload: document.querySelector("#payload"),
   selectionHint: document.querySelector("#selectionHint"),
   addSelectionButton: document.querySelector("#addSelectionButton"),
   selectionRow: document.querySelector("#selectionRow"),
+  pushAuthFields: document.querySelector("#pushAuthFields"),
+  pushAuthSummaryNotice: document.querySelector("#pushAuthSummaryNotice"),
+  pushName: document.querySelector("#pushName"),
+  pushNote: document.querySelector("#pushNote"),
   pushButton: document.querySelector("#pushButton"),
   pushUrlButton: document.querySelector("#pushUrlButton"),
   expireAfterDays: document.querySelector("#expireAfterDays"),
   expireAfterViews: document.querySelector("#expireAfterViews"),
   retrievalStep: document.querySelector("#retrievalStep"),
   passphrase: document.querySelector("#passphrase"),
+  pushFileSection: document.querySelector("#pushFileSection"),
+  pushFileInput: document.querySelector("#pushFileInput"),
+  pushChooseFilesButton: document.querySelector("#pushChooseFilesButton"),
+  pushFilesUnavailable: document.querySelector("#pushFilesUnavailable"),
+  pushSelectedFiles: document.querySelector("#pushSelectedFiles"),
+  requestName: document.querySelector("#requestName"),
+  requestMessage: document.querySelector("#requestMessage"),
+  requestNote: document.querySelector("#requestNote"),
+  requestExpireDays: document.querySelector("#requestExpireDays"),
+  requestRetrievalStep: document.querySelector("#requestRetrievalStep"),
+  requestResponseFiles: document.querySelector("#requestResponseFiles"),
+  requestPassphrase: document.querySelector("#requestPassphrase"),
+  requestNotifyEmailsField: document.querySelector("#requestNotifyEmailsField"),
+  requestNotifyEmails: document.querySelector("#requestNotifyEmails"),
+  requestFileSection: document.querySelector("#requestFileSection"),
+  requestFileInput: document.querySelector("#requestFileInput"),
+  requestChooseFilesButton: document.querySelector("#requestChooseFilesButton"),
+  requestFilesUnavailable: document.querySelector("#requestFilesUnavailable"),
+  requestSelectedFiles: document.querySelector("#requestSelectedFiles"),
+  createRequestButton: document.querySelector("#createRequestButton"),
   resultSection: document.querySelector("#resultSection"),
   resultLink: document.querySelector("#resultLink"),
   resultMeta: document.querySelector("#resultMeta"),
@@ -45,7 +79,17 @@ let state = {
   instanceStatus: null,
   lastPushResult: null,
   isBusy: false,
-  isReadingSelection: false
+  isReadingSelection: false,
+  activeTab: "push",
+  requestsSupported: {
+    instanceSupportsRequests: false,
+    hasRequiredToken: false,
+    available: false
+  },
+  pushFilesSupported: false,
+  requestFilesSupported: false,
+  pushSelectedFiles: [],
+  requestSelectedFiles: []
 };
 
 let selectionSnapshot = "";
@@ -59,6 +103,14 @@ applyDocumentI18n();
 
 elements.recheckButton.addEventListener("click", async () => {
   await recheckConnection();
+});
+
+elements.goToSettingsButton.addEventListener("click", () => {
+  chrome.runtime.openOptionsPage();
+});
+
+document.querySelector("#goToSettingsFromPush")?.addEventListener("click", () => {
+  chrome.runtime.openOptionsPage();
 });
 
 elements.settingsButton.addEventListener("click", async () => {
@@ -136,8 +188,94 @@ elements.downloadQrButton.addEventListener("click", async () => {
   await downloadQrPng();
 });
 
+elements.pushTab.addEventListener("click", () => {
+  switchTab("push");
+});
+
+elements.requestTab.addEventListener("click", () => {
+  switchTab("request");
+});
+
+elements.requestMessage.addEventListener("input", () => {
+  updateActionButtons();
+});
+
+elements.createRequestButton.addEventListener("click", async () => {
+  await createRequestFromForm();
+});
+
+elements.pushChooseFilesButton.addEventListener("click", () => {
+  elements.pushFileInput.click();
+});
+
+elements.pushFileInput.addEventListener("change", (event) => {
+  handleFileSelection(event.target.files, "push");
+});
+
+elements.requestChooseFilesButton.addEventListener("click", () => {
+  elements.requestFileInput.click();
+});
+
+elements.requestFileInput.addEventListener("change", (event) => {
+  handleFileSelection(event.target.files, "request");
+});
+
 loadState().catch((error) => {
   setStatus(error.message || t("popupErrorLoadState"), "error");
+});
+
+chrome.storage.onChanged.addListener(async (changes, areaName) => {
+  if (areaName !== "local") {
+    return;
+  }
+
+  if (changes.instanceStatus) {
+    const newStatus = changes.instanceStatus.newValue;
+    if (!newStatus) {
+      return;
+    }
+
+    state.instanceStatus = newStatus;
+    const settings = state.settings || await getSettings();
+    state.requestsSupported = checkRequestsSupport(newStatus, settings);
+    
+    const {pushFilesSupported, requestFilesSupported} = checkFileAttachmentSupport(newStatus, settings);
+    state.pushFilesSupported = pushFilesSupported;
+    state.requestFilesSupported = requestFilesSupported;
+
+    renderConnection(settings, newStatus);
+    updateRequestsAvailability(state.requestsSupported, settings);
+    updateFileAttachmentAvailability(pushFilesSupported, requestFilesSupported, settings);
+    updatePushFieldAvailability(settings);
+    updateActionButtons();
+  }
+
+  if (changes.settings) {
+    const newSettings = changes.settings.newValue;
+    if (!newSettings) {
+      return;
+    }
+
+    const oldSettings = state.settings || {};
+    const baseUrlChanged = oldSettings.baseUrl !== newSettings.baseUrl;
+    const tokenChanged = oldSettings.apiToken !== newSettings.apiToken;
+
+    state.settings = newSettings;
+
+    if (baseUrlChanged || tokenChanged) {
+      const instanceStatus = state.instanceStatus || {};
+      state.requestsSupported = checkRequestsSupport(instanceStatus, newSettings);
+      const {pushFilesSupported, requestFilesSupported} = checkFileAttachmentSupport(instanceStatus, newSettings);
+      state.pushFilesSupported = pushFilesSupported;
+      state.requestFilesSupported = requestFilesSupported;
+
+      renderConnection(newSettings, instanceStatus);
+      updateRequestsAvailability(state.requestsSupported, newSettings);
+      updateFileAttachmentAvailability(pushFilesSupported, requestFilesSupported, newSettings);
+      updatePushFieldAvailability(newSettings);
+      updateActionButtons();
+    }
+  }
 });
 
 async function loadState() {
@@ -147,21 +285,173 @@ async function loadState() {
     getInstanceStatus()
   ]);
 
+  const requestsSupported = checkRequestsSupport(instanceStatus, settings);
+  const {pushFilesSupported, requestFilesSupported} = checkFileAttachmentSupport(instanceStatus, settings);
+
   state = {
     ...state,
     settings,
     instanceStatus,
-    lastPushResult: null
+    lastPushResult: null,
+    requestsSupported,
+    pushFilesSupported,
+    requestFilesSupported,
+    pushSelectedFiles: [],
+    requestSelectedFiles: []
   };
   hydrateAdvancedOptions(settings.lastPushOptions || {});
   renderConnection(settings, instanceStatus);
   renderResult(null);
   await restoreUrlPushCooldown();
   setSelectionButtonVisible(await activeTabHasSelection());
+  updateRequestsAvailability(requestsSupported, settings);
+  updateFileAttachmentAvailability(pushFilesSupported, requestFilesSupported, settings);
+  updatePushFieldAvailability(settings);
   updateActionButtons();
   if (!state.isBusy) {
-    elements.payload.focus();
+    if (state.activeTab === "push") {
+      elements.payload.focus();
+    } else {
+      elements.requestName.focus();
+    }
   }
+}
+
+function checkRequestsSupport(instanceStatus, settings) {
+  const versionData = (instanceStatus || {}).versionData || {};
+  const features = versionData.features || {};
+  const requests = features.requests || {};
+  const hasApiToken = Boolean((settings || {}).apiToken);
+  
+  return {
+    instanceSupportsRequests: requests.enabled === true,
+    hasRequiredToken: hasApiToken,
+    available: requests.enabled === true && hasApiToken
+  };
+}
+
+function checkFileAttachmentSupport(instanceStatus, settings) {
+  const versionData = (instanceStatus || {}).versionData || {};
+  const features = versionData.features || {};
+  const hasApiToken = Boolean((settings || {}).apiToken);
+  
+  const pushes = features.pushes || {};
+  const requests = features.requests || {};
+  
+  const pushFileAttachments = pushes.file_attachments || {};
+  const requestFileAttachments = requests.file_attachments || {};
+  
+  const pushFilesSupported = pushFileAttachments.enabled === true && 
+    (!pushFileAttachments.requires_authentication || hasApiToken);
+  
+  const requestFilesSupported = requestFileAttachments.enabled === true && 
+    (!requestFileAttachments.requires_authentication || hasApiToken);
+  
+  return {pushFilesSupported, requestFilesSupported};
+}
+
+function updateFileAttachmentAvailability(pushFilesSupported, requestFilesSupported, settings) {
+  const hasApiToken = Boolean((settings || {}).apiToken);
+  
+  // Push tab: hide entire file section when no token
+  if (!hasApiToken) {
+    elements.pushFileSection.classList.add("hidden");
+    // Clear any selected files when gating kicks in
+    state.pushSelectedFiles = [];
+    renderSelectedFiles("push");
+  } else {
+    if (pushFilesSupported) {
+      elements.pushFileSection.classList.remove("hidden");
+      elements.pushFilesUnavailable.classList.add("hidden");
+    } else {
+      elements.pushFileSection.classList.remove("hidden");
+      elements.pushFilesUnavailable.classList.remove("hidden");
+      elements.pushFileInput.disabled = true;
+      elements.pushChooseFilesButton.disabled = true;
+    }
+  }
+  
+  if (requestFilesSupported) {
+    elements.requestFileSection.classList.remove("hidden");
+    elements.requestFilesUnavailable.classList.add("hidden");
+  } else {
+    elements.requestFileSection.classList.remove("hidden");
+    if (!hasApiToken) {
+      elements.requestFilesUnavailable.classList.remove("hidden");
+      elements.requestFileInput.disabled = true;
+      elements.requestChooseFilesButton.disabled = true;
+    } else {
+      elements.requestFilesUnavailable.classList.add("hidden");
+      elements.requestFileInput.disabled = false;
+      elements.requestChooseFilesButton.disabled = false;
+    }
+  }
+}
+
+function updatePushFieldAvailability(settings) {
+  const hasApiToken = Boolean((settings || {}).apiToken);
+  
+  if (hasApiToken) {
+    elements.pushAuthFields.classList.remove("hidden");
+    elements.pushAuthSummaryNotice.classList.add("hidden");
+    elements.requestNotifyEmailsField.classList.remove("hidden");
+  } else {
+    elements.pushAuthFields.classList.add("hidden");
+    elements.pushAuthSummaryNotice.classList.remove("hidden");
+    elements.requestNotifyEmailsField.classList.add("hidden");
+  }
+}
+
+function updateRequestsAvailability(requestsSupported, settings) {
+  const {instanceSupportsRequests, hasRequiredToken, available} = requestsSupported;
+  
+  if (available) {
+    elements.requestTab.disabled = false;
+    elements.requestInstanceNotSupported.classList.add("hidden");
+    elements.requestNeedsToken.classList.add("hidden");
+    elements.requestFormContainer.classList.remove("hidden");
+  } else if (instanceSupportsRequests && !hasRequiredToken) {
+    elements.requestTab.disabled = false;
+    elements.requestInstanceNotSupported.classList.add("hidden");
+    elements.requestNeedsToken.classList.remove("hidden");
+    elements.requestFormContainer.classList.add("hidden");
+    if (state.activeTab === "request") {
+      switchTab("push");
+    }
+  } else {
+    elements.requestTab.disabled = false;
+    elements.requestInstanceNotSupported.classList.remove("hidden");
+    elements.requestNeedsToken.classList.add("hidden");
+    elements.requestFormContainer.classList.add("hidden");
+    if (state.activeTab === "request") {
+      switchTab("push");
+    }
+  }
+}
+
+function switchTab(tab) {
+  state.activeTab = tab;
+  
+  if (tab === "push") {
+    elements.pushTab.setAttribute("aria-selected", "true");
+    elements.requestTab.setAttribute("aria-selected", "false");
+    elements.pushTab.classList.add("active");
+    elements.requestTab.classList.remove("active");
+    elements.pushPanel.classList.remove("hidden");
+    elements.requestPanel.classList.add("hidden");
+    elements.payload.focus();
+  } else {
+    elements.pushTab.setAttribute("aria-selected", "false");
+    elements.requestTab.setAttribute("aria-selected", "true");
+    elements.pushTab.classList.remove("active");
+    elements.requestTab.classList.add("active");
+    elements.pushPanel.classList.add("hidden");
+    elements.requestPanel.classList.remove("hidden");
+    elements.requestName.focus();
+  }
+  
+  updateActionButtons();
+  setStatus("");
 }
 
 async function recheckConnection() {
@@ -216,6 +506,13 @@ async function refreshConnection(instanceStatus) {
   state.settings = settings;
   if (instanceStatus) {
     state.instanceStatus = instanceStatus;
+    state.requestsSupported = checkRequestsSupport(instanceStatus, settings);
+    const {pushFilesSupported, requestFilesSupported} = checkFileAttachmentSupport(instanceStatus, settings);
+    state.pushFilesSupported = pushFilesSupported;
+    state.requestFilesSupported = requestFilesSupported;
+    updateRequestsAvailability(state.requestsSupported, settings);
+    updateFileAttachmentAvailability(pushFilesSupported, requestFilesSupported, settings);
+    updatePushFieldAvailability(settings);
   }
   renderConnection(settings, state.instanceStatus || {});
 }
@@ -319,6 +616,44 @@ async function createFromPayloadField() {
   }
 }
 
+async function createRequestFromForm() {
+  if (state.isBusy) {
+    return;
+  }
+
+  let requestMessage = "";
+  try {
+    ensureServerConfigured();
+    if (!state.requestsSupported.available) {
+      throw new Error(t("popupErrorRequestsNotSupported", [], "Requests are not supported on this instance."));
+    }
+    requestMessage = elements.requestMessage.value.trim();
+    if (!requestMessage) {
+      throw new Error(t("popupErrorEmptyRequestMessage", [], "Request message cannot be empty."));
+    }
+  } catch (error) {
+    setStatus(error.message || t("popupErrorRequestCreationFailed", [], "Request creation failed."), "error");
+    return;
+  }
+
+  if (!tryBeginBusy()) {
+    return;
+  }
+
+  try {
+    await createRequestFromMessage(requestMessage);
+    elements.requestMessage.value = "";
+    elements.requestName.value = "";
+    elements.requestNote.value = "";
+    elements.requestPassphrase.value = "";
+    elements.requestNotifyEmails.value = "";
+  } catch (error) {
+    setStatus(error.message || t("popupErrorRequestCreationFailed", [], "Request creation failed."), "error");
+  } finally {
+    endBusy();
+  }
+}
+
 async function addSelectedText() {
   if (state.isBusy || state.isReadingSelection) {
     return;
@@ -392,7 +727,10 @@ async function createPushFromPayload(payload) {
     expireAfterDays: options.expireAfterDays,
     expireAfterViews: options.expireAfterViews,
     retrievalStep: options.retrievalStep,
-    passphrase: options.passphrase
+    passphrase: options.passphrase,
+    name: elements.pushName.value.trim(),
+    note: elements.pushNote.value.trim(),
+    files: state.pushSelectedFiles
   });
 
   if (!createResult.ok) {
@@ -412,8 +750,56 @@ async function createPushFromPayload(payload) {
   };
 
   state.lastPushResult = pushResult;
+  state.pushSelectedFiles = [];
+  renderSelectedFiles("push");
   renderResult(state.lastPushResult);
   setStatus(t("popupPushCreated"), "success");
+}
+
+async function createRequestFromMessage(requestMessage) {
+  const options = getRequestOptions();
+  setStatus(t("popupCreatingRequest", [], "Creating request..."), "info");
+
+  const {settings, instanceStatus} = state;
+  const createResult = await createRequest(requestMessage, {
+    baseUrl: settings.baseUrl,
+    token: settings.apiToken,
+    workspaceId: settings.selectedWorkspaceId || "",
+    instanceType: instanceStatus.instanceType || "unknown",
+    name: options.name,
+    note: options.note,
+    closeAfterDuration: options.closeAfterDuration,
+    retrievalStep: options.retrievalStep,
+    passphrase: options.passphrase,
+    notifyEmailsTo: options.notifyEmailsTo,
+    authenticatedRecipients: options.authenticatedRecipients,
+    notifyRecipients: options.notifyRecipients,
+    includeRequestor: options.includeRequestor,
+    responseFileAttachments: options.responseFileAttachments,
+    files: state.requestSelectedFiles
+  });
+
+  if (!createResult.ok) {
+    throw new Error(createResult.errorMessage || t("popupErrorRequestCreationFailed", [], "Request creation failed."));
+  }
+
+  const data = createResult.data || {};
+  const requestResult = {
+    createdAt: new Date().toISOString(),
+    shareUrl: resolveDisplayedShareUrl(data.shareUrl || "", data.urlToken || "", settings.baseUrl),
+    urlToken: data.urlToken || "",
+    qrSvg: "",
+    qrPngDataUrl: "",
+    expiresAt: data.closes_at || data.expires_at || null,
+    expiresIn: null,
+    viewsRemaining: null
+  };
+
+  state.lastPushResult = requestResult;
+  state.requestSelectedFiles = [];
+  renderSelectedFiles("request");
+  renderResult(state.lastPushResult);
+  setStatus(t("popupRequestCreated", [], "Request created successfully!"), "success");
 }
 
 async function toggleQrForLatestPush() {
@@ -665,6 +1051,153 @@ function getPushOptions() {
   };
 }
 
+function getRequestOptions() {
+  const expireDays = Number.parseInt(elements.requestExpireDays.value, 10) || 7;
+  return {
+    name: elements.requestName.value.trim(),
+    note: elements.requestNote.value.trim(),
+    closeAfterDuration: mapDaysToRequestDuration(expireDays),
+    retrievalStep: elements.requestRetrievalStep.checked,
+    passphrase: elements.requestPassphrase.value.trim(),
+    notifyEmailsTo: elements.requestNotifyEmails.value.trim(),
+    authenticatedRecipients: false,
+    notifyRecipients: Boolean(elements.requestNotifyEmails.value.trim()),
+    includeRequestor: false,
+    responseFileAttachments: elements.requestResponseFiles.checked
+  };
+}
+
+function mapDaysToRequestDuration(days) {
+  if (days === 1) return 6;
+  if (days === 2) return 7;
+  if (days === 3) return 8;
+  if (days === 4) return 9;
+  if (days === 5) return 10;
+  if (days === 6) return 11;
+  if (days === 7) return 12;
+  if (days <= 14) return 13;
+  if (days <= 21) return 14;
+  if (days <= 30) return 15;
+  if (days <= 60) return 16;
+  return 17;
+}
+
+const MAX_FILE_SIZE = 50 * 1024 * 1024;
+const MAX_FILES = 10;
+
+function handleFileSelection(fileList, type) {
+  if (!fileList || fileList.length === 0) {
+    return;
+  }
+
+  const files = Array.from(fileList);
+  const stateKey = type === "push" ? "pushSelectedFiles" : "requestSelectedFiles";
+  const currentFiles = state[stateKey];
+  
+  const totalFiles = currentFiles.length + files.length;
+  if (totalFiles > MAX_FILES) {
+    setStatus(t("popupErrorTooManyFiles", [String(MAX_FILES)], `You can attach up to ${MAX_FILES} files.`), "error");
+    return;
+  }
+
+  const validFiles = [];
+  for (const file of files) {
+    if (file.size > MAX_FILE_SIZE) {
+      setStatus(t("popupErrorFileTooLarge", [file.name, formatFileSize(MAX_FILE_SIZE)], `${file.name} is too large. Maximum size is ${formatFileSize(MAX_FILE_SIZE)}.`), "error");
+      continue;
+    }
+    validFiles.push(file);
+  }
+
+  state[stateKey] = [...currentFiles, ...validFiles];
+  renderSelectedFiles(type);
+  
+  if (type === "push") {
+    elements.pushFileInput.value = "";
+  } else {
+    elements.requestFileInput.value = "";
+  }
+}
+
+function removeFile(type, index) {
+  const stateKey = type === "push" ? "pushSelectedFiles" : "requestSelectedFiles";
+  state[stateKey] = state[stateKey].filter((_, i) => i !== index);
+  renderSelectedFiles(type);
+}
+
+function renderSelectedFiles(type) {
+  const stateKey = type === "push" ? "pushSelectedFiles" : "requestSelectedFiles";
+  const container = type === "push" ? elements.pushSelectedFiles : elements.requestSelectedFiles;
+  const files = state[stateKey];
+  
+  container.textContent = "";
+  
+  if (files.length === 0) {
+    return;
+  }
+
+  files.forEach((file, index) => {
+    const fileEl = document.createElement("div");
+    fileEl.className = "selected-file";
+    
+    const infoEl = document.createElement("div");
+    infoEl.className = "selected-file-info";
+    
+    const iconEl = document.createElement("div");
+    iconEl.className = "selected-file-icon";
+    iconEl.textContent = getFileIcon(file.name);
+    
+    const nameEl = document.createElement("div");
+    nameEl.className = "selected-file-name";
+    nameEl.textContent = file.name;
+    nameEl.title = file.name;
+    
+    const sizeEl = document.createElement("div");
+    sizeEl.className = "selected-file-size";
+    sizeEl.textContent = formatFileSize(file.size);
+    
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "selected-file-remove";
+    removeBtn.textContent = t("popupRemoveFileButton", [], "Remove");
+    removeBtn.addEventListener("click", () => removeFile(type, index));
+    
+    infoEl.appendChild(iconEl);
+    infoEl.appendChild(nameEl);
+    fileEl.appendChild(infoEl);
+    fileEl.appendChild(sizeEl);
+    fileEl.appendChild(removeBtn);
+    container.appendChild(fileEl);
+  });
+}
+
+function formatFileSize(bytes) {
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+}
+
+function getFileIcon(filename) {
+  const ext = filename.split(".").pop().toLowerCase();
+  const icons = {
+    pdf: "📄",
+    doc: "📝",
+    docx: "📝",
+    txt: "📝",
+    jpg: "🖼️",
+    jpeg: "🖼️",
+    png: "🖼️",
+    gif: "🖼️",
+    zip: "📦",
+    rar: "📦",
+    tar: "📦",
+    gz: "📦"
+  };
+  return icons[ext] || "📎";
+}
+
 function ensureServerConfigured() {
   if (!state.settings || !state.settings.baseUrl) {
     throw new Error(t("popupErrorConfigureServerFirst"));
@@ -688,10 +1221,13 @@ function endBusy() {
 
 function updateActionButtons() {
   const hasPayload = Boolean(elements.payload.value.trim());
+  const hasRequestMessage = Boolean(elements.requestMessage.value.trim());
   const locked = state.isBusy || state.isReadingSelection;
+  
   elements.pushButton.disabled = locked || !hasPayload;
   elements.pushUrlButton.disabled = locked || urlPushCoolingDown();
   elements.addSelectionButton.disabled = locked;
+  elements.createRequestButton.disabled = locked || !hasRequestMessage || !state.requestsSupported.available;
 }
 
 function urlPushCoolingDown() {

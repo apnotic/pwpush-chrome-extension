@@ -15,7 +15,7 @@
   "popupTitle": {"message": "Password Pusher"},
   "popupBrandAlt": {"message": "Password Pusher"},
   "popupSettingsButton": {"message": "Configuracion"},
-  "popupSubtitle": {"message": "Comparte enlaces y texto de forma segura con expiracion automatica."},
+  "popupSubtitle": {"message": "Comparte secretos con enlaces que expiran, o solicítalos de forma segura."},
   "popupPushCurrentUrlButton": {"message": "Enviar URL actual"},
   "popupPushCurrentUrlCooldown": {"message": "Enviar URL actual ($1s)"},
   "popupPushButton": {"message": "Enviar"},
@@ -164,5 +164,9 @@
   "apiErrorAuthRequired": {"message": "Se requiere autenticacion para esta solicitud."},
   "apiErrorAccessForbidden": {"message": "Acceso prohibido para esta solicitud."},
   "apiErrorEndpointNotFound": {"message": "No se encontro este endpoint en el servidor seleccionado."},
-  "apiErrorRequestFailedStatus": {"message": "La solicitud fallo con estado $1."}
+  "apiErrorRequestFailedStatus": {"message": "La solicitud fallo con estado $1."},
+  "popupWhatAreRequestsLink": {"message": "¿Qué son las Solicitudes?"},
+  "popupRequestsNeedTokenHeading": {"message": "Las solicitudes requieren un token de API."},
+  "popupRequestsNeedTokenDetails": {"message": "Las solicitudes básicas son gratuitas con cualquier cuenta. Las suscripciones de pago agregan marca, dominios personalizados y archivos adjuntos."},
+  "popupPushAuthSummaryNotice": {"message": "Agregue un token de API en Configuración para desbloquear los campos de Nombre y Nota. Los archivos adjuntos también requieren una suscripción de pago."}
 }

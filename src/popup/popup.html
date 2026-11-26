@@ -16,43 +16,144 @@
           </picture>
           <button id="settingsButton" type="button" class="ghost" data-i18n="popupSettingsButton">Settings</button>
         </div>
-        <p class="subtitle" data-i18n="popupSubtitle">Securely share links and text with expiring pushes.</p>
+        <p class="subtitle" data-i18n="popupSubtitle">Share secrets with expiring links, or request them securely.</p>
       </section>
 
       <section class="card create">
+        <div class="tabs" role="tablist">
+          <button id="pushTab" type="button" role="tab" aria-selected="true" aria-controls="pushPanel" class="tab active" data-i18n="popupPushTabLabel">Push</button>
+          <button id="requestTab" type="button" role="tab" aria-selected="false" aria-controls="requestPanel" class="tab" data-i18n="popupRequestTabLabel">Request</button>
+        </div>
+
         <p id="statusMessage" class="status" role="status" aria-live="polite"></p>
 
-        <label for="payload" data-i18n="popupPayloadLabel">Text</label>
-        <textarea id="payload" name="payload" rows="4" spellcheck="false" autocomplete="off" placeholder="Paste a secret, note, or link" data-i18n-placeholder="popupPayloadPlaceholder"></textarea>
-        <div class="selection-row hidden" id="selectionRow">
-          <button id="addSelectionButton" type="button" class="ghost" data-i18n="popupAddSelectionButton">Add selected text</button>
-        </div>
-        <p id="selectionHint" class="field-hint hidden" data-i18n="popupSelectionAdded">Added from the text selected on this page.</p>
+        <div id="pushPanel" role="tabpanel" aria-labelledby="pushTab">
+          <textarea id="payload" name="payload" rows="4" spellcheck="false" autocomplete="off" placeholder="Paste a secret, note, or link" aria-label="Text" data-i18n-placeholder="popupPayloadPlaceholder" data-i18n-aria-label="popupPayloadLabel"></textarea>
+          <div class="selection-row hidden" id="selectionRow">
+            <button id="addSelectionButton" type="button" class="ghost" data-i18n="popupAddSelectionButton">Add selected text</button>
+          </div>
+          <p id="selectionHint" class="field-hint hidden" data-i18n="popupSelectionAdded">Added from the text selected on this page.</p>
 
-        <div class="push-options" id="advancedOptions">
-          <div class="option-pair">
-            <div>
-              <label for="expireAfterDays" data-i18n="popupExpireAfterDaysLabel">Expire after days</label>
-              <input id="expireAfterDays" type="number" min="1" max="90" value="7">
-            </div>
-            <div>
-              <label for="expireAfterViews" data-i18n="popupExpireAfterViewsLabel">Expire after views</label>
-              <input id="expireAfterViews" type="number" min="1" max="100" value="5">
-            </div>
+          <div id="pushAuthFields" class="auth-fields hidden">
+            <label for="pushName" data-i18n="popupPushNameLabel">Name (optional)</label>
+            <input id="pushName" type="text" placeholder="e.g., Production API Key" data-i18n-placeholder="popupPushNamePlaceholder">
+
+            <label for="pushNote" data-i18n="popupPushNoteLabel">Note (optional)</label>
+            <input id="pushNote" type="text" placeholder="Additional context or instructions" data-i18n-placeholder="popupPushNotePlaceholder">
           </div>
 
-          <label class="checkbox">
-            <input id="retrievalStep" type="checkbox" checked>
-            <span data-i18n="popupRetrievalStepLabel">Require a 1-click retrieval step before full content</span>
-          </label>
+          <div class="push-options" id="advancedOptions">
+            <div class="option-pair">
+              <div>
+                <label for="expireAfterDays" data-i18n="popupExpireAfterDaysLabel">Expire after days</label>
+                <input id="expireAfterDays" type="number" min="1" max="90" value="7">
+              </div>
+              <div>
+                <label for="expireAfterViews" data-i18n="popupExpireAfterViewsLabel">Expire after views</label>
+                <input id="expireAfterViews" type="number" min="1" max="100" value="5">
+              </div>
+            </div>
+
+            <label class="checkbox">
+              <input id="retrievalStep" type="checkbox" checked>
+              <span data-i18n="popupRetrievalStepLabel">Require a 1-click retrieval step before full content</span>
+            </label>
 
           <label for="passphrase" data-i18n="popupPassphraseLabel">Passphrase (optional)</label>
           <input id="passphrase" type="password" autocomplete="off" placeholder="Optional passphrase" data-i18n-placeholder="popupPassphrasePlaceholder">
+
+          <div id="pushFileSection" class="file-section hidden">
+            <label for="pushFileInput" data-i18n="popupFileAttachmentsLabel">File Attachments (optional)</label>
+            <div class="file-input-wrapper">
+              <input id="pushFileInput" type="file" multiple class="file-input">
+              <button id="pushChooseFilesButton" type="button" class="file-button" data-i18n="popupChooseFilesButton">Choose Files</button>
+            </div>
+            <p id="pushFileHint" class="field-hint" data-i18n="popupFileHint">Select files to attach (max 10 files, 50MB each)</p>
+            <div id="pushFilesUnavailable" class="file-unavailable hidden">
+              <p data-i18n="popupFilesRequireAuth">File attachments require authentication and a paid subscription.</p>
+            </div>
+            <div id="pushSelectedFiles" class="selected-files"></div>
+          </div>
         </div>
 
         <div class="action-grid form-actions">
           <button id="pushButton" type="button" class="primary" disabled data-i18n="popupPushButton">Push</button>
           <button id="pushUrlButton" type="button" data-i18n="popupPushCurrentUrlButton">Push Current URL</button>
+        </div>
+
+        <div id="pushAuthSummaryNotice" class="notice hidden">
+          <p data-i18n="popupPushAuthSummaryNotice">Add an API token in Settings to unlock Name and Note fields. File attachments also require a paid subscription.</p>
+          <button id="goToSettingsFromPush" type="button" class="link-button" data-i18n="popupAddApiTokenButton">Add API Token in Settings</button>
+        </div>
+        </div>
+
+        <div id="requestPanel" role="tabpanel" aria-labelledby="requestTab" class="hidden">
+          <div id="requestInstanceNotSupported" class="empty-state hidden" role="status">
+            <p data-i18n="popupRequestsNotSupported">Requests are not supported on this Password Pusher instance. Use the Push tab to create expiring pushes, or configure a Pro instance that supports Requests.</p>
+            <a id="whatAreRequestsLink" href="https://eu.pwpush.com/requests" target="_blank" rel="noopener noreferrer" class="link-button" data-i18n="popupWhatAreRequestsLink">What are Requests?</a>
+          </div>
+          
+          <div id="requestNeedsToken" class="empty-state hidden" role="status" aria-live="polite">
+            <p><strong data-i18n="popupRequestsNeedTokenHeading">Requests require an API token.</strong></p>
+            <p data-i18n="popupRequestsNeedTokenDetails">Basic Requests are free with any account. Paid subscriptions add branding, custom domains and file attachments.</p>
+            <button id="goToSettingsButton" type="button" class="primary" data-i18n="popupAddApiTokenButton">Add API Token in Settings</button>
+          </div>
+
+          <div id="requestFormContainer" class="hidden">
+          <label for="requestName" data-i18n="popupRequestNameLabel">Request Name</label>
+          <input id="requestName" type="text" placeholder="e.g., API Key for Staging" data-i18n-placeholder="popupRequestNamePlaceholder">
+
+          <label for="requestMessage" data-i18n="popupRequestMessageLabel">Request Message</label>
+          <textarea id="requestMessage" name="requestMessage" rows="4" spellcheck="false" autocomplete="off" placeholder="What do you need them to send you?" data-i18n-placeholder="popupRequestMessagePlaceholder"></textarea>
+
+          <label for="requestNote" data-i18n="popupRequestNoteLabel">Note (optional)</label>
+          <input id="requestNote" type="text" placeholder="Additional context" data-i18n-placeholder="popupRequestNotePlaceholder">
+
+          <div class="push-options">
+            <div class="option-pair">
+              <div>
+                <label for="requestExpireDays" data-i18n="popupRequestExpireDaysLabel">Expires in days</label>
+                <input id="requestExpireDays" type="number" min="1" max="90" value="7">
+              </div>
+            </div>
+
+            <label class="checkbox">
+              <input id="requestRetrievalStep" type="checkbox" checked>
+              <span data-i18n="popupRequestRetrievalStepLabel">Require a 1-click retrieval step</span>
+            </label>
+
+            <label class="checkbox">
+              <input id="requestResponseFiles" type="checkbox">
+              <span data-i18n="popupRequestResponseFilesLabel">Allow file attachments in response</span>
+            </label>
+
+            <label for="requestPassphrase" data-i18n="popupRequestPassphraseLabel">Passphrase (optional)</label>
+            <input id="requestPassphrase" type="password" autocomplete="off" placeholder="Optional passphrase" data-i18n-placeholder="popupRequestPassphrasePlaceholder">
+
+            <div id="requestNotifyEmailsField" class="hidden">
+              <label for="requestNotifyEmails" data-i18n="popupRequestNotifyEmailsLabel">Notify emails (optional, paid subscription required)</label>
+              <input id="requestNotifyEmails" type="text" placeholder="email@example.com, another@example.com" data-i18n-placeholder="popupRequestNotifyEmailsPlaceholder">
+              <p class="field-hint" data-i18n="popupRequestNotifyEmailsHint">Email notifications require a paid subscription. The server will reject this request if your account doesn't have access.</p>
+            </div>
+
+            <div id="requestFileSection" class="file-section hidden">
+              <label for="requestFileInput" data-i18n="popupRequestFileAttachmentsLabel">File Attachments to Request (optional)</label>
+              <div class="file-input-wrapper">
+                <input id="requestFileInput" type="file" multiple class="file-input">
+                <button id="requestChooseFilesButton" type="button" class="file-button" data-i18n="popupChooseFilesButton">Choose Files</button>
+              </div>
+              <p id="requestFileHint" class="field-hint" data-i18n="popupFileHint">Select files to attach (max 10 files, 50MB each)</p>
+              <div id="requestFilesUnavailable" class="file-unavailable hidden">
+                <p data-i18n="popupRequestFilesRequireAuth">File attachments on requests require authentication and a paid subscription.</p>
+              </div>
+              <div id="requestSelectedFiles" class="selected-files"></div>
+            </div>
+          </div>
+
+          <div class="action-grid form-actions">
+            <button id="createRequestButton" type="button" class="primary" disabled data-i18n="popupCreateRequestButton">Create Request</button>
+          </div>
+          </div>
         </div>
       </section>
 
