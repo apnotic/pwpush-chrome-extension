@@ -340,6 +340,21 @@ button:disabled {
   color: var(--result-meta);
 }
 
+#copyLinkButton {
+  background: var(--accent);
+  color: var(--on-accent);
+  border: none;
+  font-weight: 500;
+}
+
+#copyLinkButton:hover {
+  background: var(--accent-hover);
+}
+
+#copyLinkButton:active {
+  transform: translateY(1px);
+}
+
 .qr-container {
   margin-top: 8px;
   border: 1px solid var(--card-border);

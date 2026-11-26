@@ -541,12 +541,17 @@ function renderResult(result) {
     renderQrImage(result.qrPngDataUrl);
     elements.downloadQrButton.classList.remove("hidden");
     setQrVisible(true);
-    return;
+  } else {
+    elements.qrContainer.classList.add("hidden");
+    elements.downloadQrButton.classList.add("hidden");
+    setQrVisible(false);
   }
 
-  elements.qrContainer.classList.add("hidden");
-  elements.downloadQrButton.classList.add("hidden");
-  setQrVisible(false);
+  // Scroll result into view and focus the copy button
+  setTimeout(() => {
+    elements.resultSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    elements.copyLinkButton.focus();
+  }, 100);
 }
 
 function hydrateAdvancedOptions(options) {
