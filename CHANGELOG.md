@@ -10,10 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Options Page Layout**: Reorganized to two-column layout on wide screens for better use of space
-  - **Wide viewports (>800px)**: Two-column CSS Grid layout
+  - **Wide viewports (>800px)**: Two-column CSS Grid layout with independent column flow
     - Left column: Brand header + Server selection/configuration card
     - Right column: Detected instance card + About card
     - Max-width: 1280px with 24px gap between columns
+    - Columns flow independently using flexbox (no shared grid rows that cause uneven gaps)
+    - Consistent 24px vertical spacing between all cards
   - **Narrow viewports (≤800px)**: Single-column stacked layout (responsive)
     - Collapses to original single-column design for usability on small screens
   - **Keyboard navigation**: Tab order preserved (left column first, then right column)

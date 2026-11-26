@@ -52,52 +52,69 @@ test.describe("Options page two-column layout", () => {
     // Should have two columns (each around 50% with gap)
     expect(containerDisplay.gridTemplateColumns).toMatch(/\d+px \d+px/);
 
-    // Check "Detected instance" section is in right column
-    const detectedInstancePosition = await page.evaluate(() => {
-      const sections = Array.from(document.querySelectorAll(".container > section"));
-      const detectedSection = sections.find(s => 
+    // Check column layout and vertical gaps
+    const layoutMetrics = await page.evaluate(() => {
+      const leftColumn = document.querySelector(".column-left");
+      const rightColumn = document.querySelector(".column-right");
+      const brand = document.querySelector(".brand");
+      const serverSection = Array.from(document.querySelectorAll("section")).find(s =>
+        s.querySelector("h2")?.textContent.includes("Server selection")
+      );
+      const detectedSection = Array.from(document.querySelectorAll("section")).find(s => 
         s.querySelector("h2")?.textContent.includes("Detected instance")
       );
-      if (!detectedSection) return null;
-      const styles = window.getComputedStyle(detectedSection);
-      const rect = detectedSection.getBoundingClientRect();
-      return {
-        gridColumn: styles.gridColumn,
-        x: rect.x,
-        y: rect.y
-      };
-    });
-
-    expect(detectedInstancePosition).toBeTruthy();
-    expect(detectedInstancePosition.gridColumn).toBe("2 / 3");
-
-    // Check "About" section is in right column
-    const aboutPosition = await page.evaluate(() => {
-      const sections = Array.from(document.querySelectorAll(".container > section"));
-      const aboutSection = sections.find(s => 
+      const aboutSection = Array.from(document.querySelectorAll("section")).find(s => 
         s.querySelector("h2")?.textContent.includes("About Password Pusher")
       );
-      if (!aboutSection) return null;
-      const styles = window.getComputedStyle(aboutSection);
-      const rect = aboutSection.getBoundingClientRect();
+
+      const leftColumnStyles = window.getComputedStyle(leftColumn);
+      const rightColumnStyles = window.getComputedStyle(rightColumn);
+      
+      const brandRect = brand.getBoundingClientRect();
+      const serverRect = serverSection.getBoundingClientRect();
+      const detectedRect = detectedSection.getBoundingClientRect();
+      const aboutRect = aboutSection.getBoundingClientRect();
+
       return {
-        gridColumn: styles.gridColumn,
-        x: rect.x,
-        y: rect.y
+        leftColumn: {
+          display: leftColumnStyles.display,
+          flexDirection: leftColumnStyles.flexDirection,
+          gap: leftColumnStyles.gap,
+          x: leftColumn.getBoundingClientRect().x
+        },
+        rightColumn: {
+          display: rightColumnStyles.display,
+          flexDirection: rightColumnStyles.flexDirection,
+          gap: rightColumnStyles.gap,
+          x: rightColumn.getBoundingClientRect().x
+        },
+        brand: { x: brandRect.x, y: brandRect.y, bottom: brandRect.bottom },
+        server: { x: serverRect.x, y: serverRect.y, bottom: serverRect.bottom },
+        detected: { x: detectedRect.x, y: detectedRect.y, bottom: detectedRect.bottom },
+        about: { x: aboutRect.x, y: aboutRect.y, bottom: aboutRect.bottom },
+        // Calculate gaps
+        gapBrandToServer: serverRect.y - brandRect.bottom,
+        gapDetectedToAbout: aboutRect.y - detectedRect.bottom
       };
     });
 
-    expect(aboutPosition).toBeTruthy();
-    expect(aboutPosition.gridColumn).toBe("2 / 3");
+    // Check columns are flex column
+    expect(layoutMetrics.leftColumn.display).toBe("flex");
+    expect(layoutMetrics.leftColumn.flexDirection).toBe("column");
+    expect(layoutMetrics.leftColumn.gap).toBe("24px");
+    
+    expect(layoutMetrics.rightColumn.display).toBe("flex");
+    expect(layoutMetrics.rightColumn.flexDirection).toBe("column");
+    expect(layoutMetrics.rightColumn.gap).toBe("24px");
 
-    // Both right column items should have similar x position
-    expect(Math.abs(detectedInstancePosition.x - aboutPosition.x)).toBeLessThan(5);
+    // Check columns are side by side
+    expect(layoutMetrics.rightColumn.x).toBeGreaterThan(layoutMetrics.leftColumn.x);
 
-    // About should be below Detected instance
-    expect(aboutPosition.y).toBeGreaterThan(detectedInstancePosition.y);
+    // Check vertical gaps are consistent (24px gap from flex)
+    expect(layoutMetrics.gapBrandToServer).toBeCloseTo(24, 0);
+    expect(layoutMetrics.gapDetectedToAbout).toBeCloseTo(24, 0);
 
-    console.log("Wide layout - Detected instance:", detectedInstancePosition);
-    console.log("Wide layout - About:", aboutPosition);
+    console.log("Wide layout metrics:", layoutMetrics);
 
     await page.screenshot({path: path.join(ARTIFACTS_DIR, "options-wide-1280.png"), fullPage: true});
     await context.close();
@@ -136,48 +153,64 @@ test.describe("Options page two-column layout", () => {
 
     expect(containerDisplay.display).toBe("grid");
     
-    // Check if single column (should not have two distinct column widths)
-    // At narrow width, grid-template-columns should be a single value
+    // Check if single column
     const columnCount = containerDisplay.gridTemplateColumns.split(/\s+/).length;
+    expect(columnCount).toBe(1);
     console.log("Narrow layout - gridTemplateColumns:", containerDisplay.gridTemplateColumns);
-    console.log("Narrow layout - column count:", columnCount);
     
-    // Check all sections are stacked vertically by checking grid-column spans
-    const sectionsLayout = await page.evaluate(() => {
-      const brand = document.querySelector(".container > .brand");
-      const sections = Array.from(document.querySelectorAll(".container > section"));
+    // Check columns stack vertically and gaps remain consistent
+    const layoutMetrics = await page.evaluate(() => {
+      const leftColumn = document.querySelector(".column-left");
+      const rightColumn = document.querySelector(".column-right");
+      const brand = document.querySelector(".brand");
+      const serverSection = Array.from(document.querySelectorAll("section")).find(s =>
+        s.querySelector("h2")?.textContent.includes("Server selection")
+      );
+      const detectedSection = Array.from(document.querySelectorAll("section")).find(s => 
+        s.querySelector("h2")?.textContent.includes("Detected instance")
+      );
+      const aboutSection = Array.from(document.querySelectorAll("section")).find(s => 
+        s.querySelector("h2")?.textContent.includes("About Password Pusher")
+      );
+
+      const leftColumnStyles = window.getComputedStyle(leftColumn);
       
-      const brandStyles = window.getComputedStyle(brand);
-      const brandGridColumn = brandStyles.gridColumn;
-      
+      const brandRect = brand.getBoundingClientRect();
+      const serverRect = serverSection.getBoundingClientRect();
+      const detectedRect = detectedSection.getBoundingClientRect();
+      const aboutRect = aboutSection.getBoundingClientRect();
+      const leftColumnRect = leftColumn.getBoundingClientRect();
+      const rightColumnRect = rightColumn.getBoundingClientRect();
+
       return {
-        brandGridColumn,
-        sectionsGridColumns: sections.map(s => window.getComputedStyle(s).gridColumn),
-        containerWidth: document.querySelector(".container").offsetWidth
+        leftColumn: {
+          gap: leftColumnStyles.gap,
+          x: leftColumnRect.x,
+          y: leftColumnRect.y,
+          width: leftColumnRect.width
+        },
+        rightColumn: {
+          x: rightColumnRect.x,
+          y: rightColumnRect.y,
+          width: rightColumnRect.width
+        },
+        gapBrandToServer: serverRect.y - brandRect.bottom,
+        gapDetectedToAbout: aboutRect.y - detectedRect.bottom,
+        // Check vertical stacking: right column should be below left column
+        leftColumnBottom: leftColumnRect.bottom,
+        rightColumnTop: rightColumnRect.y
       };
     });
 
-    // All items should span full width
-    // At narrow width, they should all use the same grid-column value
-    console.log("Narrow layout - container width:", sectionsLayout.containerWidth);
-    console.log("Narrow layout - grid columns:", sectionsLayout);
-    
-    // If two columns are still present at 600px, that means the media query isn't working
-    // Let's check if columns are equal (indicating responsive didn't work) or stacked
-    if (columnCount === 1) {
-      // Single column - good!
-      expect(sectionsLayout.brandGridColumn).toMatch(/1\s*\/\s*-?1/);
-      sectionsLayout.sectionsGridColumns.forEach(col => {
-        expect(col).toMatch(/1\s*\/\s*-?1/);
-      });
-    } else {
-      // Still two columns - check if they're vertically stacked despite having 2 columns defined
-      // In this case, sections should still span both columns
-      expect(sectionsLayout.brandGridColumn).toMatch(/1\s*\/\s*-?1/);
-      sectionsLayout.sectionsGridColumns.forEach(col => {
-        expect(col).toMatch(/1\s*\/\s*-?1/);
-      });
-    }
+    // Gaps should still be 24px within each column
+    expect(layoutMetrics.leftColumn.gap).toBe("24px");
+    expect(layoutMetrics.gapBrandToServer).toBeCloseTo(24, 0);
+    expect(layoutMetrics.gapDetectedToAbout).toBeCloseTo(24, 0);
+
+    // Right column should be below left column (stacked)
+    expect(layoutMetrics.rightColumnTop).toBeGreaterThanOrEqual(layoutMetrics.leftColumnBottom);
+
+    console.log("Narrow layout metrics:", layoutMetrics);
 
     await page.screenshot({path: path.join(ARTIFACTS_DIR, "options-narrow-600.png"), fullPage: true});
     await context.close();
@@ -209,9 +242,16 @@ test.describe("Options page two-column layout", () => {
       const selector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
       const elements = Array.from(document.querySelectorAll(selector));
       return elements.map(el => {
-        // Find parent section
+        // Find parent section and column
         let section = el.closest("section, header");
+        let column = el.closest(".column-left, .column-right");
         let sectionName = "unknown";
+        let columnName = "unknown";
+        
+        if (column) {
+          columnName = column.classList.contains("column-left") ? "left" : "right";
+        }
+        
         if (section) {
           const heading = section.querySelector("h2");
           if (heading) {
@@ -224,7 +264,8 @@ test.describe("Options page two-column layout", () => {
           tag: el.tagName,
           id: el.id || null,
           type: el.type || null,
-          section: sectionName
+          section: sectionName,
+          column: columnName
         };
       });
     });
@@ -232,25 +273,20 @@ test.describe("Options page two-column layout", () => {
     console.log("Tab order (first 10):", focusableElements.slice(0, 10));
 
     // Check that left column sections appear before right column sections
-    const serverSectionIndex = focusableElements.findIndex(el => 
-      el.section.includes("Server selection")
-    );
-    const detectedInstanceIndex = focusableElements.findIndex(el => 
-      el.section.includes("Detected instance")
-    );
-    const aboutIndex = focusableElements.findIndex(el => 
-      el.section.includes("About Password Pusher")
-    );
+    const leftColumnElements = focusableElements.filter(el => el.column === "left");
+    const rightColumnElements = focusableElements.filter(el => el.column === "right");
+    
+    // Find indices of first element in each column
+    const firstLeftIndex = focusableElements.findIndex(el => el.column === "left");
+    const firstRightIndex = focusableElements.findIndex(el => el.column === "right");
 
-    // Server selection should come before Detected instance
-    if (serverSectionIndex !== -1 && detectedInstanceIndex !== -1) {
-      expect(serverSectionIndex).toBeLessThan(detectedInstanceIndex);
+    // Left column should come first in tab order
+    if (firstLeftIndex !== -1 && firstRightIndex !== -1) {
+      expect(firstLeftIndex).toBeLessThan(firstRightIndex);
     }
 
-    // Detected instance should come before About
-    if (detectedInstanceIndex !== -1 && aboutIndex !== -1) {
-      expect(detectedInstanceIndex).toBeLessThan(aboutIndex);
-    }
+    console.log("Left column elements:", leftColumnElements.length);
+    console.log("Right column elements:", rightColumnElements.length);
 
     await context.close();
   });

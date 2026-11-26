@@ -8,6 +8,7 @@
   </head>
   <body>
     <main class="container">
+      <div class="column-left">
       <header class="brand card">
         <div class="brand-row">
           <picture>
@@ -121,7 +122,9 @@
 
         <p id="statusMessage" class="status" role="status" aria-live="polite"></p>
       </section>
+      </div>
 
+      <div class="column-right">
       <section class="card">
         <h2 data-i18n="optionsDetectedInstanceHeading">Detected instance</h2>
         <dl class="meta">
@@ -154,6 +157,7 @@
           <span data-i18n-html="optionsAboutTip"><strong>Tip:</strong> Add an API token (available under User &rarr; API Tokens) to enable additional features such as Audit Logging, Auto-Dispatch, File Uploads, and more.</span>
         </p>
       </section>
+      </div>
     </main>
 
     <script type="module" src="./options.js"></script>

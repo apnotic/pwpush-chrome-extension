@@ -19,27 +19,14 @@ body {
   grid-template-columns: 1fr 1fr;
   gap: 24px;
   align-items: start;
-  grid-auto-flow: dense;
 }
 
-/* Two-column layout: left column gets first two blocks, right column gets last two */
-.container > .brand {
-  grid-column: 1 / 2;
-}
-
-.container > section:nth-of-type(1) {
-  /* Server selection - stays in left column */
-  grid-column: 1 / 2;
-}
-
-.container > section:nth-of-type(2) {
-  /* Detected instance - moves to right column */
-  grid-column: 2 / 3;
-}
-
-.container > section:nth-of-type(3) {
-  /* About - stays in right column */
-  grid-column: 2 / 3;
+/* Column wrappers: flex column for independent vertical flow */
+.column-left,
+.column-right {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 /* Responsive: single column on narrow viewports */
@@ -47,13 +34,6 @@ body {
   .container {
     grid-template-columns: 1fr;
     max-width: 820px;
-  }
-
-  .container > .brand,
-  .container > section:nth-of-type(1),
-  .container > section:nth-of-type(2),
-  .container > section:nth-of-type(3) {
-    grid-column: 1 / -1 !important;
   }
 }
 
@@ -89,7 +69,6 @@ a:hover {
   border: 1px solid var(--card-border);
   border-radius: 14px;
   padding: 18px;
-  margin-bottom: 16px;
   box-shadow: var(--card-shadow);
 }
 
