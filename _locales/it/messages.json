@@ -136,6 +136,7 @@
   "optionsErrorProvideServerUrl": {"message": "Fornisci un URL server."},
   "optionsErrorHostPermissionDenied": {"message": "Permesso host negato. Questa estensione non puo chiamare quel server."},
   "optionsWorkspaceHelpHostedProOnly": {"message": "La selezione dello spazio di lavoro e disponibile solo per istanze Pro ospitate (us/eu) con token API."},
+  "optionsWorkspaceInvalidNote": {"message": "Lo spazio di lavoro salvato non e piu disponibile. Scegline un altro oppure salva di nuovo per usare quello predefinito."},
   "optionsWorkspaceHelpAddToken": {"message": "Aggiungi un token API per caricare gli spazi di lavoro disponibili."},
   "optionsWorkspaceHelpNoneLoaded": {"message": "Nessuno spazio di lavoro ancora caricato. Clicca Testa connessione."},
   "optionsWorkspaceHelpOne": {"message": "Questo token ha uno spazio di lavoro. Verra usato automaticamente."},
@@ -167,6 +168,6 @@
   "apiErrorRequestFailedStatus": {"message": "Richiesta non riuscita con stato $1."},
   "popupWhatAreRequestsLink": {"message": "Cosa sono le Richieste?"},
   "popupRequestsNeedTokenHeading": {"message": "Le richieste richiedono un token API."},
-  "popupRequestsNeedTokenDetails": {"message": "Le richieste di base sono gratuite con qualsiasi account. Gli abbonamenti a pagamento aggiungono branding, domini personalizzati e allegati."},
-  "popupPushAuthSummaryNotice": {"message": "Aggiungi un token API in Impostazioni per sbloccare i campi Nome e Nota. Gli allegati richiedono anche un abbonamento a pagamento."}
+  "popupRequestsNeedTokenDetails": {"message": "Le richieste richiedono un token API."},
+  "popupPushAuthSummaryNotice": {"message": "Aggiungi un token API in Impostazioni per sbloccare altri campi."}
 }

@@ -43,7 +43,8 @@ async function recheckConfiguredInstance() {
 
   const status = await detectInstance({
     baseUrl: settings.baseUrl,
-    token: settings.apiToken || ""
+    token: settings.apiToken || "",
+    workspaceId: settings.selectedWorkspaceId || ""
   });
 
   await saveInstanceStatus(status);

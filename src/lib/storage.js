@@ -20,6 +20,8 @@ const DEFAULT_INSTANCE_STATUS = {
   applicationVersion: null,
   edition: null,
   instanceType: null,
+  subscription: null,
+  workspaceIdInvalid: false,
   features: {
     supportsWorkspacesApi: "unknown",
     supportsRequestsApi: "unknown"

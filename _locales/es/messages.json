@@ -136,6 +136,7 @@
   "optionsErrorProvideServerUrl": {"message": "Proporciona una URL de servidor."},
   "optionsErrorHostPermissionDenied": {"message": "Se denego el permiso de host. Esta extension no puede llamar a ese servidor."},
   "optionsWorkspaceHelpHostedProOnly": {"message": "La seleccion de espacio de trabajo solo esta disponible para instancias Pro alojadas (us/eu) con token API."},
+  "optionsWorkspaceInvalidNote": {"message": "El espacio de trabajo guardado ya no esta disponible. Elija otro o guarde de nuevo para usar el predeterminado."},
   "optionsWorkspaceHelpAddToken": {"message": "Agrega un token API para cargar espacios de trabajo disponibles."},
   "optionsWorkspaceHelpNoneLoaded": {"message": "Aun no hay espacios de trabajo cargados. Haz clic en Probar conexion."},
   "optionsWorkspaceHelpOne": {"message": "Este token tiene un espacio de trabajo. Se usara automaticamente."},
@@ -167,6 +168,6 @@
   "apiErrorRequestFailedStatus": {"message": "La solicitud fallo con estado $1."},
   "popupWhatAreRequestsLink": {"message": "¿Qué son las Solicitudes?"},
   "popupRequestsNeedTokenHeading": {"message": "Las solicitudes requieren un token de API."},
-  "popupRequestsNeedTokenDetails": {"message": "Las solicitudes básicas son gratuitas con cualquier cuenta. Las suscripciones de pago agregan marca, dominios personalizados y archivos adjuntos."},
-  "popupPushAuthSummaryNotice": {"message": "Agregue un token de API en Configuración para desbloquear los campos de Nombre y Nota. Los archivos adjuntos también requieren una suscripción de pago."}
+  "popupRequestsNeedTokenDetails": {"message": "Las solicitudes requieren un token de API."},
+  "popupPushAuthSummaryNotice": {"message": "Agregue un token de API en Configuracion para desbloquear mas campos."}
 }
