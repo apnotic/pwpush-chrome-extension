@@ -180,6 +180,12 @@ CI workflow: `.github/workflows/chrome-extension-tests.yml`
 
 ---
 
+## Credits
+
+This extension uses the [Inter Variable font](https://rsms.me/inter/) by Rasmus Andersson, licensed under the [SIL Open Font License 1.1](src/fonts/OFL.txt). The font is redistributed in subset form (Latin + Latin-Extended) for optimal file size while supporting all localized versions of the extension.
+
+---
+
 ## Open Source
 
 This extension is part of the Password Pusher ecosystem and is intended to be open-sourced for community use and contribution.

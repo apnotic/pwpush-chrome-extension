@@ -12,6 +12,7 @@ import {
 } from "../lib/storage.js";
 import {applyDocumentI18n, t} from "../lib/i18n.js";
 import {buildPreviewUrl, buildPreviewUrlFromToken, extractFirstSvg, toConfiguredShareUrl} from "./qr-utils.js";
+import {getPushNoTokenNotice, getRequestNoTokenNotice, shouldShowPushAuthNotice} from "../lib/instance-copy.js";
 
 const elements = {
   serverValue: document.querySelector("#serverValue"),
@@ -390,6 +391,12 @@ function updateFileAttachmentAvailability(pushFilesSupported, requestFilesSuppor
 
 function updatePushFieldAvailability(settings) {
   const hasApiToken = Boolean((settings || {}).apiToken);
+  const instanceStatus = state.instanceStatus || {};
+  const versionData = instanceStatus.versionData || {};
+  const edition = versionData.edition || "oss";
+  const features = versionData.features || {};
+  const apiTokenAuthEnabled = features.api_token_authentication !== false;
+  const fileAttachmentsEnabled = Boolean(features.pushes?.file_attachments?.enabled);
   
   if (hasApiToken) {
     elements.pushAuthFields.classList.remove("hidden");
@@ -397,7 +404,24 @@ function updatePushFieldAvailability(settings) {
     elements.requestNotifyEmailsField.classList.remove("hidden");
   } else {
     elements.pushAuthFields.classList.add("hidden");
-    elements.pushAuthSummaryNotice.classList.remove("hidden");
+    
+    // Update notice text based on instance features
+    const noticeText = getPushNoTokenNotice({
+      edition,
+      fileAttachmentsEnabled,
+      apiTokenAuthEnabled
+    });
+    const noticeP = elements.pushAuthSummaryNotice.querySelector("p");
+    if (noticeP) {
+      noticeP.textContent = noticeText;
+    }
+    
+    if (shouldShowPushAuthNotice({hasToken: hasApiToken, apiTokenAuthEnabled})) {
+      elements.pushAuthSummaryNotice.classList.remove("hidden");
+    } else {
+      elements.pushAuthSummaryNotice.classList.add("hidden");
+    }
+    
     elements.requestNotifyEmailsField.classList.add("hidden");
   }
 }
@@ -413,6 +437,34 @@ function updateRequestsAvailability(requestsSupported, settings) {
   } else if (instanceSupportsRequests && !hasRequiredToken) {
     elements.requestTab.disabled = false;
     elements.requestInstanceNotSupported.classList.add("hidden");
+    
+    // Update notice text based on instance features
+    const instanceStatus = state.instanceStatus || {};
+    const versionData = instanceStatus.versionData || {};
+    const edition = versionData.edition || "oss";
+    const features = versionData.features || {};
+    const apiTokenAuthEnabled = features.api_token_authentication !== false;
+    
+    const noticeText = getRequestNoTokenNotice({edition, apiTokenAuthEnabled});
+    
+    // Update the notice content
+    const noticeHeading = elements.requestNeedsToken.querySelector("strong");
+    const noticeDetails = elements.requestNeedsToken.querySelector("p:nth-of-type(2)");
+    
+    if (noticeHeading) {
+      noticeHeading.textContent = "Requests require an API token.";
+    }
+    
+    if (noticeDetails) {
+      // For OSS, hide the details paragraph; for commercial, show it
+      if (edition === "oss") {
+        noticeDetails.style.display = "none";
+      } else {
+        noticeDetails.style.display = "";
+        noticeDetails.textContent = "Basic Requests are free with any account. Paid subscriptions add branding, custom domains and file attachments.";
+      }
+    }
+    
     elements.requestNeedsToken.classList.remove("hidden");
     elements.requestFormContainer.classList.add("hidden");
     if (state.activeTab === "request") {
@@ -541,12 +593,17 @@ function renderResult(result) {
     renderQrImage(result.qrPngDataUrl);
     elements.downloadQrButton.classList.remove("hidden");
     setQrVisible(true);
-    return;
+  } else {
+    elements.qrContainer.classList.add("hidden");
+    elements.downloadQrButton.classList.add("hidden");
+    setQrVisible(false);
   }
 
-  elements.qrContainer.classList.add("hidden");
-  elements.downloadQrButton.classList.add("hidden");
-  setQrVisible(false);
+  // Scroll result into view and focus the copy button
+  setTimeout(() => {
+    elements.resultSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    elements.copyLinkButton.focus();
+  }, 100);
 }
 
 function hydrateAdvancedOptions(options) {
