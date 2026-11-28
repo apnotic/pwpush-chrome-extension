@@ -17,6 +17,8 @@ async function setupServiceWorkerTest({
   const openOptionsPage = vi.fn(async () => {});
   const getSettings = vi.fn(async () => settings);
   const saveInstanceStatus = vi.fn(async (status) => status);
+  const registerContextMenus = vi.fn(async () => {});
+  const handleContextMenuClick = vi.fn(async () => {});
   const detectInstance = detectError
     ? vi.fn(async () => {
       throw detectError;
@@ -36,6 +38,11 @@ async function setupServiceWorkerTest({
           onMessageListener = callback;
         })
       }
+    },
+    contextMenus: {
+      onClicked: {
+        addListener: vi.fn()
+      }
     }
   };
 
@@ -48,6 +55,11 @@ async function setupServiceWorkerTest({
     detectInstance
   }));
 
+  vi.doMock("../../src/lib/context-menu.js", () => ({
+    registerContextMenus,
+    handleContextMenuClick
+  }));
+
   await import("../../src/background/service-worker.js");
 
   return {
@@ -56,7 +68,9 @@ async function setupServiceWorkerTest({
     openOptionsPage,
     getSettings,
     saveInstanceStatus,
-    detectInstance
+    detectInstance,
+    registerContextMenus,
+    handleContextMenuClick
   };
 }
 
@@ -72,6 +86,7 @@ describe("background/service-worker", () => {
     expect(typeof setup.onInstalledListener).toBe("function");
 
     await setup.onInstalledListener({reason: "install"});
+    expect(setup.registerContextMenus).toHaveBeenCalled();
     expect(setup.openOptionsPage).toHaveBeenCalledTimes(1);
   });
 
@@ -81,6 +96,7 @@ describe("background/service-worker", () => {
     });
 
     await setup.onInstalledListener({reason: "update"});
+    expect(setup.registerContextMenus).toHaveBeenCalled();
     expect(setup.openOptionsPage).not.toHaveBeenCalled();
   });
 

@@ -1,11 +1,16 @@
 import {beforeEach, describe, expect, it, vi} from "vitest";
 import {
   clearAllExtensionState,
+  clearContextMenuStash,
   clearLastPushResult,
+  consumeContextMenuStash,
+  CONTEXT_MENU_STASH_TTL_MS,
   getLastPushResult,
   getSettings,
+  peekContextMenuStash,
   saveLastPushResult,
-  saveSettings
+  saveSettings,
+  setContextMenuStash
 } from "../../src/lib/storage.js";
 
 function createStorageApi() {
@@ -154,5 +159,66 @@ describe("storage defaults and merges", () => {
     await clearAllExtensionState();
     expect(storage.sessionMemory.sessionApiToken).toBe(undefined);
     expect(storage.localMemory.settings.apiToken).toBe("");
+  });
+
+  it("defaults instant push selected text to off", async () => {
+    await saveSettings({baseUrl: "https://example.com"});
+    const settings = await getSettings();
+    expect(settings.instantPushSelectedText).toBe(false);
+  });
+
+  it("persists instant push selected text when enabled", async () => {
+    await saveSettings({
+      baseUrl: "https://example.com",
+      instantPushSelectedText: true
+    });
+    const settings = await getSettings();
+    expect(settings.instantPushSelectedText).toBe(true);
+  });
+
+  it("stores context menu stash in session storage only", async () => {
+    await setContextMenuStash({
+      kind: "prefill",
+      source: "selection",
+      payload: "dummy-secret"
+    });
+
+    expect(storage.sessionMemory.contextMenuStash.payload).toBe("dummy-secret");
+    expect(storage.localMemory.contextMenuStash).toBe(undefined);
+
+    const peeked = await peekContextMenuStash();
+    expect(peeked.payload).toBe("dummy-secret");
+
+    const consumed = await consumeContextMenuStash();
+    expect(consumed.payload).toBe("dummy-secret");
+    expect(storage.sessionMemory.contextMenuStash).toBe(undefined);
+
+    const secondRead = await consumeContextMenuStash();
+    expect(secondRead).toBe(null);
+  });
+
+  it("ignores expired context menu stash and clears it on consume", async () => {
+    await setContextMenuStash({
+      kind: "prefill",
+      source: "selection",
+      payload: "stale-secret"
+    });
+    storage.sessionMemory.contextMenuStash.createdAt = Date.now() - CONTEXT_MENU_STASH_TTL_MS - 1;
+
+    expect(await peekContextMenuStash()).toBe(null);
+    expect(await consumeContextMenuStash()).toBe(null);
+    expect(storage.sessionMemory.contextMenuStash).toBe(undefined);
+  });
+
+  it("clears context menu stash on full state reset", async () => {
+    await setContextMenuStash({
+      kind: "prefill",
+      source: "link",
+      payload: "https://example.com/secret"
+    });
+    await clearAllExtensionState();
+    expect(storage.sessionMemory.contextMenuStash).toBe(undefined);
+    await clearContextMenuStash();
+    expect(await peekContextMenuStash()).toBe(null);
   });
 });

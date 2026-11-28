@@ -46,6 +46,7 @@
   "popupRecheckConnected": {"message": "Conectado."},
   "popupErrorRecheckServer": {"message": "No se pudo volver a comprobar el servidor."},
   "popupLinkCopied": {"message": "Enlace copiado."},
+  "popupCopiedToClipboard": {"message": "Copiado al portapapeles"},
   "popupErrorLoadState": {"message": "No se pudo cargar el estado de la extension."},
   "popupReadingCurrentUrl": {"message": "Leyendo URL de la pestana actual..."},
   "popupErrorReadCurrentUrl": {"message": "No se pudo leer la URL de la pestana actual."},
@@ -169,5 +170,21 @@
   "popupWhatAreRequestsLink": {"message": "¿Qué son las Solicitudes?"},
   "popupRequestsNeedTokenHeading": {"message": "Las solicitudes requieren un token de API."},
   "popupRequestsNeedTokenDetails": {"message": "Las solicitudes requieren un token de API."},
-  "popupPushAuthSummaryNotice": {"message": "Agregue un token de API en Configuracion para desbloquear mas campos."}
+  "popupPushAuthSummaryNotice": {"message": "Agregue un token de API en Configuracion para desbloquear mas campos."},
+
+  "contextMenuPushSelectedText": {"message": "Enviar el texto seleccionado…"},
+  "contextMenuPushThisLink": {"message": "Enviar este enlace…"},
+  "contextMenuBadgeReviewTitle": {"message": "Password Pusher: haz clic en el icono de la barra para revisar antes de enviar"},
+  "contextMenuBadgeCopyTitle": {"message": "Password Pusher: haz clic en el icono de la barra para copiar el enlace"},
+  "contextMenuBadgeCopiedTitle": {"message": "Password Pusher: enlace copiado"},
+  "contextMenuBadgeErrorTitle": {"message": "Password Pusher: haz clic en el icono de la barra para ver detalles"},
+  "contextMenuBadgeNoServerTitle": {"message": "Password Pusher: configura un servidor en Configuracion"},
+  "popupPrefillFromSelection": {"message": "Anadido desde el texto que marcaste con el boton derecho."},
+  "popupPrefillFromLink": {"message": "Anadido desde el enlace que marcaste con el boton derecho."},
+  "popupInstantPushCopied": {"message": "Push creado y enlace copiado."},
+  "optionsContextMenuHeading": {"message": "Menus del boton derecho"},
+  "optionsContextMenuIntro": {"message": "Haz clic derecho en texto seleccionado o en un enlace para enviarlo a Password Pusher."},
+  "optionsInstantPushCheckbox": {"message": "Enviar el texto seleccionado de inmediato"},
+  "optionsInstantPushHelp": {"message": "Si esta activado, al hacer clic derecho en texto seleccionado se crea un push al momento con tus valores de caducidad guardados. No se anade frase de contrasena. La extension intenta copiar el enlace. Quien tenga ese enlace puede ver el secreto hasta que caduque. Dejalo desactivado (valor predeterminado) para revisar el texto y las opciones en la ventana emergente. Un clic derecho en un enlace siempre abre esa ventana para confirmar."},
+  "optionsStatusInstantPushSaved": {"message": "Ajuste del boton derecho guardado."}
 }

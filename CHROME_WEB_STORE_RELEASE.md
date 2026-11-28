@@ -17,6 +17,10 @@ This checklist is for publishing this extension as the official Apnotic listing.
 - Verify ZIP contains `manifest.json` at root, `default_locale` in that manifest, and `_locales/<default_locale>/messages.json`.
 - Confirm requested permissions are minimal and justified:
   - `storage`
+  - `activeTab`
+  - `scripting`
+  - `contextMenus`
+  - `offscreen` (no install warning; clipboard copy after instant push)
   - host permissions for Password Pusher endpoints
   - optional host permissions for custom self-hosted instances
 - Confirm extension does not execute remote hosted code.

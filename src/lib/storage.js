@@ -10,7 +10,8 @@ const DEFAULT_SETTINGS = {
     expireAfterViews: 5,
     retrievalStep: true,
     passphrase: ""
-  }
+  },
+  instantPushSelectedText: false
 };
 
 const DEFAULT_INSTANCE_STATUS = {
@@ -43,6 +44,8 @@ const DEFAULT_LAST_PUSH_RESULT = {
 };
 
 const SESSION_API_TOKEN_KEY = "sessionApiToken";
+export const CONTEXT_MENU_STASH_KEY = "contextMenuStash";
+export const CONTEXT_MENU_STASH_TTL_MS = 2 * 60 * 1000;
 
 function workspaceFieldsFromSaved(savedSettings) {
   const availableWorkspaces = Array.isArray(savedSettings.availableWorkspaces)
@@ -90,6 +93,7 @@ export async function getSettings() {
     ...savedSettings,
     apiToken: effectiveApiToken,
     rememberApiToken,
+    instantPushSelectedText: savedSettings.instantPushSelectedText === true,
     ...workspaceFieldsFromSaved(savedSettings),
     lastPushOptions: {
       ...DEFAULT_SETTINGS.lastPushOptions,
@@ -110,6 +114,7 @@ export async function saveSettings(settings) {
     ...settings,
     apiToken: storedApiToken,
     rememberApiToken,
+    instantPushSelectedText: (settings || {}).instantPushSelectedText === true,
     ...workspaceFieldsFromSaved(settings || {}),
     lastPushOptions: {
       ...DEFAULT_SETTINGS.lastPushOptions,
@@ -180,6 +185,53 @@ export async function clearAllExtensionState() {
       instanceStatus: DEFAULT_INSTANCE_STATUS,
       lastPushResult: DEFAULT_LAST_PUSH_RESULT
     }),
-    chrome.storage.session.remove([SESSION_API_TOKEN_KEY])
+    chrome.storage.session.remove([SESSION_API_TOKEN_KEY, CONTEXT_MENU_STASH_KEY])
   ]);
+}
+
+function isFreshStash(stash) {
+  if (!stash || typeof stash !== "object") {
+    return false;
+  }
+
+  const createdAt = Number(stash.createdAt);
+  if (!Number.isFinite(createdAt) || createdAt <= 0) {
+    return false;
+  }
+
+  return Date.now() - createdAt <= CONTEXT_MENU_STASH_TTL_MS;
+}
+
+export async function setContextMenuStash(stash) {
+  const record = {
+    ...(stash || {}),
+    createdAt: Date.now()
+  };
+  await chrome.storage.session.set({[CONTEXT_MENU_STASH_KEY]: record});
+  return record;
+}
+
+export async function peekContextMenuStash() {
+  const result = await chrome.storage.session.get([CONTEXT_MENU_STASH_KEY]);
+  const stash = result[CONTEXT_MENU_STASH_KEY];
+  if (!isFreshStash(stash)) {
+    return null;
+  }
+
+  return stash;
+}
+
+export async function consumeContextMenuStash() {
+  const result = await chrome.storage.session.get([CONTEXT_MENU_STASH_KEY]);
+  const stash = result[CONTEXT_MENU_STASH_KEY];
+  await chrome.storage.session.remove([CONTEXT_MENU_STASH_KEY]);
+  if (!isFreshStash(stash)) {
+    return null;
+  }
+
+  return stash;
+}
+
+export async function clearContextMenuStash() {
+  await chrome.storage.session.remove([CONTEXT_MENU_STASH_KEY]);
 }

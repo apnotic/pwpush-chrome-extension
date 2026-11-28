@@ -3,11 +3,13 @@
   "name": "__MSG_extName__",
   "description": "__MSG_extDescription__",
   "default_locale": "en",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "permissions": [
     "storage",
     "activeTab",
-    "scripting"
+    "scripting",
+    "contextMenus",
+    "offscreen"
   ],
   "host_permissions": [
     "https://oss.pwpush.com/*",

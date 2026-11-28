@@ -46,6 +46,7 @@
   "popupRecheckConnected": {"message": "Verbunden."},
   "popupErrorRecheckServer": {"message": "Server kann nicht erneut geprueft werden."},
   "popupLinkCopied": {"message": "Link kopiert."},
+  "popupCopiedToClipboard": {"message": "In die Zwischenablage kopiert"},
   "popupErrorLoadState": {"message": "Erweiterungsstatus konnte nicht geladen werden."},
   "popupReadingCurrentUrl": {"message": "Lese aktuelle Tab-URL..."},
   "popupErrorReadCurrentUrl": {"message": "Aktuelle Tab-URL konnte nicht gelesen werden."},
@@ -169,5 +170,21 @@
   "popupWhatAreRequestsLink": {"message": "Was sind Anfragen?"},
   "popupRequestsNeedTokenHeading": {"message": "Anfragen erfordern einen API-Token."},
   "popupRequestsNeedTokenDetails": {"message": "Anfragen erfordern einen API-Token."},
-  "popupPushAuthSummaryNotice": {"message": "Fuegen Sie in den Einstellungen einen API-Token hinzu, um weitere Felder freizuschalten."}
+  "popupPushAuthSummaryNotice": {"message": "Fuegen Sie in den Einstellungen einen API-Token hinzu, um weitere Felder freizuschalten."},
+
+  "contextMenuPushSelectedText": {"message": "Markierten Text pushen…"},
+  "contextMenuPushThisLink": {"message": "Diesen Link pushen…"},
+  "contextMenuBadgeReviewTitle": {"message": "Password Pusher: Symbolleiste anklicken, um vor dem Push zu pruefen"},
+  "contextMenuBadgeCopyTitle": {"message": "Password Pusher: Symbolleiste anklicken, um den Link zu kopieren"},
+  "contextMenuBadgeCopiedTitle": {"message": "Password Pusher: Share-Link kopiert"},
+  "contextMenuBadgeErrorTitle": {"message": "Password Pusher: Symbolleiste anklicken fuer Details"},
+  "contextMenuBadgeNoServerTitle": {"message": "Password Pusher: Server in den Einstellungen konfigurieren"},
+  "popupPrefillFromSelection": {"message": "Aus dem per Rechtsklick markierten Text hinzugefuegt."},
+  "popupPrefillFromLink": {"message": "Aus dem per Rechtsklick gewaehlten Link hinzugefuegt."},
+  "popupInstantPushCopied": {"message": "Push erstellt und Link kopiert."},
+  "optionsContextMenuHeading": {"message": "Rechtsklick-Menues"},
+  "optionsContextMenuIntro": {"message": "Per Rechtsklick markierten Text oder einen Link an Password Pusher senden."},
+  "optionsInstantPushCheckbox": {"message": "Markierten Text sofort pushen"},
+  "optionsInstantPushHelp": {"message": "Wenn aktiv, wird markierter Text per Rechtsklick sofort mit den gespeicherten Ablaufwerten gepusht. Es wird keine Passphrase gesetzt. Die Erweiterung versucht danach, den Share-Link zu kopieren. Jeder mit diesem Link kann das Geheimnis sehen, bis es ablaeuft. Standardmaessig aus: Text und Optionen zuerst im Popup pruefen. Ein Rechtsklick auf einen Link oeffnet immer das Popup zur Bestaetigung."},
+  "optionsStatusInstantPushSaved": {"message": "Rechtsklick-Einstellung gespeichert."}
 }
