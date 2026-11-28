@@ -25,6 +25,8 @@ const elements = {
   customUrl: document.querySelector("#customUrl"),
   apiToken: document.querySelector("#apiToken"),
   rememberApiToken: document.querySelector("#rememberApiToken"),
+  instantPushSelectedText: document.querySelector("#instantPushSelectedText"),
+  contextMenuStatus: document.querySelector("#contextMenuStatus"),
   saveButton: document.querySelector("#saveButton"),
   testConnectionButton: document.querySelector("#testConnectionButton"),
   clearSettingsButton: document.querySelector("#clearSettingsButton"),
@@ -105,6 +107,14 @@ async function initialize() {
       elements.workspaceSectionHelp.textContent = t("optionsWorkspaceHelpSelectedFuture");
     }
   });
+
+  elements.instantPushSelectedText.addEventListener("change", async () => {
+    try {
+      await persistInstantPushSetting();
+    } catch (error) {
+      setStatus(error.message || t("optionsErrorInitialize"), "error");
+    }
+  });
 }
 
 function hydrateForm(settings) {
@@ -117,6 +127,7 @@ function hydrateForm(settings) {
   elements.customUrl.value = presetKey === "custom" ? settings.baseUrl : "";
   elements.apiToken.value = settings.apiToken || "";
   elements.rememberApiToken.checked = settings.rememberApiToken !== false;
+  elements.instantPushSelectedText.checked = settings.instantPushSelectedText === true;
   renderWorkspaceOptions(settings.availableWorkspaces || [], settings.selectedWorkspaceId);
 }
 
@@ -228,12 +239,14 @@ async function testConnection(shouldSave) {
 
     if (shouldSave) {
       const savedSettings = await saveSettings({
+        ...existingSettings,
         baseUrl,
         presetKey: userInput.presetKey,
         apiToken: userInput.apiToken,
         rememberApiToken: userInput.rememberApiToken,
         selectedWorkspaceId: workspaceState.selectedWorkspaceId,
-        availableWorkspaces: workspaceState.availableWorkspaces
+        availableWorkspaces: workspaceState.availableWorkspaces,
+        instantPushSelectedText: elements.instantPushSelectedText.checked
       });
       setStatus(workspaceState.statusMessage || t("optionsStatusServerSaved"), "success");
       renderStatusBlock(savedSettings, status);
@@ -547,4 +560,27 @@ function setStatus(message, style) {
   }
 
   elements.statusMessage.textContent = message;
+}
+
+async function persistInstantPushSetting() {
+  const existingSettings = await getSettings();
+  await saveSettings({
+    ...existingSettings,
+    instantPushSelectedText: elements.instantPushSelectedText.checked
+  });
+  setContextMenuStatus(t("optionsStatusInstantPushSaved", [], "Right-click setting saved."), "success");
+}
+
+function setContextMenuStatus(message, style) {
+  const node = elements.contextMenuStatus;
+  if (!node) {
+    setStatus(message, style);
+    return;
+  }
+
+  node.classList.remove("success", "error");
+  if (style) {
+    node.classList.add(style);
+  }
+  node.textContent = message;
 }

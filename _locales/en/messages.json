@@ -210,5 +210,21 @@
   "popupRequestFilesRequireAuth": {"message": "File attachments are unavailable."},
   "popupRemoveFileButton": {"message": "Remove"},
   "popupErrorTooManyFiles": {"message": "You can attach up to $1 files."},
-  "popupErrorFileTooLarge": {"message": "$1 is too large. Maximum size is $2."}
+  "popupErrorFileTooLarge": {"message": "$1 is too large. Maximum size is $2."},
+
+  "contextMenuPushSelectedText": {"message": "Push selected text…"},
+  "contextMenuPushThisLink": {"message": "Push this link…"},
+  "contextMenuBadgeReviewTitle": {"message": "Password Pusher: click the toolbar icon to review before pushing"},
+  "contextMenuBadgeCopyTitle": {"message": "Password Pusher: click the toolbar icon to copy the share link"},
+  "contextMenuBadgeCopiedTitle": {"message": "Password Pusher: share link copied"},
+  "contextMenuBadgeErrorTitle": {"message": "Password Pusher: click the toolbar icon for details"},
+  "contextMenuBadgeNoServerTitle": {"message": "Password Pusher: configure a server in Settings"},
+  "popupPrefillFromSelection": {"message": "Added from the text you right-clicked."},
+  "popupPrefillFromLink": {"message": "Added from the link you right-clicked."},
+  "popupInstantPushCopied": {"message": "Push created and link copied."},
+  "optionsContextMenuHeading": {"message": "Right-click menus"},
+  "optionsContextMenuIntro": {"message": "Right-click selected text or a link on a page to send it to Password Pusher."},
+  "optionsInstantPushCheckbox": {"message": "Push selected text immediately"},
+  "optionsInstantPushHelp": {"message": "When enabled, right-clicking selected text creates a push right away using your saved expiry defaults. No passphrase is added. The extension then tries to copy the share link. Anyone with that link can view the secret until it expires. Leave this off (the default) to review the text and options in the popup first. Right-clicking a link always opens the popup so you can confirm before creating a push."},
+  "optionsStatusInstantPushSaved": {"message": "Right-click setting saved."}
 }

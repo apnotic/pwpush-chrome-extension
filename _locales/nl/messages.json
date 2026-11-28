@@ -169,5 +169,21 @@
   "popupWhatAreRequestsLink": {"message": "Wat zijn Verzoeken?"},
   "popupRequestsNeedTokenHeading": {"message": "Verzoeken vereisen een API-token."},
   "popupRequestsNeedTokenDetails": {"message": "Verzoeken vereisen een API-token."},
-  "popupPushAuthSummaryNotice": {"message": "Voeg een API-token toe in Instellingen om extra velden te gebruiken."}
+  "popupPushAuthSummaryNotice": {"message": "Voeg een API-token toe in Instellingen om extra velden te gebruiken."},
+
+  "contextMenuPushSelectedText": {"message": "Geselecteerde tekst pushen…"},
+  "contextMenuPushThisLink": {"message": "Deze link pushen…"},
+  "contextMenuBadgeReviewTitle": {"message": "Password Pusher: klik op het werkbalkpictogram om te controleren voor het pushen"},
+  "contextMenuBadgeCopyTitle": {"message": "Password Pusher: klik op het werkbalkpictogram om de deellink te kopieren"},
+  "contextMenuBadgeCopiedTitle": {"message": "Password Pusher: deellink gekopieerd"},
+  "contextMenuBadgeErrorTitle": {"message": "Password Pusher: klik op het werkbalkpictogram voor details"},
+  "contextMenuBadgeNoServerTitle": {"message": "Password Pusher: configureer een server in Instellingen"},
+  "popupPrefillFromSelection": {"message": "Toegevoegd vanuit de tekst waarop je rechts klikte."},
+  "popupPrefillFromLink": {"message": "Toegevoegd vanuit de link waarop je rechts klikte."},
+  "popupInstantPushCopied": {"message": "Push gemaakt en link gekopieerd."},
+  "optionsContextMenuHeading": {"message": "Rechtsklikmenu's"},
+  "optionsContextMenuIntro": {"message": "Klik met de rechtermuisknop op geselecteerde tekst of een link om die naar Password Pusher te sturen."},
+  "optionsInstantPushCheckbox": {"message": "Geselecteerde tekst meteen pushen"},
+  "optionsInstantPushHelp": {"message": "Indien ingeschakeld maakt een rechtsklik op geselecteerde tekst meteen een push met je opgeslagen verloopwaarden. Er wordt geen wachtwoordzin toegevoegd. De extensie probeert daarna de deellink te kopieren. Iedereen met die link kan het geheim zien tot het verloopt. Laat dit uit (standaard) om tekst en opties eerst in de popup te controleren. Een rechtsklik op een link opent altijd de popup ter bevestiging."},
+  "optionsStatusInstantPushSaved": {"message": "Rechtsklikinstelling opgeslagen."}
 }

@@ -169,5 +169,21 @@
   "popupWhatAreRequestsLink": {"message": "Que sont les Demandes ?"},
   "popupRequestsNeedTokenHeading": {"message": "Les demandes nécessitent un jeton API."},
   "popupRequestsNeedTokenDetails": {"message": "Les demandes necessitent un jeton API."},
-  "popupPushAuthSummaryNotice": {"message": "Ajoutez un jeton API dans Parametres pour deverrouiller d'autres champs."}
+  "popupPushAuthSummaryNotice": {"message": "Ajoutez un jeton API dans Parametres pour deverrouiller d'autres champs."},
+
+  "contextMenuPushSelectedText": {"message": "Pousser le texte selectionne…"},
+  "contextMenuPushThisLink": {"message": "Pousser ce lien…"},
+  "contextMenuBadgeReviewTitle": {"message": "Password Pusher : cliquez sur l'icone de la barre d'outils pour verifier avant d'envoyer"},
+  "contextMenuBadgeCopyTitle": {"message": "Password Pusher : cliquez sur l'icone de la barre d'outils pour copier le lien"},
+  "contextMenuBadgeCopiedTitle": {"message": "Password Pusher : lien de partage copie"},
+  "contextMenuBadgeErrorTitle": {"message": "Password Pusher : cliquez sur l'icone de la barre d'outils pour les details"},
+  "contextMenuBadgeNoServerTitle": {"message": "Password Pusher : configurez un serveur dans Parametres"},
+  "popupPrefillFromSelection": {"message": "Ajoute a partir du texte selectionne par clic droit."},
+  "popupPrefillFromLink": {"message": "Ajoute a partir du lien selectionne par clic droit."},
+  "popupInstantPushCopied": {"message": "Push cree et lien copie."},
+  "optionsContextMenuHeading": {"message": "Menus du clic droit"},
+  "optionsContextMenuIntro": {"message": "Cliquez avec le bouton droit sur un texte selectionne ou un lien pour l'envoyer a Password Pusher."},
+  "optionsInstantPushCheckbox": {"message": "Pousser le texte selectionne immediatement"},
+  "optionsInstantPushHelp": {"message": "Si active, un clic droit sur un texte selectionne cree un push tout de suite avec vos durees d'expiration enregistrees. Aucune phrase secrete n'est ajoutee. L'extension essaie ensuite de copier le lien. Toute personne disposant de ce lien peut voir le secret jusqu'a expiration. Laissez cette option desactivee (par defaut) pour verifier le texte et les options dans la fenetre. Un clic droit sur un lien ouvre toujours cette fenetre pour confirmer."},
+  "optionsStatusInstantPushSaved": {"message": "Reglage du clic droit enregistre."}
 }

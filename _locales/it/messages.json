@@ -169,5 +169,21 @@
   "popupWhatAreRequestsLink": {"message": "Cosa sono le Richieste?"},
   "popupRequestsNeedTokenHeading": {"message": "Le richieste richiedono un token API."},
   "popupRequestsNeedTokenDetails": {"message": "Le richieste richiedono un token API."},
-  "popupPushAuthSummaryNotice": {"message": "Aggiungi un token API in Impostazioni per sbloccare altri campi."}
+  "popupPushAuthSummaryNotice": {"message": "Aggiungi un token API in Impostazioni per sbloccare altri campi."},
+
+  "contextMenuPushSelectedText": {"message": "Invia il testo selezionato…"},
+  "contextMenuPushThisLink": {"message": "Invia questo link…"},
+  "contextMenuBadgeReviewTitle": {"message": "Password Pusher: fai clic sull'icona della barra per rivedere prima di inviare"},
+  "contextMenuBadgeCopyTitle": {"message": "Password Pusher: fai clic sull'icona della barra per copiare il link"},
+  "contextMenuBadgeCopiedTitle": {"message": "Password Pusher: link copiato"},
+  "contextMenuBadgeErrorTitle": {"message": "Password Pusher: fai clic sull'icona della barra per i dettagli"},
+  "contextMenuBadgeNoServerTitle": {"message": "Password Pusher: configura un server in Impostazioni"},
+  "popupPrefillFromSelection": {"message": "Aggiunto dal testo selezionato con il tasto destro."},
+  "popupPrefillFromLink": {"message": "Aggiunto dal link selezionato con il tasto destro."},
+  "popupInstantPushCopied": {"message": "Push creato e link copiato."},
+  "optionsContextMenuHeading": {"message": "Menu del tasto destro"},
+  "optionsContextMenuIntro": {"message": "Fai clic con il tasto destro su testo selezionato o su un link per inviarlo a Password Pusher."},
+  "optionsInstantPushCheckbox": {"message": "Invia subito il testo selezionato"},
+  "optionsInstantPushHelp": {"message": "Se attivo, un clic destro sul testo selezionato crea subito un push con le scadenze salvate. Non viene aggiunta una passphrase. L'estensione prova poi a copiare il link. Chiunque abbia quel link puo vedere il segreto fino alla scadenza. Lascia l'opzione disattivata (predefinito) per rivedere testo e opzioni nel popup. Un clic destro su un link apre sempre il popup per confermare."},
+  "optionsStatusInstantPushSaved": {"message": "Impostazione del tasto destro salvata."}
 }

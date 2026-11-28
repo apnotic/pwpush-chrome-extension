@@ -1,6 +1,6 @@
 # Chrome Web Store Listing Information
 
-**Last Updated**: November 25, 2026
+**Last Updated**: November 28, 2026
 
 This document tracks all information needed for Chrome Web Store submission and review. It serves as the single source of truth for store listing metadata, permission justifications, and compliance documentation.
 
@@ -10,7 +10,7 @@ This document tracks all information needed for Chrome Web Store submission and 
 
 **Name**: Password Pusher
 
-**Version**: 0.6.0
+**Version**: 0.7.0
 
 **Single Purpose Statement**: 
 Create secure, expiring Password Pusher links and requests directly from the browser without navigating away from the current page.
@@ -31,6 +31,7 @@ The Password Pusher Chrome Extension connects your browser to Password Pusher AP
 
 **What you can do:**
 - **Push text** typed into the popup or selected on any webpage (when you click to add it)
+- **Right-click selected text or a link** to send it to Password Pusher (review first by default)
 - **Push the current tab URL** to share links securely
 - **Create secure requests** to ask others to send you sensitive information (Pro instances with API token)
 - **Attach files** to pushes and requests (Pro instances with paid subscription)
@@ -69,16 +70,20 @@ Every permission and host permission is documented below with a specific, plain-
 - Selected Password Pusher server URL (official hosted service or custom self-hosted instance)
 - Optional API bearer token (stored in browser local storage only, never transmitted elsewhere)
 - Non-sensitive push defaults (expire-after days/views, retrieval step preference)
+- Right-click preference for whether selected text is pushed immediately (off by default)
 - Server capability/version metadata retrieved from API probes
 - Optional workspace selection (for hosted Pro workflows)
 
 The extension does not persist a history of past pushes or push payloads. Settings remain local to the user's browser and are not transmitted to third parties.
 
 #### `activeTab`
-**Why needed**: Read the active tab URL only when the user clicks "Push Current URL" in the popup, and open created push links when the user clicks "Open Link". The extension does not access tab content or URLs automatically in the background.
+**Why needed**: Read the active tab URL only when the user clicks "Push Current URL" in the popup, and open created push links when the user clicks "Open Link". After the user chooses a right-click menu item, Chrome grants temporary access to that tab so an optional immediate push can try to copy the resulting share link. The extension does not access tab content or URLs automatically in the background.
 
 #### `scripting`
-**Why needed**: Inject a small content script on-demand to detect whether the current page has user-selected text, and read that text only when the user explicitly clicks "Add selected text" in the popup. No persistent content scripts run on all pages. Text capture is user-triggered only.
+**Why needed**: Inject a small content script on-demand to detect whether the current page has user-selected text, and read that text only when the user explicitly clicks "Add selected text" in the popup. After the user enables "Push selected text immediately" and uses the selection context menu, inject a same-gesture copy of the created share link on that page. No persistent content scripts run on all pages. Text capture is user-triggered only.
+
+#### `contextMenus`
+**Why needed**: Add two right-click actions on web pages: "Push selected text…" (when text is highlighted) and "Push this link…" (when the user right-clicks a hyperlink). These menus are the only way to start a push from selected page text or a link without opening the popup first. The extension does not add context menus on all contexts (no page, image, or editable menus).
 
 ### Host Permissions
 
@@ -108,10 +113,11 @@ The extension collects and stores locally:
 - Server capability/version metadata retrieved from API probes (including whether Requests and file attachments are supported)
 - Optional workspace selection metadata (for hosted Pro workflows)
 - Non-sensitive push defaults (expire-after days/views, retrieval-step preference)
+- Right-click preference for whether selected text is pushed immediately (off by default)
 
 ### Data NOT Collected or Stored
 - Push or request payload content (text, URLs, or files) is not persisted after creation
-- Selected text from webpages is not stored
+- Selected text and right-clicked links are not stored in local storage. They may be held briefly in session storage until the popup consumes them, they expire (about two minutes), or the browser session ends. They are not logged.
 - Passphrases entered in advanced options are not stored
 - File contents are kept in memory only during upload and cleared immediately after
 - History of past pushes or requests is not retained across popup sessions
@@ -131,11 +137,13 @@ The extension collects and stores locally:
 ### Data Retention
 - Stored extension configuration values remain until the user changes settings, removes extension data, or uninstalls the extension
 - Session-only token values (when "Remember token" is disabled) are cleared at browser session end
+- Right-click payload stashes are session-only and expire if unused
 - Push result metadata is not retained across popup sessions
 
 ### Security
 - The extension does not load remote executable code
-- Selected text capture is user-triggered and on-demand only
+- Selected text capture is user-triggered and on-demand only (popup button or right-click menu)
+- Right-click payloads are never written to local storage and are not logged
 - File selection requires explicit user interaction through native file picker
 - File contents never stored to disk by the extension (memory only during upload)
 - API tokens are stored in Chrome extension storage, inaccessible to other extensions
@@ -154,6 +162,8 @@ TODO: [Peter to provide public privacy policy URL for Chrome Web Store listing]
 2. Popup showing a created push with "Copy Link", "Open Link", and "Show QR" actions
 3. Settings page showing server selection (hosted vs self-hosted) and configuration options
 4. Settings page showing detected instance metadata (server type, API version, capabilities)
+5. Settings page showing the right-click "Push selected text immediately" toggle (off by default)
+6. Popup prefilled from a right-clicked selection or link
 
 **Recommended dimensions**: 1280×800 or 640×400
 
@@ -179,7 +189,14 @@ All icon files exist and are correctly sized.
 
 ## Version History
 
-### v0.6.0 (Current)
+### v0.7.0 (Current)
+- **Right-click push**: "Push selected text…" and "Push this link…" context menus
+- Confirm-first default: selected text or a link is stashed in session storage and the popup opens for review; if the popup cannot open, a toolbar badge asks the user to click the icon
+- Optional Settings toggle **Push selected text immediately** (off by default) creates a push with saved expiry defaults and no passphrase, then tries to copy the share link on the page
+- Link pushes always confirm in the popup, even when the instant-text toggle is on
+- No new permissions besides `contextMenus`
+
+### v0.6.0
 - **Request support** (pull-model): Create secure requests on Pro instances to ask others to send you information
 - **File attachments**: Upload files with pushes and requests (Pro paid tier)
 - **Push name and note fields**: Add optional name/note for organization (requires API token)
@@ -248,11 +265,12 @@ This extension is the official browser companion for Password Pusher, an open so
 5. Makes API calls only to Password Pusher instances (official hosted services or user-configured self-hosted instances)
 6. Does not embed analytics, tracking, or third-party services
 7. Uses runtime host permissions for self-hosted instances to minimize default permissions
-8. **New features (v0.6.0)** add no new manifest permissions:
-   - Requests and file attachments use existing `storage` and `activeTab` permissions
-   - File uploads use browser's native FormData API
-   - File contents kept in memory only during upload, cleared immediately after
-   - Authentication-gated features (name/note, email notifications) show appropriate hints when unavailable
+8. **v0.6.0** added Requests and file attachments with no new manifest permissions
+9. **v0.7.0** adds only the `contextMenus` permission:
+   - Right-click menus appear only for selected text and links
+   - Selected text and link URLs are held in session storage only, then cleared when the popup reads them or when they expire
+   - Instant selected-text push is off by default and never sends a passphrase
+   - Copying a share link after an instant push uses the existing `scripting` and `activeTab` permissions on the tab the user just right-clicked; clipboardWrite is not requested
 
 The optional `https://*/*` host permission is requested at runtime only when users configure a custom server URL, and Chrome's permission UI scopes it to the specific domain entered.
 

@@ -4,8 +4,10 @@ import {
   getPushPreview,
   getRequestPreview
 } from "../lib/api-client.js";
+import {clearActionAttention} from "../lib/context-menu.js";
 import {
   clearLastPushResult,
+  consumeContextMenuStash,
   getInstanceStatus,
   getSettings,
   saveSettings
@@ -293,10 +295,12 @@ chrome.storage.onChanged.addListener(async (changes, areaName) => {
 
 async function loadState() {
   await clearLastPushResult();
-  const [settings, instanceStatus] = await Promise.all([
+  const [settings, instanceStatus, stash] = await Promise.all([
     getSettings(),
-    getInstanceStatus()
+    getInstanceStatus(),
+    consumeContextMenuStash()
   ]);
+  await clearActionAttention();
 
   const requestsSupported = checkRequestsSupport(instanceStatus, settings);
   const {pushFilesSupported, requestFilesSupported} = checkFileAttachmentSupport(instanceStatus, settings);
@@ -320,13 +324,56 @@ async function loadState() {
   updateRequestsAvailability(requestsSupported, settings);
   updateFileAttachmentAvailability(pushFilesSupported, requestFilesSupported, settings);
   updatePushFieldAvailability(settings);
+  applyContextMenuStash(stash);
   updateActionButtons();
-  if (!state.isBusy) {
+  if (!state.isBusy && !stash?.shareUrl) {
     if (state.activeTab === "push") {
       elements.payload.focus();
     } else {
       elements.requestName.focus();
     }
+  }
+}
+
+function applyContextMenuStash(stash) {
+  if (!stash) {
+    return;
+  }
+
+  switchTab("push");
+
+  if (stash.payload) {
+    elements.payload.value = stash.payload;
+    selectionSnapshot = stash.payload;
+    elements.selectionHint.textContent = stash.source === "link"
+      ? t("popupPrefillFromLink", [], "Added from the link you right-clicked.")
+      : t("popupPrefillFromSelection", [], "Added from the text you right-clicked.");
+    setSelectionHintVisible(true);
+  }
+
+  if (stash.kind === "result" && stash.shareUrl) {
+    state.lastPushResult = {
+      createdAt: stash.createdAt ? new Date(stash.createdAt).toISOString() : new Date().toISOString(),
+      shareUrl: stash.shareUrl,
+      urlToken: stash.urlToken || "",
+      qrSvg: "",
+      qrPngDataUrl: "",
+      expiresAt: stash.expiresAt || null,
+      expiresIn: stash.expiresIn || null,
+      viewsRemaining: stash.viewsRemaining ?? null
+    };
+    renderResult(state.lastPushResult);
+    setStatus(
+      stash.copied
+        ? t("popupInstantPushCopied", [], "Push created and link copied.")
+        : t("popupPushCreated"),
+      "success"
+    );
+    return;
+  }
+
+  if (stash.kind === "error") {
+    setStatus(stash.message || t("popupErrorPushCreationFailed"), "error");
   }
 }
 

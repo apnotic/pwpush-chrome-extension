@@ -1,6 +1,6 @@
 # Password Pusher Chrome Extension Privacy Policy
 
-Last updated: 2026-04-23
+Last updated: 2026-11-28
 
 Apnotic LLC provides the Password Pusher Chrome extension.
 
@@ -11,9 +11,11 @@ Apnotic LLC provides the Password Pusher Chrome extension.
 - Server capability/version metadata retrieved from `/api/v2/version` and related API probes.
 - Optional workspace selection metadata (for supported hosted Pro workflows).
 - Non-sensitive push defaults (such as expire-after days/views and retrieval-step preference).
+- Right-click preference for whether selected text is pushed immediately (off by default).
 
 The extension does **not** persist a history/trail of past pushes across popup sessions.
 Pushed payload content and selected text are used only to create a push request and are not stored as retained history in extension local storage.
+Right-clicked selected text and link URLs may be held briefly in Chrome session storage so the popup can prefill them. That stash is cleared as soon as the popup reads it, after a short unused timeout, or when the browser session ends. It is never written to local storage and is not logged.
 Passphrases entered in advanced options are not stored as persistent settings.
 
 ## How data is used
@@ -43,7 +45,8 @@ Passphrases entered in advanced options are not stored as persistent settings.
 ## Security and encryption
 
 - The extension does not load remote executable code.
-- Selected text capture is user-triggered and on-demand only.
+- Selected text capture is user-triggered and on-demand only (popup button or right-click menu).
+- Right-clicked text and links are not persisted beyond the short session stash described above.
 - For Password Pusher platform encryption and security architecture, see:
   - https://docs.pwpush.com/docs/security/
 

@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-28
+
+### Added
+
+- **Right-click menus**: "Push selected text…" (selection) and "Push this link…" (link)
+  - Default confirm-first flow stashes the payload in `chrome.storage.session`, opens the popup for review, and clears the stash after the popup reads it
+  - If `openPopup()` is unavailable, a toolbar badge and title ask the user to click the extension icon
+  - Optional Settings toggle **Push selected text immediately** (off by default) creates a push with saved expiry defaults and no passphrase, then tries to copy the share link on the page
+  - Link pushes always confirm first, even when the instant-text toggle is on
+  - No server configured opens Settings; API/network errors surface via badge and popup
+  - New `contextMenus` permission only; selected text is never written to local storage or logged
+
 ### Changed
 
 - **Options Page Layout**: Reorganized to two-column layout on wide screens for better use of space

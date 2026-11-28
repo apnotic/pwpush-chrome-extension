@@ -122,6 +122,17 @@
 
         <p id="statusMessage" class="status" role="status" aria-live="polite"></p>
       </section>
+
+      <section class="card">
+        <h2 data-i18n="optionsContextMenuHeading">Right-click menus</h2>
+        <p class="section-intro" data-i18n="optionsContextMenuIntro">Right-click selected text or a link on a page to send it to Password Pusher.</p>
+        <label class="inline-checkbox" for="instantPushSelectedText">
+          <input id="instantPushSelectedText" name="instantPushSelectedText" type="checkbox" aria-describedby="instantPushHelp">
+          <span data-i18n="optionsInstantPushCheckbox">Push selected text immediately</span>
+        </label>
+        <p id="instantPushHelp" class="field-help" data-i18n="optionsInstantPushHelp">When enabled, right-clicking selected text creates a push right away using your saved expiry defaults. No passphrase is added. The extension then tries to copy the share link. Anyone with that link can view the secret until it expires. Leave this off (the default) to review the text and options in the popup first. Right-clicking a link always opens the popup so you can confirm before creating a push.</p>
+        <p id="contextMenuStatus" class="status" role="status" aria-live="polite"></p>
+      </section>
       </div>
 
       <div class="column-right">
