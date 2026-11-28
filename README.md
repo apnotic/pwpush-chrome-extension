@@ -40,7 +40,7 @@ Use it with:
 ### Create pushes and requests from browser context
 
 - **Push text** typed into the popup. **Add selected text** copies the page selection only when you click it.
-- **Right-click selected text** to prefill the popup (**Push selected text…**). An optional Settings toggle can create the push immediately with saved expiry defaults and no passphrase.
+- **Right-click selected text** to prefill the popup (**Push selected text…**). An optional Settings toggle can create the push immediately with saved expiry defaults and no passphrase, then copy the share URL.
 - **Right-click a link** to prefill the popup with that URL (**Push this link…**). Link pushes always wait for confirmation in the popup.
 - **Push current URL** from the active tab.
 - **Create secure requests** to ask others to securely send you sensitive information (Pro/Commercial instances only).
@@ -65,7 +65,8 @@ Use it with:
 ### Result handling
 
 - Shows the latest generated share URL (for both Pushes and Requests).
-- One-click copy/open actions.
+- Successful Push actions copy the share URL to the clipboard and show **Copied to clipboard**. The Copy button remains as a manual fallback.
+- Instant selected-text push copies the share URL through a short-lived offscreen document, then shows a brief toolbar badge on success.
 - QR generation and PNG download from the popup.
 
 ---
@@ -160,12 +161,14 @@ CI workflow: `.github/workflows/chrome-extension-tests.yml`
 
 - Required extension permissions:
   - `storage` - persist extension configuration (server URL, optional API token, workspace, and non-sensitive defaults).
-  - `activeTab` - read the active tab URL when you use the popup, and open created links. After a right-click menu action, temporarily access that tab so an immediate push can try to copy the share link.
-  - `scripting` - when the popup opens, ask only whether the page has a selection. Read that text only when you click **Add selected text**. After **Push selected text immediately**, inject a same-gesture copy of the share link on that page when possible.
+  - `activeTab` - read the active tab URL when you use the popup, and open created links. After a right-click menu action, temporarily access that tab for the context-menu flow.
+  - `scripting` - when the popup opens, ask only whether the page has a selection. Read that text only when you click **Add selected text**.
   - `contextMenus` - add **Push selected text…** and **Push this link…** to the browser right-click menu.
+  - `offscreen` - after **Push selected text immediately**, write the created share URL to the clipboard from a short-lived offscreen document, then close it. This permission has no Chrome install warning ([permissions list](https://developer.chrome.com/docs/extensions/reference/permissions-list)). `clipboardWrite` is not requested.
 - Preset host permissions are pre-granted for official cloud endpoints (`oss`, `us`, `eu`).
 - Custom hosts are requested at runtime through optional host permissions (`https://*/*`).
 - Selected-text capture is on-demand only (no persistent all-pages content script). Right-click payloads are held briefly in session storage until the popup reads them or they expire; they are never written to local storage and are not logged.
+- Created share URLs may be written to the system clipboard after a successful push. Clipboard contents are not stored by the extension and are not sent anywhere else.
 - Push/Request payloads and selected text are not persisted by the extension.
 - The popup does not keep a historical trail of past pushes/requests across sessions.
 - Passphrases entered in advanced options are not stored as persistent settings.

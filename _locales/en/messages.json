@@ -46,6 +46,7 @@
   "popupRecheckConnected": {"message": "Connected."},
   "popupErrorRecheckServer": {"message": "Unable to re-check server."},
   "popupLinkCopied": {"message": "Link copied."},
+  "popupCopiedToClipboard": {"message": "Copied to clipboard"},
   "popupErrorLoadState": {"message": "Unable to load extension state."},
   "popupReadingCurrentUrl": {"message": "Reading current tab URL..."},
   "popupErrorReadCurrentUrl": {"message": "Unable to read current tab URL."},

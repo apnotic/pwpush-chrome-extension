@@ -46,6 +46,7 @@
   "popupRecheckConnected": {"message": "Connesso."},
   "popupErrorRecheckServer": {"message": "Impossibile ricontrollare il server."},
   "popupLinkCopied": {"message": "Link copiato."},
+  "popupCopiedToClipboard": {"message": "Copiato negli appunti"},
   "popupErrorLoadState": {"message": "Impossibile caricare lo stato dell'estensione."},
   "popupReadingCurrentUrl": {"message": "Lettura URL della scheda corrente..."},
   "popupErrorReadCurrentUrl": {"message": "Impossibile leggere l'URL della scheda corrente."},

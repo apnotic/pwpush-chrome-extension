@@ -46,6 +46,7 @@
   "popupRecheckConnected": {"message": "Connecte."},
   "popupErrorRecheckServer": {"message": "Impossible de reverifier le serveur."},
   "popupLinkCopied": {"message": "Lien copie."},
+  "popupCopiedToClipboard": {"message": "Copie dans le presse-papiers"},
   "popupErrorLoadState": {"message": "Impossible de charger l'etat de l'extension."},
   "popupReadingCurrentUrl": {"message": "Lecture de l'URL de l'onglet actuel..."},
   "popupErrorReadCurrentUrl": {"message": "Impossible de lire l'URL de l'onglet actuel."},

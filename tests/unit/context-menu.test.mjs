@@ -79,14 +79,18 @@ async function setupContextMenuTest({
   const setBadgeText = vi.fn(async () => {});
   const setBadgeBackgroundColor = vi.fn(async () => {});
   const setTitle = vi.fn(async () => {});
-  const executeScript = vi.fn(async () => [{result: copyResult}]);
+  const sendMessage = vi.fn(async () => ({ok: copyResult}));
+  const createDocument = vi.fn(async () => {});
+  const closeDocument = vi.fn(async () => {});
+  const hasDocument = vi.fn(async () => false);
   const contextMenusCreate = vi.fn(async () => {});
   const contextMenusRemoveAll = vi.fn(async () => {});
 
   global.chrome = {
     runtime: {
       openOptionsPage,
-      getURL: (path) => `chrome-extension://test/${path}`
+      getURL: (path) => `chrome-extension://test/${path}`,
+      sendMessage
     },
     i18n: {
       getMessage: vi.fn(() => "")
@@ -101,8 +105,10 @@ async function setupContextMenuTest({
       setBadgeBackgroundColor,
       setTitle
     },
-    scripting: {
-      executeScript
+    offscreen: {
+      createDocument,
+      closeDocument,
+      hasDocument
     },
     contextMenus: {
       create: contextMenusCreate,
@@ -124,7 +130,9 @@ async function setupContextMenuTest({
     openOptionsPage,
     setBadgeText,
     setTitle,
-    executeScript,
+    sendMessage,
+    createDocument,
+    closeDocument,
     contextMenusCreate,
     contextMenusRemoveAll
   };
@@ -271,7 +279,16 @@ describe("context menus", () => {
     });
     expect(setup.storage.sessionMemory.contextMenuStash.payload).toBe(undefined);
     expect(setup.setBadgeText).toHaveBeenCalledWith({text: "1"});
-    expect(setup.executeScript).toHaveBeenCalled();
+    expect(setup.createDocument).toHaveBeenCalledWith(expect.objectContaining({
+      reasons: ["CLIPBOARD"]
+    }));
+    expect(setup.sendMessage).toHaveBeenCalledWith(expect.objectContaining({
+      type: "copyToClipboard",
+      target: "offscreen",
+      text: "https://oss.pwpush.com/p/dummy-url-token"
+    }));
+    expect(setup.closeDocument).toHaveBeenCalledTimes(1);
+    expect(setup.openPopup).toHaveBeenCalledTimes(1);
   });
 
   it("sets a copied badge when instant push clipboard injection succeeds", async () => {
@@ -293,6 +310,11 @@ describe("context menus", () => {
     expect(setup.storage.sessionMemory.contextMenuStash.copied).toBe(true);
     expect(setup.openPopup).not.toHaveBeenCalled();
     expect(setup.setBadgeText).toHaveBeenCalledWith({text: "OK"});
+    expect(setup.createDocument).toHaveBeenCalledWith(expect.objectContaining({
+      url: "src/offscreen/clipboard.html",
+      reasons: ["CLIPBOARD"]
+    }));
+    expect(setup.closeDocument).toHaveBeenCalledTimes(1);
   });
 
   it("stashes API errors and shows an error badge", async () => {

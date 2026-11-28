@@ -1,4 +1,5 @@
 import {createPush} from "./api-client.js";
+import {copyTextViaOffscreen} from "./clipboard.js";
 import {t} from "./i18n.js";
 import {
   getInstanceStatus,
@@ -197,7 +198,7 @@ async function createInstantPush(payload, source, settings, tab) {
     return;
   }
 
-  const copied = await tryCopyShareUrlOnTab(tab, shareUrl);
+  const copied = await copyTextViaOffscreen(shareUrl);
   const resultStash = {
     kind: "result",
     source,
@@ -270,41 +271,6 @@ async function setActionAttention({text, color, title}) {
   await chrome.action.setBadgeBackgroundColor({color});
   await chrome.action.setBadgeText({text});
   await chrome.action.setTitle({title});
-}
-
-async function tryCopyShareUrlOnTab(tab, shareUrl) {
-  if (!tab?.id || !globalThis.chrome?.scripting?.executeScript) {
-    return false;
-  }
-
-  try {
-    const results = await chrome.scripting.executeScript({
-      target: {tabId: tab.id},
-      func: copyTextWithExecCommand,
-      args: [shareUrl]
-    });
-    return Boolean(results && results[0] && results[0].result);
-  } catch {
-    return false;
-  }
-}
-
-function copyTextWithExecCommand(text) {
-  const textarea = document.createElement("textarea");
-  textarea.value = text;
-  textarea.setAttribute("readonly", "");
-  textarea.style.position = "fixed";
-  textarea.style.left = "-9999px";
-  document.body.append(textarea);
-  textarea.select();
-  let copied = false;
-  try {
-    copied = document.execCommand("copy");
-  } catch {
-    copied = false;
-  }
-  textarea.remove();
-  return copied;
 }
 
 function normalizeHttpUrl(rawValue) {

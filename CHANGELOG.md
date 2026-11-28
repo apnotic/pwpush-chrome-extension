@@ -14,10 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Right-click menus**: "Push selected text…" (selection) and "Push this link…" (link)
   - Default confirm-first flow stashes the payload in `chrome.storage.session`, opens the popup for review, and clears the stash after the popup reads it
   - If `openPopup()` is unavailable, a toolbar badge and title ask the user to click the extension icon
-  - Optional Settings toggle **Push selected text immediately** (off by default) creates a push with saved expiry defaults and no passphrase, then tries to copy the share link on the page
+  - Optional Settings toggle **Push selected text immediately** (off by default) creates a push with saved expiry defaults and no passphrase, then copies the share URL with a short-lived offscreen document (`CLIPBOARD`)
+  - After a successful Push in the popup, the share URL is copied to the clipboard and a "Copied to clipboard" status is shown; the Copy button remains as a manual fallback
   - Link pushes always confirm first, even when the instant-text toggle is on
   - No server configured opens Settings; API/network errors surface via badge and popup
-  - New `contextMenus` permission only; selected text is never written to local storage or logged
+  - New `contextMenus` and `offscreen` permissions; `offscreen` has no Chrome install warning. Selected text is never written to local storage or logged. Share URLs written to the clipboard are not stored or sent elsewhere.
 
 ### Changed
 

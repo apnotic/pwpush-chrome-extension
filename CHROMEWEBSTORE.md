@@ -77,13 +77,16 @@ Every permission and host permission is documented below with a specific, plain-
 The extension does not persist a history of past pushes or push payloads. Settings remain local to the user's browser and are not transmitted to third parties.
 
 #### `activeTab`
-**Why needed**: Read the active tab URL only when the user clicks "Push Current URL" in the popup, and open created push links when the user clicks "Open Link". After the user chooses a right-click menu item, Chrome grants temporary access to that tab so an optional immediate push can try to copy the resulting share link. The extension does not access tab content or URLs automatically in the background.
+**Why needed**: Read the active tab URL only when the user clicks "Push Current URL" in the popup, and open created push links when the user clicks "Open Link". After the user chooses a right-click menu item, Chrome grants temporary access to that tab so selected text can be read for the context-menu flow. The extension does not access tab content or URLs automatically in the background.
 
 #### `scripting`
-**Why needed**: Inject a small content script on-demand to detect whether the current page has user-selected text, and read that text only when the user explicitly clicks "Add selected text" in the popup. After the user enables "Push selected text immediately" and uses the selection context menu, inject a same-gesture copy of the created share link on that page. No persistent content scripts run on all pages. Text capture is user-triggered only.
+**Why needed**: Inject a small content script on-demand to detect whether the current page has user-selected text, and read that text only when the user explicitly clicks "Add selected text" in the popup. No persistent content scripts run on all pages. Text capture is user-triggered only.
 
 #### `contextMenus`
 **Why needed**: Add two right-click actions on web pages: "Push selected text…" (when text is highlighted) and "Push this link…" (when the user right-clicks a hyperlink). These menus are the only way to start a push from selected page text or a link without opening the popup first. The extension does not add context menus on all contexts (no page, image, or editable menus).
+
+#### `offscreen`
+**Why needed**: After the user enables "Push selected text immediately" and uses the selection context menu, create a short-lived offscreen document whose only job is to write the new share URL to the clipboard (`chrome.offscreen` reason `CLIPBOARD`). The document is closed as soon as the copy attempt finishes. This permission does not trigger an install warning (see [Chrome permission warnings](https://developer.chrome.com/docs/extensions/reference/permissions-list): `"offscreen"` has no "Warning displayed" entry; `"clipboardWrite"` would warn "Modify data you copy and paste" and is not requested).
 
 ### Host Permissions
 
@@ -118,6 +121,7 @@ The extension collects and stores locally:
 ### Data NOT Collected or Stored
 - Push or request payload content (text, URLs, or files) is not persisted after creation
 - Selected text and right-clicked links are not stored in local storage. They may be held briefly in session storage until the popup consumes them, they expire (about two minutes), or the browser session ends. They are not logged.
+- Created share URLs may be written to the system clipboard after a successful push so the user can paste them. Clipboard contents are not stored by the extension and are not sent anywhere else.
 - Passphrases entered in advanced options are not stored
 - File contents are kept in memory only during upload and cleared immediately after
 - History of past pushes or requests is not retained across popup sessions
@@ -192,9 +196,10 @@ All icon files exist and are correctly sized.
 ### v0.7.0 (Current)
 - **Right-click push**: "Push selected text…" and "Push this link…" context menus
 - Confirm-first default: selected text or a link is stashed in session storage and the popup opens for review; if the popup cannot open, a toolbar badge asks the user to click the icon
-- Optional Settings toggle **Push selected text immediately** (off by default) creates a push with saved expiry defaults and no passphrase, then tries to copy the share link on the page
+- Optional Settings toggle **Push selected text immediately** (off by default) creates a push with saved expiry defaults and no passphrase, then copies the share URL via a short-lived offscreen document
+- After a successful Push in the popup, the share URL is copied to the clipboard (with a "Copied to clipboard" confirmation); the Copy button remains as a manual fallback
 - Link pushes always confirm in the popup, even when the instant-text toggle is on
-- No new permissions besides `contextMenus`
+- Adds `contextMenus` and `offscreen`. `offscreen` has no Chrome install warning; `clipboardWrite`, `notifications`, and `<all_urls>` are not requested
 
 ### v0.6.0
 - **Request support** (pull-model): Create secure requests on Pro instances to ask others to send you information
@@ -266,11 +271,11 @@ This extension is the official browser companion for Password Pusher, an open so
 6. Does not embed analytics, tracking, or third-party services
 7. Uses runtime host permissions for self-hosted instances to minimize default permissions
 8. **v0.6.0** added Requests and file attachments with no new manifest permissions
-9. **v0.7.0** adds only the `contextMenus` permission:
+9. **v0.7.0** adds `contextMenus` and `offscreen`:
    - Right-click menus appear only for selected text and links
    - Selected text and link URLs are held in session storage only, then cleared when the popup reads them or when they expire
    - Instant selected-text push is off by default and never sends a passphrase
-   - Copying a share link after an instant push uses the existing `scripting` and `activeTab` permissions on the tab the user just right-clicked; clipboardWrite is not requested
+   - Instant-push clipboard copy uses `chrome.offscreen` with reason `CLIPBOARD`, then closes that document. `clipboardWrite` is not requested. `"offscreen"` has no install warning on [Chrome's permission list](https://developer.chrome.com/docs/extensions/reference/permissions-list)
 
 The optional `https://*/*` host permission is requested at runtime only when users configure a custom server URL, and Chrome's permission UI scopes it to the specific domain entered.
 

@@ -220,6 +220,73 @@ test.describe("Context menu right-click push", () => {
     }
   });
 
+  test("confirm-first Push copies the share URL and shows Copied to clipboard", async ({}, testInfo) => {
+    const {context, serviceWorker, extensionId} = await launchExtension(testInfo, "user-data-popup-copied");
+    try {
+      await seedLocalStorage(context, extensionId, {
+        baseUrl: "https://oss.pwpush.com",
+        apiToken: "",
+        instantPushSelectedText: false,
+        lastPushOptions: {
+          expireAfterDays: 7,
+          expireAfterViews: 5,
+          retrievalStep: true
+        }
+      }, OSS_STATUS);
+
+      await invokeContextMenu(serviceWorker, {
+        menuItemId: "pwpush-push-selected-text",
+        selectionText: "dummy-selected-secret"
+      });
+
+      const popup = await openPopup(context, extensionId);
+      await popup.route("https://oss.pwpush.com/**", async (route) => {
+        const request = route.request();
+        if (request.method() === "POST" && request.url().includes("/api/v2/pushes")) {
+          await route.fulfill({
+            status: 201,
+            contentType: "application/json",
+            body: JSON.stringify({
+              url_token: "dummy-url-token",
+              html_url: "https://oss.pwpush.com/p/dummy-url-token",
+              expires_at: "2026-12-05T00:00:00.000Z",
+              views_remaining: 5
+            })
+          });
+          return;
+        }
+        await route.continue();
+      });
+      await popup.evaluate(() => {
+        const clipboard = navigator.clipboard || {};
+        clipboard.writeText = async (text) => {
+          globalThis.__pwpushCopiedText = text;
+        };
+        if (!navigator.clipboard) {
+          Object.defineProperty(navigator, "clipboard", {
+            configurable: true,
+            value: clipboard
+          });
+        }
+      });
+
+      await expect(popup.locator("#payload")).toHaveValue("dummy-selected-secret");
+      await popup.locator("#pushButton").click();
+      await expect(popup.locator("#statusMessage")).toContainText("Copied to clipboard");
+      await expect(popup.locator("#copyLinkButton")).toBeVisible();
+      await expect(popup.locator("#resultLink")).toContainText("dummy-url-token");
+      const copiedText = await popup.evaluate(() => globalThis.__pwpushCopiedText);
+      expect(copiedText).toContain("/p/dummy-url-token");
+      await popup.screenshot({
+        path: path.join(ARTIFACTS_DIR, "context-menu-popup-copied-to-clipboard.png"),
+        fullPage: true
+      });
+      await popup.close();
+    } finally {
+      await context.close();
+    }
+  });
+
   test("instant push success shows the result in the popup", async ({}, testInfo) => {
     const {context, serviceWorker, extensionId} = await launchExtension(testInfo, "user-data-instant-success");
     try {
@@ -244,8 +311,83 @@ test.describe("Context menu right-click push", () => {
       await expect(popup.locator("#resultSection")).toBeVisible();
       await expect(popup.locator("#resultLink")).toContainText("dummy-url-token");
       await expect(popup.locator("#copyLinkButton")).toBeVisible();
+      if (result.stash.copied) {
+        expect(result.badgeText).toBe("OK");
+        await expect(popup.locator("#statusMessage")).toContainText("Copied to clipboard");
+      } else {
+        expect(result.badgeText).toBe("1");
+      }
       await popup.screenshot({
         path: path.join(ARTIFACTS_DIR, "context-menu-instant-push-result.png"),
+        fullPage: true
+      });
+
+      const badgePage = await context.newPage();
+      await badgePage.setContent(`<!doctype html>
+        <html><body style="font-family:sans-serif;padding:32px;background:#0f172a;color:#e2e8f0">
+          <h1>Instant push success</h1>
+          <p>Copied: <strong id="copied"></strong></p>
+          <p>Badge text: <strong id="badgeText"></strong></p>
+          <p>Badge title: <strong id="badgeTitle"></strong></p>
+          <p>Share URL: <strong id="shareUrl"></strong></p>
+        </body></html>`);
+      await badgePage.evaluate(({copied, badgeText, badgeTitle, shareUrl}) => {
+        document.querySelector("#copied").textContent = String(copied);
+        document.querySelector("#badgeText").textContent = badgeText;
+        document.querySelector("#badgeTitle").textContent = badgeTitle;
+        document.querySelector("#shareUrl").textContent = shareUrl;
+      }, {
+        copied: result.stash.copied,
+        badgeText: result.badgeText,
+        badgeTitle: result.badgeTitle,
+        shareUrl: result.stash.shareUrl
+      });
+      await badgePage.screenshot({
+        path: path.join(ARTIFACTS_DIR, "context-menu-instant-push-success.png"),
+        fullPage: true
+      });
+      await badgePage.close();
+      await popup.close();
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("instant-push copied stash shows Copied to clipboard", async ({}, testInfo) => {
+    const {context, extensionId} = await launchExtension(testInfo, "user-data-instant-copied-stash");
+    try {
+      await seedLocalStorage(context, extensionId, {
+        baseUrl: "https://oss.pwpush.com",
+        apiToken: "",
+        instantPushSelectedText: true
+      }, OSS_STATUS);
+
+      const seedPage = await context.newPage();
+      await seedPage.goto(`chrome-extension://${extensionId}/manifest.json`);
+      await seedPage.evaluate(() => {
+        return new Promise((resolve) => {
+          chrome.storage.session.set({
+            contextMenuStash: {
+              kind: "result",
+              source: "selection",
+              shareUrl: "https://oss.pwpush.com/p/dummy-url-token",
+              urlToken: "dummy-url-token",
+              expiresAt: "2026-12-05T00:00:00.000Z",
+              viewsRemaining: 5,
+              copied: true,
+              createdAt: Date.now()
+            }
+          }, () => resolve());
+        });
+      });
+      await seedPage.close();
+
+      const popup = await openPopup(context, extensionId);
+      await expect(popup.locator("#resultSection")).toBeVisible();
+      await expect(popup.locator("#statusMessage")).toContainText("Copied to clipboard");
+      await expect(popup.locator("#copyLinkButton")).toBeVisible();
+      await popup.screenshot({
+        path: path.join(ARTIFACTS_DIR, "context-menu-instant-push-copied.png"),
         fullPage: true
       });
       await popup.close();

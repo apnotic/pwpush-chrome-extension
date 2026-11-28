@@ -46,6 +46,7 @@
   "popupRecheckConnected": {"message": "Verbunden."},
   "popupErrorRecheckServer": {"message": "Server kann nicht erneut geprueft werden."},
   "popupLinkCopied": {"message": "Link kopiert."},
+  "popupCopiedToClipboard": {"message": "In die Zwischenablage kopiert"},
   "popupErrorLoadState": {"message": "Erweiterungsstatus konnte nicht geladen werden."},
   "popupReadingCurrentUrl": {"message": "Lese aktuelle Tab-URL..."},
   "popupErrorReadCurrentUrl": {"message": "Aktuelle Tab-URL konnte nicht gelesen werden."},

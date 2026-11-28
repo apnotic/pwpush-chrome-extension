@@ -4,6 +4,7 @@ import {
   getPushPreview,
   getRequestPreview
 } from "../lib/api-client.js";
+import {copyTextWithClipboardApi} from "../lib/clipboard.js";
 import {clearActionAttention} from "../lib/context-menu.js";
 import {
   clearLastPushResult,
@@ -173,8 +174,10 @@ elements.copyLinkButton.addEventListener("click", async () => {
     return;
   }
 
-  await navigator.clipboard.writeText(trustedShareUrl);
-  setStatus(t("popupLinkCopied"), "success");
+  const copied = await copyTextWithClipboardApi(trustedShareUrl);
+  if (copied) {
+    setStatus(t("popupCopiedToClipboard", [], "Copied to clipboard"), "success");
+  }
 });
 
 elements.openLinkButton.addEventListener("click", async () => {
@@ -365,7 +368,7 @@ function applyContextMenuStash(stash) {
     renderResult(state.lastPushResult);
     setStatus(
       stash.copied
-        ? t("popupInstantPushCopied", [], "Push created and link copied.")
+        ? t("popupCopiedToClipboard", [], "Copied to clipboard")
         : t("popupPushCreated"),
       "success"
     );
@@ -920,7 +923,13 @@ async function createPushFromPayload(payload) {
   state.pushSelectedFiles = [];
   renderSelectedFiles("push");
   renderResult(state.lastPushResult);
-  setStatus(t("popupPushCreated"), "success");
+  const copied = await copyTextWithClipboardApi(pushResult.shareUrl);
+  setStatus(
+    copied
+      ? t("popupCopiedToClipboard", [], "Copied to clipboard")
+      : t("popupPushCreated"),
+    "success"
+  );
 }
 
 async function createRequestFromMessage(requestMessage) {

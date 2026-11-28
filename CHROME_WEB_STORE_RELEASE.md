@@ -20,6 +20,7 @@ This checklist is for publishing this extension as the official Apnotic listing.
   - `activeTab`
   - `scripting`
   - `contextMenus`
+  - `offscreen` (no install warning; clipboard copy after instant push)
   - host permissions for Password Pusher endpoints
   - optional host permissions for custom self-hosted instances
 - Confirm extension does not execute remote hosted code.

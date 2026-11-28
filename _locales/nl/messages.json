@@ -46,6 +46,7 @@
   "popupRecheckConnected": {"message": "Verbonden."},
   "popupErrorRecheckServer": {"message": "Server opnieuw controleren is mislukt."},
   "popupLinkCopied": {"message": "Link gekopieerd."},
+  "popupCopiedToClipboard": {"message": "Gekopieerd naar het klembord"},
   "popupErrorLoadState": {"message": "Kan extensiestatus niet laden."},
   "popupReadingCurrentUrl": {"message": "Huidige tab-URL lezen..."},
   "popupErrorReadCurrentUrl": {"message": "Kan huidige tab-URL niet lezen."},

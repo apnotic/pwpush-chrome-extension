@@ -46,6 +46,7 @@
   "popupRecheckConnected": {"message": "Conectado."},
   "popupErrorRecheckServer": {"message": "No se pudo volver a comprobar el servidor."},
   "popupLinkCopied": {"message": "Enlace copiado."},
+  "popupCopiedToClipboard": {"message": "Copiado al portapapeles"},
   "popupErrorLoadState": {"message": "No se pudo cargar el estado de la extension."},
   "popupReadingCurrentUrl": {"message": "Leyendo URL de la pestana actual..."},
   "popupErrorReadCurrentUrl": {"message": "No se pudo leer la URL de la pestana actual."},
